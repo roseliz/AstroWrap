@@ -1,2 +1,8 @@
-# Module topography_morphometry (les dépendances communes sont dans requirements.txt à la racine)
-rasterio>=1.3            # MNT en GeoTIFF (tuiles Copernicus, mosaïques MOLA et LOLA)
+# Runtime dependencies of the topography_morphometry module (Python >= 3.10).
+# Install with: pip install -r modules_pretraitement/topography_morphometry/requirements.txt
+h3>=4.0,<5          # H3 grid (v4 API: latlng_to_cell, grid_disk, cell_to_boundary...)
+numpy>=1.26         # Raster arithmetic and per-cell statistics
+pandas>=2.1         # Output tables and crater catalogs
+pyarrow>=15         # Parquet output with schema metadata
+duckdb>=1.0         # One DuckDB database per body, rebuilt from the Parquet files
+rasterio>=1.3       # GeoTIFF DEMs (Copernicus tiles, MOLA and LOLA mosaics)

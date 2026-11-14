@@ -1,9 +1,10 @@
-h3>=4.0
+# Dependencies shared by all preprocessing modules.
+h3>=4.0,<5
 numpy>=1.26
 pandas>=2.1
 pyarrow>=15
 duckdb>=1.0
-ipykernel>=6.29
+ipykernel>=6.29     # Jupyter kernel for exploring the outputs in notebooks
 
+# Module-specific dependencies.
 -r topography_morphometry/requirements.txt
-
