@@ -1,8 +1,9 @@
 """Active modules, in the default order of the funnel."""
 
+from .thermal import Thermal
 from .topography import Topography
 
-MODULES = [Topography()]
+MODULES = [Topography(), Thermal()]
 BY_KEY = {m.key: m for m in MODULES}
 
 
