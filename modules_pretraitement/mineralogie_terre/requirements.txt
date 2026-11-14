@@ -1,0 +1,12 @@
+# Runtime dependencies of the mineralogie_terre module (Python >= 3.10).
+# Install with: pip install -r modules_pretraitement/mineralogie_terre/requirements.txt
+h3>=4.0,<5          # Audit site cells (merge.py)
+numpy>=1.26
+pandas>=2.1
+pyarrow>=15         # Parquet output with schema metadata
+duckdb>=1.0         # Joins and H3 indexing (community h3 extension, installed on first use)
+earthaccess>=0.9    # NASA Earthdata: login, downloads, S3 tokens
+h5py>=3.8           # EMIT L2B and L2A files (netCDF4 / HDF5)
+netCDF4>=1.6        # EMIT L3 ASA
+requests>=2.31      # CMR search (catalog.py)
+boto3>=1.28         # AWS only: direct S3 reads (us-west-2), result upload, SSM parameters

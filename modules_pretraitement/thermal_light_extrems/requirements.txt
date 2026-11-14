@@ -1,0 +1,5 @@
+# Module thermal_light_extrems (les dépendances communes sont dans requirements.txt à la racine)
+earthaccess>=0.9         # MODIS et MERRA-2 : recherche et téléchargement (compte NASA Earthdata)
+pyhdf>=0.11              # MOD11C3 / MYD11C3 en HDF4
+xarray>=2024.1           # MERRA-2 et MCD en netCDF
+netCDF4>=1.6
