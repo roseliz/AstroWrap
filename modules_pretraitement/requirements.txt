@@ -10,3 +10,6 @@ ipykernel>=6.29     # Jupyter kernel for exploring the outputs in notebooks
 -r topography_morphometry/requirements.txt
 -r volatiles_hydrology_ice/requirements.txt
 -r astrobiology_habitability_caves/requirements.txt
+-r thermal_light_extrems/requirements.txt
+-r wind_erosion_atmosphere/requirements.txt
+
