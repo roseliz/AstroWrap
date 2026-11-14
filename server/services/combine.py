@@ -25,7 +25,7 @@ import numpy as np
 
 from ..core import config
 from . import earth as earth_mod
-from . import footprint, zones
+from . import footprint, impact, zones
 from .scoring.registry import BY_KEY, for_body
 
 MIN_CONFIDENCE = 0.6
@@ -102,7 +102,7 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
     n_steps = len(active) + 2
     events.append(step("start", None, 0, n_steps, int(alive.sum()), "Land cells"))
     keep = np.ones(len(T.cells), dtype=bool)
-    for name, k in (("max_vegetation", "vegetation"), ("max_urban", "urban")):
+    for name, k in (("max_vegetation", "vegetation"), ("max_urban", "urban"), ("max_protected", "protected")):
         threshold = filters.get(name)
         if threshold is not None and k in T.filters:
             keep &= ~(T.filters[k] > threshold)         # without data: kept
@@ -137,7 +137,7 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
 
     # ---------------------------------------------------------------- area against area
     k = footprint.rings(tiles, body)
-    sims_f, rel_f, water, _ = footprint.similarities(T, refs, active, pool, k)
+    sims_f, rel_f, water, means_f = footprint.similarities(T, refs, active, pool, k, impact.extras(T))
     measured_f = sum(np.where(np.isfinite(sims_f[c]), w[c], 0.0) for c in active) / max(sum(w[c] for c in active), 1e-12)
 
     events.append({"type": "done", "cells_remaining": int(final.sum()), "message": "Ranking done"})
@@ -166,6 +166,7 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
             "reliability_per_module": {c: rounded(rel_f[c], 2) for c in active},
             "water_share": rounded(water, 3),
             "cell_score_per_module": {c: rounded(sims[c][pool], 3) for c in active},
+            "impact": impact.public(T, pool, means_f, rounded),
         },
         "duration_s": round(time.time() - t0, 2),
     }
@@ -230,6 +231,8 @@ def filters_message(f):
         p.append(f"vegetation ≤ {round(100 * f['max_vegetation'])}%")
     if f.get("max_urban") is not None:
         p.append(f"urban areas ≤ {round(100 * f['max_urban'])}%")
+    if f.get("max_protected") is not None:
+        p.append(f"protected areas ≤ {round(100 * f['max_protected'])}%")
     return "Filters: " + ", ".join(p) if p else "No filter"
 
 

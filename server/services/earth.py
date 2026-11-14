@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import h3
 import numpy as np
 
-from . import db
+from . import db, impact
 from .scoring.registry import MODULES
 
 
@@ -23,7 +23,9 @@ def to_ints(cells) -> np.ndarray:
 class Earth:
     cells: np.ndarray                                    # sorted uint64
     modules: dict = field(default_factory=dict)          # key -> EarthData
-    filters: dict = field(default_factory=dict)          # vegetation, urban: float32 (n,)
+    filters: dict = field(default_factory=dict)          # vegetation, urban, protected: float32 (n,)
+    impact: dict = field(default_factory=dict)           # protected, strict, airport_km, mines (services/impact.py)
+    impact_sources: dict = field(default_factory=dict)
     region_parents: np.ndarray = None                    # resolution-3 cell of each cell (funnel animation)
     region_order: np.ndarray = None                      # cells sorted by region
     load_s: float = 0.0
@@ -62,6 +64,9 @@ def load() -> Earth:
             x = np.full(len(T.cells), np.nan, dtype=np.float32)
             x[pos] = data[col]
             T.filters[k] = x
+    impact.load(T, to_ints)
+    if "protected" in T.impact:
+        T.filters["protected"] = T.impact["protected"]
     T.region_parents = np.fromiter((h3.str_to_int(h3.cell_to_parent(h3.int_to_str(int(c)), 3)) for c in T.cells),
                                    dtype=np.uint64, count=len(T.cells))
     T.region_order = np.argsort(T.region_parents, kind="stable")
@@ -102,5 +107,5 @@ def earth(wait_s: float = 300) -> Earth:
 def status() -> dict:
     if _earth is not None:
         return {"ready": True, "earth_cells": int(len(_earth.cells)), "modules": list(_earth.modules),
-                "load_s": _earth.load_s}
+                "load_s": _earth.load_s, "impact": sorted(_earth.impact)}
     return {"ready": False, "error": str(_error) if _error else None}

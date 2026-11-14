@@ -29,6 +29,7 @@ Cells = Annotated[List[str], AfterValidator(not_empty)]
 class Filters(BaseModel):
     max_vegetation: Optional[float] = Field(None, ge=0, le=1, description="maximum share of dense vegetation")
     max_urban: Optional[float] = Field(None, ge=0, le=1, description="maximum share of urban areas")
+    max_protected: Optional[float] = Field(None, ge=0, le=1, description="maximum share of protected areas (WDPA)")
 
 
 class SearchRequest(BaseModel):

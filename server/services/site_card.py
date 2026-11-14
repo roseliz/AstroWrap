@@ -7,7 +7,7 @@ import math
 
 import h3
 
-from . import db, places
+from . import db, impact, places
 
 K = 273.15
 
@@ -54,6 +54,10 @@ CARD = [
         ("part_karst", "Karst", lambda v: 100 * v, "%"),
         ("part_mine", "Mines", lambda v: 100 * v, "%"),
     ]),
+    ("Field campaign", "environmental_impact", "environmental_impact", "", [
+        ("part_protegee", "Protected area", lambda v: 100 * v, "%"),
+        ("part_protegee_stricte", "Strictly protected (IUCN Ia, Ib, II)", lambda v: 100 * v, "%"),
+    ]),
 ]
 GROUPS = [("Rocks", "geology_mineralogy", "litho_"), ("Minerals (EMIT)", "geology_mineralogy", "comp_")]
 # Class names used in the module's columns -> readable English names
@@ -64,7 +68,7 @@ CLASS_NAMES = {"basalte": "basalt", "volcanique_felsique": "felsic volcanic", "p
                "impact": "impact", "pyroxene": "pyroxene", "olivine": "olivine", "feldspath": "feldspar",
                "mafique_autre": "other mafic", "argile_al": "Al clays", "argile_fe_mg": "Fe-Mg clays", "mica": "mica",
                "sulfate": "sulfates", "silice_hydratee": "hydrated silica", "sel": "salts", "autre_mineral": "other"}
-ORDER = ["Climate", "Terrain", "Ground", "Wind", "Water and ice", "Caves and volcanoes"]
+ORDER = ["Climate", "Terrain", "Ground", "Wind", "Water and ice", "Caves and volcanoes", "Field campaign"]
 
 
 def site_card(cell: str) -> dict:
@@ -102,6 +106,9 @@ def site_card(cell: str) -> dict:
         text = [f"{CLASS_NAMES.get(n, n.replace('_', ' '))} {round(100 * v)}%" for v, n in shares if v >= 0.05][:3]
         if text:
             sections.setdefault("Ground", []).insert(0, {"label": section, "value": ", ".join(text), "unit": ""})
+    airport, sources = nearest_airport(cell)
+    if airport:
+        sections.setdefault("Field campaign", []).append(airport)
     return {
         "h3": cell,
         "lat": round(lat, 4),
@@ -109,5 +116,24 @@ def site_card(cell: str) -> dict:
         "area_km2": round(h3.cell_area(cell, "km^2"), 1),
         "place": places.place(lat, lon),
         "sections": [{"name": s, "items": sections[s]} for s in ORDER if s in sections],
+        "sources": sources,
     }
 
+
+def nearest_airport(cell: str):
+    """("nearest airport" row of the card, sources to cite); (None, {}) without the impact module."""
+    f = impact.parquet_file()
+    if not f.is_file():
+        return None, {}
+    present = set(db.columns(f))
+    src = impact.sources(f)
+    sources = {"protected_areas": impact.citation(src)} if src.get("aires_protegees") else {}
+    if not {"aeroport_nom", "aeroport_code", "distance_aeroport_km"} <= present:
+        return None, sources
+    r = db.cursor().execute("SELECT aeroport_nom, aeroport_code, distance_aeroport_km FROM read_parquet(?) WHERE h3 = ?",
+                            [str(f), cell]).fetchone()
+    if not r or r[2] is None or not math.isfinite(r[2]):
+        return None, sources
+    sources["airports"] = "OurAirports (public domain)"
+    return {"label": "Nearest airport with scheduled flights", "value": f"{r[0]} ({r[1]}), {round(r[2]):,} km",
+            "unit": ""}, sources
