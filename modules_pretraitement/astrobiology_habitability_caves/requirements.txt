@@ -1,0 +1,5 @@
+# Module astrobiology_habitability_caves (les dépendances communes sont dans requirements.txt à la racine)
+geopandas>=1.0           # polygones des mines (GeoPackage) et terres émergées de Natural Earth
+pyogrio>=0.9
+rasterio>=1.3            # rasterisation des terres émergées
+requests>=2.31          # WOKAM (BGR) : son certificat n est reconnu que par requests
