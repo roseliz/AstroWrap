@@ -1,0 +1,8 @@
+# Module wind_erosion_atmosphere (les dépendances communes sont dans requirements.txt à la racine)
+earthaccess>=0.9         # Terre : MERRA-2, VIIRS, MODIS (compte NASA Earthdata)
+pyhdf>=0.11              # Terre : MCD12C1 en HDF4
+xarray>=2024.1           # MERRA-2, VIIRS, MCD, Montabone en netCDF
+netCDF4>=1.6
+geopandas>=1.0           # contours des champs de dunes
+pyogrio>=0.9
+rasterio>=1.3            # Terre : carte mondiale des dunes (GeoTIFF)
