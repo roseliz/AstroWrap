@@ -58,3 +58,7 @@ class DetailRequest(BaseModel):
 class ZoneRequest(BaseModel):
     body: Body
     h3_cells: Cells = Field(description="H3 cells of the area, compacted or not (resolution 6, as in the interface)")
+
+
+class NamesRequest(BaseModel):
+    cells: List[str] = Field(max_length=100, description="Earth cells (resolution 5) to name, at most 100")

@@ -2,10 +2,11 @@
 
 import re
 
+import h3
 from fastapi import APIRouter, HTTPException
 
-from ..schemas.search import DetailRequest, SearchRequest, ZoneRequest
-from ..services import combine, zones
+from ..schemas.search import DetailRequest, NamesRequest, SearchRequest, ZoneRequest
+from ..services import combine, places, site_card, zones
 
 router = APIRouter(prefix="/api", tags=["search"])
 
@@ -17,6 +18,12 @@ def _call(f, *a, **k):
         raise HTTPException(status_code=422, detail=str(e))
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e))
+
+
+def _valid_cell(cell: str) -> str:
+    if not h3.is_valid_cell(cell):
+        raise HTTPException(status_code=422, detail=f"invalid H3 cell: {cell}")
+    return cell
 
 
 @router.post("/search")
@@ -41,4 +48,22 @@ def get_zone(ident: str):
     if z is None:
         raise HTTPException(status_code=404, detail="unknown area")
     return z
+
+
+@router.get("/site/{cell}")
+def site(cell: str):
+    """Card of an Earth cell: place name (Natural Earth, OpenStreetMap) and module values."""
+    return _call(site_card.site_card, _valid_cell(cell))
+
+
+@router.post("/names")
+def names(r: NamesRequest):
+    """Quick place names of many Earth cells (Natural Earth regions and countries, no online lookup): the interface
+    names its list of sites at once, then GET /api/site gives the full card of the site that is opened."""
+    out = {}
+    for c in r.cells:
+        p = places.place(*h3.cell_to_latlng(_valid_cell(c)), online=False)
+        out[c] = {"name": p["name"], "country": p["country"],
+                  "kind": "region" if p["natural_regions"] else "country" if p["country"] else None}
+    return {"names": out}
 
