@@ -1,16 +1,16 @@
-"""Outils communs aux modules (importés depuis modules_pretraitement/*/scripts)."""
+"""Common tools for modules (imported from modules_pretraitement/*/scripts)."""
 from __future__ import annotations
 
 from pathlib import Path
 
 
 def reconstruire_duckdb(dossier: Path, corps: str) -> Path:
-    """Recrée <dossier>/<corps>.duckdb à partir de tous les Parquet du corps dans le dossier
-    (une table par fichier, du même nom).
+    """Recreates `<folder>/<body>.duckdb` from all body Parquet files in the directory
+    (one table per file, with the same name).
 
-    Le fichier DuckDB n'est qu'une copie des Parquet : on le refait entièrement à chaque écriture. Cela
-    évite l'erreur « database file created with a newer version of DuckDB » quand le dossier vient d'une
-    autre machine (Windows, Colab) dont DuckDB est plus récent que celui de .venv."""
+    The DuckDB file is simply a copy of the Parquet files: it is completely rebuilt on every write. This
+    avoids the "database file created with a newer version of DuckDB" error when the folder comes from
+    another machine (Windows, Colab) whose DuckDB version is newer than the one in `.venv`."""
     import duckdb
     dossier = Path(dossier)
     base = dossier / f"{corps}.duckdb"
