@@ -1,0 +1,6 @@
+# Module mineralogie_terre (les dépendances communes sont dans requirements.txt à la racine)
+earthaccess>=0.9         # NASA Earthdata : recherche CMR, téléchargement, jetons S3
+h5py>=3.8                # lecture des fichiers EMIT (netCDF4 / HDF5)
+netCDF4>=1.6             # EMIT L3 ASA
+requests>=2.31           # recherche CMR (catalogue.py)
+boto3>=1.28              # AWS : lecture directe S3 (us-west-2), écriture des résultats, paramètres SSM
