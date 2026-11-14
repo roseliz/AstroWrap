@@ -3,9 +3,10 @@
 from .geology import Geology
 from .thermal import Thermal
 from .topography import Topography
+from .volatiles import Volatiles
 from .wind import Wind
 
-MODULES = [Topography(), Geology(), Thermal(), Wind()]
+MODULES = [Topography(), Geology(), Thermal(), Wind(), Volatiles()]
 BY_KEY = {m.key: m for m in MODULES}
 
 
