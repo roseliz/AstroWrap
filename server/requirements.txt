@@ -1,0 +1,12 @@
+# Server of the application: requirements independent from the other parts (modules, ui).
+# Python 3.9 to 3.12.
+fastapi>=0.115
+uvicorn[standard]>=0.30     # ASGI server
+pydantic>=2.7               # request and response schemas
+numpy>=1.24
+duckdb>=1.1                 # queries on the Parquet files of pretreatment_data/<module>/ (not the .duckdb files)
+pyarrow>=14
+h3>=4.1
+pyshp>=2.3                  # Natural Earth layers (region and country names)
+rasterio>=1.3               # 3D view: terrain models read in pieces (GDAL)
+pillow                      # 3D view: image tiles
