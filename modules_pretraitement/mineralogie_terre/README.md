@@ -9,7 +9,7 @@ For each H3 cell (resolution 5) of the arid regions: the fraction of pixels wher
 | NASA EMIT L2B MIN v002, MIN and MINUNCERT files (60 m), [10.5067/EMIT/EMITL2BMIN.002](https://doi.org/10.5067/EMIT/EMITL2BMIN.002) | Identified mineral, band depth, fit score, uncertainty | NASA open data; cite the DOI |
 | NASA EMIT L2A MASK v003, [10.5067/EMIT/EMITL2AMASK.003](https://doi.org/10.5067/EMIT/EMITL2AMASK.003) | Clouds (SpecTf), cirrus, water | NASA open data; cite the DOI |
 | NASA EMIT L3 ASA v002 (0.5°), [10.5067/EMIT/EMITL3ASA.002](https://doi.org/10.5067/EMIT/EMITL3ASA.002) | Extent of the arid zone, coarse abundances | NASA open data; cite the DOI |
-| EMIT mineral grouping matrix (`data/mineral_grouping_matrix_20230503.csv`), repository [emit-sds/emit-sds-l2b](https://github.com/emit-sds/emit-sds-l2b) | Library entry → 10 minerals | Apache 2.0 (`data/LICENSE_emit-sds-l2b.txt`); kept unchanged |
+| EMIT mineral grouping matrix (`mineral_grouping_matrix_20230503.csv`), repository [emit-sds/emit-sds-l2b](https://github.com/emit-sds/emit-sds-l2b) | Library entry → 10 minerals | [Apache 2.0](https://github.com/emit-sds/emit-sds-l2b/blob/main/LICENSE); downloaded on first use from commit `fba6018` into `cache/mineralogie_terre/emit_sds_l2b/`, SHA-256 checked |
 | EMIT L2B v002 library entries 295 to 312 (`mineral_id_matrix_v6.00a6.csv`), missing from the 2023 matrix | Hematite and goethite nano-phases and mixtures | Fractions deduced from the USGS sample names (`V002_ADDITIONS` in `scripts/families.py`) |
 
 Reference sites used to check the thresholds (`scripts/sites.py`, with the source of each one):
@@ -23,7 +23,6 @@ Access to NASA data needs a free Earthdata account. Set `EARTHDATA_USERNAME` and
 
 ```text
 requirements.txt              Python dependencies of the module
-data/                         Official EMIT grouping matrix and its Apache 2.0 licence (unchanged)
 scripts/run.py                Entry point: runs one step (see "Running")
 scripts/catalog.py            CMR search of every EMIT L2B granule (metadata only)
 scripts/selection.py          Granules -> H3 cells, the K best per cell (arid zone, clouds <= 30 %)
@@ -32,7 +31,7 @@ scripts/batch.py              Loop over a list of granules: download, count, del
 scripts/calibration_list.py   Granules of the calibration zones
 scripts/calibration.py        Threshold evaluation and validation on the reference sites
 scripts/merge.py              Per-granule counts -> final table, audit site check
-scripts/families.py           The 6 families and their weight per library entry
+scripts/families.py           The 6 families, their weight per library entry, and the matrix download
 scripts/thresholds.py         Frozen detection thresholds
 scripts/sites.py              Calibration zones, calibration sites and audit sites, with sources
 scripts/l3.py                 EMIT L3 reader (GeoTransform grid: the file's lat axis is shifted by 0.5°)

@@ -1,10 +1,10 @@
 """The 10 validated EMIT minerals grouped into 6 families, and the weight of each family per library entry.
 
 Source: the official EMIT mineral grouping matrix (repository emit-sds/emit-sds-l2b,
-data/mineral_grouping_matrix_20230503.csv, Apache 2.0), kept unchanged in data/ with its licence. For each
-entry of the spectral library (the `Index` given by group_1_mineral_id and group_2_mineral_id), it gives the
-fraction of each of the 10 minerals in the reference sample. The weight of a family is the sum of the
-fractions of its minerals.
+data/mineral_grouping_matrix_20230503.csv, Apache 2.0). It is downloaded once from a pinned commit into the
+module cache, and its SHA-256 is checked. For each entry of the spectral library (the `Index` given by
+group_1_mineral_id and group_2_mineral_id), it gives the fraction of each of the 10 minerals in the
+reference sample. The weight of a family is the sum of the fractions of its minerals.
 
 EMIT L2B v002 adds 18 library entries (295 to 312, from mineral_id_matrix_v6.00a6.csv) that are missing
 from the 2023 matrix: they are completed in V002_ADDITIONS below.
@@ -12,13 +12,22 @@ from the 2023 matrix: they are completed in V002_ADDITIONS below.
 
 from __future__ import annotations
 
+import hashlib
+import sys
+import urllib.request
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-GROUPING_MATRIX = DATA_DIR / "mineral_grouping_matrix_20230503.csv"
+from utils import CACHE_DIR
+
+GROUPING_MATRIX_NAME = "mineral_grouping_matrix_20230503.csv"
+GROUPING_MATRIX_COMMIT = "fba601868fe630f4e119b71175558ed39dbe49aa"     # last upstream change, 2023-05-18
+GROUPING_MATRIX_URL = (f"https://raw.githubusercontent.com/emit-sds/emit-sds-l2b/{GROUPING_MATRIX_COMMIT}/"
+                       f"data/{GROUPING_MATRIX_NAME}")
+GROUPING_MATRIX_SHA256 = "582f3c1d4dc670d90ccfa0dbffa6710d6ffbd0d38df6b6a772219c7ee4350a73"
+GROUPING_MATRIX = CACHE_DIR / "emit_sds_l2b" / GROUPING_MATRIX_NAME
 
 FAMILIES = ["oxyde_fer", "argile_al", "argile_fe_mg", "mica", "carbonate", "sulfate"]
 MINERALS = {
@@ -57,9 +66,32 @@ V002_ADDITIONS = [
 ]
 
 
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def grouping_matrix(path: Path = GROUPING_MATRIX) -> Path:
+    """Path of the official grouping matrix, downloaded from the pinned commit on first use and checked."""
+    if not path.is_file():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        partial = path.with_name(path.name + ".part")
+        try:
+            print(f"Downloading the EMIT grouping matrix ({GROUPING_MATRIX_COMMIT[:7]})...", flush=True)
+            urllib.request.urlretrieve(GROUPING_MATRIX_URL, partial)
+        except OSError as e:
+            partial.unlink(missing_ok=True)
+            sys.exit(f"EMIT grouping matrix: download failed ({e}). Download {GROUPING_MATRIX_URL} "
+                     f"manually and save it as {path}")
+        partial.replace(path)
+    if _sha256(path) != GROUPING_MATRIX_SHA256:
+        path.unlink()
+        sys.exit(f"EMIT grouping matrix: unexpected content (SHA-256 mismatch), {path} deleted; run again")
+    return path
+
+
 def weight_table() -> pd.DataFrame:
     """One row per library entry: index, groupe (1 or 2), nom, weight of each family (0 to 1)."""
-    m = pd.read_csv(GROUPING_MATRIX)
+    m = pd.read_csv(grouping_matrix())
     m[ALL_MINERALS] = m[ALL_MINERALS].fillna(0.0)
     official = m[["Index", "Group", "Name", *ALL_MINERALS]].rename(
         columns={"Index": "index", "Group": "groupe", "Name": "nom"})
