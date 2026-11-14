@@ -1,0 +1,5 @@
+# astrobiology_habitability_caves module (common dependencies are in the root requirements.txt)
+geopandas>=1.0           
+pyogrio>=0.9
+rasterio>=1.3         
+requests>=2.31         
