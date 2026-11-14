@@ -1,0 +1,22 @@
+{
+  "name": "analogues-terrestres",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interface of the Terrestrial Analogs project (NASA Space Apps Challenge 2026): find the places on Earth that look like an area of the Moon or Mars.",
+  "scripts": {
+    "start": "node scripts/demarrer.mjs",
+    "client": "node scripts/demarrer.mjs --sans-api",
+    "api": "node scripts/demarrer.mjs --api-seule",
+    "postinstall": "node scripts/installer-api.mjs"
+  },
+  "dependencies": {
+    "globe.gl": "2.45.3",
+    "h3-js": "4.4.0",
+    "leaflet": "1.9.4",
+    "maplibre-gl": "5.9.0",
+    "three": "0.147.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
