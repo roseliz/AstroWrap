@@ -6,7 +6,7 @@ import h3
 from fastapi import APIRouter, HTTPException
 
 from ..schemas.search import DetailRequest, NamesRequest, SearchRequest, ZoneRequest
-from ..services import combine, places, site_card, zones
+from ..services import combine, places, relief, site_card, zones
 
 router = APIRouter(prefix="/api", tags=["search"])
 
@@ -67,3 +67,10 @@ def names(r: NamesRequest):
                   "kind": "region" if p["natural_regions"] else "country" if p["country"] else None}
     return {"names": out}
 
+
+@router.get("/relief")
+def terrain(body: str, lat: float, lon: float, size_km: float = 150, n: int = 256):
+    """Terrain and imagery of a `size_km` square centered on (lat, lon), for the side-by-side 3D view (cache/relief/)."""
+    if not (5 <= size_km <= 1000) or not (32 <= n <= 512):
+        raise HTTPException(status_code=422, detail="size_km between 5 and 1000, n between 32 and 512")
+    return _call(relief.relief, body.lower(), lat, lon, size_km, n)
