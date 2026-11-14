@@ -1,9 +1,11 @@
 """Search: the reference area against the whole Earth, in one request (one to three seconds)."""
 
+import re
+
 from fastapi import APIRouter, HTTPException
 
-from ..schemas.search import DetailRequest, SearchRequest
-from ..services import combine
+from ..schemas.search import DetailRequest, SearchRequest, ZoneRequest
+from ..services import combine, zones
 
 router = APIRouter(prefix="/api", tags=["search"])
 
@@ -25,4 +27,18 @@ def search(r: SearchRequest):
 @router.post("/search/detail")
 def detail(r: DetailRequest):
     return _call(combine.detail, r.body, r.h3_cells, r.cell, r.modules)
+
+
+@router.post("/zones")
+def save_zone(r: ZoneRequest):
+    """Saves a reference area; the interface only puts its identifier in the address."""
+    return {"id": _call(zones.save, r.body, r.h3_cells)}
+
+
+@router.get("/zones/{ident}")
+def get_zone(ident: str):
+    z = zones.load(ident) if re.fullmatch(r"[0-9a-f]{12}", ident) else None
+    if z is None:
+        raise HTTPException(status_code=404, detail="unknown area")
+    return z
 

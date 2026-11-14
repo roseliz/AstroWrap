@@ -1,5 +1,8 @@
 """Reference area: H3 cells from the interface (resolution 6, compacted or not) -> resolution-5 cells."""
 
+import hashlib
+import json
+
 import h3
 import numpy as np
 
@@ -29,3 +32,37 @@ def to_resolution(cells: list):
     keys = sorted(counts)
     return keys, np.array([counts[c] for c in keys])
 
+
+# ------------------------------------------------------------------ saved areas
+# The interface does not put the cells in the page address: "Compare with the Earth" saves the area here and opens
+# index.html#mars/<id>. Same area, same id; JSON files in cache/zones/ (a few KB each).
+_ZONES = {}
+
+
+def _folder():
+    d = config.CACHE_DIR / "zones"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def save(body: str, cells: list) -> str:
+    """Validates the area and returns a short identifier (12 hexadecimal characters)."""
+    cells = sorted(set(cells))
+    to_resolution(cells)        # same validation as the search (valid cells, maximum size)
+    ident = hashlib.sha256(f"{body}:{','.join(cells)}".encode()).hexdigest()[:12]
+    if ident not in _ZONES:
+        _ZONES[ident] = {"body": body, "h3_cells": cells}
+        try:
+            (_folder() / f"{ident}.json").write_text(json.dumps(_ZONES[ident]), encoding="utf-8")
+        except OSError:
+            pass                # no disk: the area stays in memory until the server stops
+    return ident
+
+
+def load(ident: str):
+    if ident not in _ZONES:
+        f = config.CACHE_DIR / "zones" / f"{ident}.json"
+        if not f.is_file():
+            return None
+        _ZONES[ident] = json.loads(f.read_text(encoding="utf-8"))
+    return _ZONES[ident]

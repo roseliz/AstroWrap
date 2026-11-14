@@ -53,3 +53,8 @@ class DetailRequest(BaseModel):
     h3_cells: Cells
     cell: str = Field(description="Earth cell (resolution 5)")
     modules: Optional[List[str]] = None
+
+
+class ZoneRequest(BaseModel):
+    body: Body
+    h3_cells: Cells = Field(description="H3 cells of the area, compacted or not (resolution 6, as in the interface)")
