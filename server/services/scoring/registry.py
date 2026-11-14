@@ -2,8 +2,9 @@
 
 from .thermal import Thermal
 from .topography import Topography
+from .wind import Wind
 
-MODULES = [Topography(), Thermal()]
+MODULES = [Topography(), Thermal(), Wind()]
 BY_KEY = {m.key: m for m in MODULES}
 
 
