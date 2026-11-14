@@ -140,6 +140,9 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
     sims_f, rel_f, water, means_f = footprint.similarities(T, refs, active, pool, k, impact.extras(T))
     measured_f = sum(np.where(np.isfinite(sims_f[c]), w[c], 0.0) for c in active) / max(sum(w[c] for c in active), 1e-12)
 
+    from . import known_analogs                       # imported here: known_analogs imports this module
+    known = known_analogs.for_search(T, body, refs, active, k)
+
     events.append({"type": "done", "cells_remaining": int(final.sum()), "message": "Ranking done"})
     return {
         "body": body,
@@ -168,6 +171,7 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
             "cell_score_per_module": {c: rounded(sims[c][pool], 3) for c in active},
             "impact": impact.public(T, pool, means_f, rounded),
         },
+        "known": known,
         "duration_s": round(time.time() - t0, 2),
     }
 
