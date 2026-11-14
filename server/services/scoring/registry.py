@@ -1,12 +1,13 @@
 """Active modules, in the default order of the funnel."""
 
+from .astro import Astro
 from .geology import Geology
 from .thermal import Thermal
 from .topography import Topography
 from .volatiles import Volatiles
 from .wind import Wind
 
-MODULES = [Topography(), Geology(), Thermal(), Wind(), Volatiles()]
+MODULES = [Topography(), Geology(), Thermal(), Wind(), Volatiles(), Astro()]
 BY_KEY = {m.key: m for m in MODULES}
 
 
