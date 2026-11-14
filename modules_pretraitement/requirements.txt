@@ -7,5 +7,7 @@ duckdb>=1.0
 ipykernel>=6.29     # Jupyter kernel for exploring the outputs in notebooks
 
 # Module-specific dependencies.
+-r geology_mineralogy/requirements.txt
 -r topography_morphometry/requirements.txt
 -r volatiles_hydrology_ice/requirements.txt
+-r geology_mineralogy/requirements.txt
