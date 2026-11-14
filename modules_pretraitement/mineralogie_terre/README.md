@@ -37,6 +37,7 @@ scripts/sites.py              Calibration zones, calibration sites and audit sit
 scripts/l3.py                 EMIT L3 reader (GeoTransform grid: the file's lat axis is shifted by 0.5°)
 scripts/scale_test.py         Effect of coarser pixels (300 m, 1 km) on the detected fractions
 scripts/utils.py              Paths, Earthdata login, DuckDB helpers
+infra/                        Terraform setup of the worldwide run on AWS (infra/README.md)
 ```
 
 ## Running
@@ -68,7 +69,7 @@ python modules_pretraitement/mineralogie_terre/scripts/run.py merge
 1. `catalog`: ~45 min, ~100 MB in `cache/mineralogie_terre/catalogue/`.
 2. `selection`: a few minutes; writes the list of granules to process (`selection.parquet`).
 3. `calibration` (optional): reports threshold candidates (~45 min, ~31 GB read). The thresholds used stay the ones frozen in `thresholds.py`.
-4. **Worldwide processing**: `batch.py --list selection.parquet --source s3 --production`, run on AWS in `us-west-2`: ~38,800 granules, ~5.6 TB read from the NASA buckets, ~1 GB of output. `--source https` does the same from anywhere, at the speed of your connection. Copy the results to `cache/mineralogie_terre/resultats/`.
+4. **Worldwide processing**: `batch.py --list selection.parquet --source s3 --production`, run on AWS in `us-west-2` with the Terraform setup in `infra/` (see `infra/README.md`): ~38,800 granules, ~5.6 TB read from the NASA buckets, ~1 GB of output. `--source https` does the same from anywhere, at the speed of your connection. Copy the results to `cache/mineralogie_terre/resultats/`.
 5. `merge`: builds the final table from those results and checks the audit sites.
 
 ## Output

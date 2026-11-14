@@ -11,7 +11,7 @@ interruption). Several machines can process the same list: each one goes through
   --source s3     direct reads from the NASA buckets: only from the AWS us-west-2 region; temporary S3
                   tokens (1 h) renewed every 50 min
   --production    lighter output (mask and thresholds of thresholds.py applied, snr classes kept)
-  --ssm <prefix>  read the Earthdata credentials from AWS SSM (<prefix>utilisateur, <prefix>mot_de_passe)
+  --ssm <prefix>  read the Earthdata credentials from AWS SSM (<prefix>username, <prefix>password)
   --shuffle       random order specific to each run (several machines on the same list)
 
 Exit code: 0 the whole list is done; 3 only granules that failed on this machine are missing;
@@ -47,11 +47,11 @@ def load_ssm_credentials(prefix: str, region: str) -> None:
     """Earthdata credentials from AWS SSM (SecureString), placed in this process's environment only."""
     import boto3
     r = boto3.client("ssm", region_name=region).get_parameters(
-        Names=[prefix + "utilisateur", prefix + "mot_de_passe"], WithDecryption=True)
+        Names=[prefix + "username", prefix + "password"], WithDecryption=True)
     v = {p["Name"].removeprefix(prefix): p["Value"] for p in r["Parameters"]}
-    if set(v) != {"utilisateur", "mot_de_passe"}:
+    if set(v) != {"username", "password"}:
         sys.exit(f"SSM parameters {prefix}* not found")
-    os.environ["EARTHDATA_USERNAME"], os.environ["EARTHDATA_PASSWORD"] = v["utilisateur"], v["mot_de_passe"]
+    os.environ["EARTHDATA_USERNAME"], os.environ["EARTHDATA_PASSWORD"] = v["username"], v["password"]
 
 
 # ------------------------------------------------------------------ sources
