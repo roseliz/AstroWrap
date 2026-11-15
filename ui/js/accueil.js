@@ -1,9 +1,9 @@
-// Accueil : au centre de l'écran, la Lune et Mars en 3D, chacune dans son cadre, qui tournent sur elles-mêmes.
-// Un clic sur un astre ouvre sa page (lune.html, mars.html) pour y peindre la zone de référence.
+// Home screen: the Moon and Mars appear in 3D at the center of the screen, each within its own frame, rotating on its axis.
+// Clicking a celestial body opens its page (lune.html, mars.html) to paint the reference region.
 //
-// Ouvert par js/analogues.js quand index.html arrive sans zone (#mars/<id>). three.js (r147) vient de
-// node_modules (npm install) ou d'unpkg ; sans WebGL, chaque astre est une image qui défile dans un disque.
-// Textures : textures/accueil.js (versions réduites de celles des pages de Mars et de la Lune).
+// Opened by js/analogues.js when index.html loads without a selected region (#mars/<id>). three.js (r147) is loaded from
+// node_modules (npm install) or unpkg; without WebGL, each celestial body is displayed as a scrolling image inside a disk.
+// Textures: textures/accueil.js (reduced versions of those used on the Mars and Moon pages).
 
 (function () {
   const ASTRES = [
