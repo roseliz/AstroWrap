@@ -296,7 +296,7 @@
     $("#an-etat").innerHTML = html;
     $("#an-etat").hidden = !html;
     $("#an-etat").className = erreur ? "analogues-erreur" : "analogues-etat";
-    if (erreur) chargement(false);
+    if (erreur) { chargement(false); if (window.satellites) window.satellites.terminer(); }
   }
   const nomModule = (cle) => NOMS_SIMPLES[cle] || (modules.find((m) => m.key === cle) || { name: cle }).name;
 
@@ -305,6 +305,7 @@
     // La recherche part tout de suite, en même temps que la liste des modules : poids vides = poids par défaut
     // du serveur, les mêmes que les curseurs au départ.
     chargement(true);
+    prechargerRelief(null);            // the terrain of the area (slow on the Moon) starts with the search
     const premiere = requete();
     try {
       const [m, p] = await Promise.all([fetch(`${API}/api/modules`).then((r) => r.json()), fetch(`${API}/api/presets`).then((r) => r.json())]);
@@ -315,6 +316,7 @@
       return;
     }
     modules.forEach((x) => { poids[x.key] = x.default_weight; });
+    if (window.satellites) window.satellites.contexte({ poids });     // the window of a satellite reads the weights
     $("#an-preset").innerHTML = presets.map((p) => `<option value="${p.key}">${p.name}</option>`).join("") + `<option value="">Custom</option>`;
     $("#an-preset").addEventListener("change", () => {
       const p = presets.find((x) => x.key === $("#an-preset").value);
@@ -359,6 +361,7 @@
 
   /** Pendant la recherche : le panneau ne montre que son titre et l'indicateur. */
   function chargement(oui) {
+    if (oui && window.satellites) window.satellites.chercher();      // they finish their turn in afficherRecherche
     panneau.classList.toggle("en-chargement", oui);
     $("#an-chargement").hidden = !oui;
     if (oui) $("#an-titre").textContent = "Searching for analogs…";
@@ -437,27 +440,29 @@
 
   // Relief de la diapositive 3D du bilan (zone + site), demandé dès que les résultats arrivent et à chaque fiche
   // ouverte : le serveur le calcule et le garde pendant qu'on regarde la page, le bilan l'a aussitôt.
-  const reliefsDemandes = new Set();
+  const reliefsDemandes = new Map();     // path -> promise (resolved when the server is done, error included)
   let cadreBilan = null;
   function prechargerRelief(c) {
     const RB = window.reliefBilan;
-    if (!RB || !zone.length) return;
-    if (!cadreBilan) { try { cadreBilan = RB.cadre(RB.cellules6(zone), corps); } catch (e) { return; } }
+    if (!RB || !zone.length) return Promise.resolve();
+    if (!cadreBilan) { try { cadreBilan = RB.cadre(RB.cellules6(zone), corps); } catch (e) { return Promise.resolve(); } }
     const demandes = [[corps, cadreBilan.lat, cadreBilan.lon]];
     // le bilan ne montre le relief que s'il se ressemble (topographie ≥ 60 %)
     if (c && (c.modules && c.modules.topography != null ? c.modules.topography : 1) >= 0.55) demandes.push(["earth", c.lat, c.lon]);
-    demandes.forEach(([b, la, lo]) => {
+    return Promise.all(demandes.map(([b, la, lo]) => {
       const ch = RB.chemin(b, la, lo, cadreBilan.taille);
-      if (reliefsDemandes.has(ch)) return;
-      reliefsDemandes.add(ch);
-      fetch(`${API}${ch}`).then((r) => { if (!r.ok) reliefsDemandes.delete(ch); return r.blob(); })
-        .catch(() => reliefsDemandes.delete(ch));
-    });
+      if (!reliefsDemandes.has(ch)) {
+        reliefsDemandes.set(ch, fetch(`${API}${ch}`).then((r) => { if (!r.ok) reliefsDemandes.delete(ch); return r.blob(); })
+          .catch(() => { reliefsDemandes.delete(ch); }));
+      }
+      return reliefsDemandes.get(ch);
+    }));
   }
 
   function afficherRecherche(d) {
     if (!d) return;
     R = d;
+    if (window.satellites) window.satellites.contexte({ actifs: R.active_modules });
     $("#an-protegees-case").hidden = !(R.pool.impact && R.pool.impact.protected);
     if (zoneId && R.footprint && window.navigation) window.navigation.memoriser({ body: corps, id: zoneId, km2: R.footprint.zone_area_km2 });
     etat("");
@@ -465,8 +470,11 @@
     majCurseurs();
     afficherReference();
     recalculer(true);
-    wrapPret();
-    prechargerRelief(classement && classement.candidats[0]);
+    // "Your AstroWrap is ready" when each satellite has finished its scan and the 3D terrain of the wrap is ready
+    // (area and site 1, kept by the server; 45 s at most): the wrap then opens without waiting for the Moon.
+    const relief = prechargerRelief(classement && classement.candidats[0]);
+    const prete = Promise.race([relief, new Promise((r) => setTimeout(r, 45000))]);
+    (window.satellites ? window.satellites.terminer(prete) : prete).then(() => wrapPret());
   }
 
   /** Ce que la zone de référence est, critère par critère, en clair. */
@@ -609,11 +617,15 @@
       paint: { "fill-color": "#FFFFFF", "fill-opacity": 0.14 } });
     map.addLayer({ id: "an-choix", type: "line", source: "an-choix", paint: { "line-color": "#FFFFFF", "line-width": 2.5 } });
   }
-  // « load » ne se déclenche qu'une fois : isStyleLoaded() redevient faux pendant qu'une source se charge,
-  // et attendre « load » à ce moment-là attendrait pour toujours.
-  let carteChargee = map.loaded() || map.isStyleLoaded();
-  if (!carteChargee) map.once("load", () => { carteChargee = true; });
-  function quandPret(f) { if (carteChargee) f(); else map.once("load", f); }
+  // "load" fires only once: isStyleLoaded() turns false again while a source loads, and waiting for "load" at
+  // that moment would wait forever.
+  // So try right away, then at each map event until it works.
+  function quandPret(f) {
+    const essai = () => { try { f(); return true; } catch (e) { return false; } };
+    if (essai()) return;
+    const g = () => { if (essai()) { ["load", "styledata", "idle"].forEach((ev) => map.off(ev, g)); } };
+    ["load", "styledata", "idle"].forEach((ev) => map.on(ev, g));
+  }
 
   function effacerResultats() {
     marqueurs.forEach((m) => m.remove());
@@ -1088,7 +1100,7 @@
     $("#an-liste").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
     marqueurs.forEach((m, j) => m.getElement().classList.toggle("actif", j === i));
     const empreinte = R.footprint && R.footprint.rings ? H.gridDisk(c.h3, R.footprint.rings) : [c.h3];
-    map.getSource("an-choix").setData({ type: "FeatureCollection", features: contourEmpreinte(empreinte) });
+    quandPret(() => { couches(); map.getSource("an-choix").setData({ type: "FeatureCollection", features: contourEmpreinte(empreinte) }); });
     map.flyTo({ center: [c.lon, c.lat], zoom: zoomA(7.8, c.lat, 5), duration: 1600, essential: true });
 
     const n = niveau(c.score);

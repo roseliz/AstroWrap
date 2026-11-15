@@ -519,6 +519,8 @@
       $("#zone-centre").textContent = n ? lireCoords(centre()) : "–";
       majMessage();
       majAdresse();
+      // the satellites (js/satellites.js) come and stand above the area
+      document.dispatchEvent(new CustomEvent("zone:changee", { detail: { tuiles: n, centre: n ? centre() : null, surfaceKm2: n ? surfaceKm2() : 0 } }));
     }, 150);
   }
 
@@ -673,6 +675,8 @@
 
   window.selectionZone = {
     tuiles: () => [...etat.tuiles],
+    centre: () => (etat.tuiles.size ? centre() : null),
+    surfaceKm2: () => (etat.tuiles.size ? surfaceKm2() : 0),
     compactes: () => compactes().slice(),
     resolution: RES_BASE,
     triangles3D: () => (objets3D && objets3D.remplissage.geometry.attributes.position ? objets3D.remplissage.geometry.attributes.position.count / 3 : 0),
