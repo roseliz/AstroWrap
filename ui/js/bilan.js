@@ -456,6 +456,119 @@
 `,
   });
 
+  // 10 bis. « Mais dans cette zone… » : l'emballage se déroule, les consignes en sortent (js/wrap-environnement.js,
+  // API publiques appelées depuis le navigateur ; la requête part dès maintenant, pendant les autres diapositives).
+  // env : les consignes arrivent source par source ; la diapositive affiche celles qui sont là et ajoute les suivantes.
+  const env = { cartes: [], fini: null, vue: null };
+  if (fiche && window.environnementSite) {
+    const protege = iP >= 0 && I.protected ? { part: I.protected[iP], strict: I.strict ? I.strict[iP] : null } : null;
+    const rayonKm = Math.round(Math.max(10, Math.min(40, Math.sqrt(surfaceZone) / 2)));
+    env.fini = window.environnementSite({ lat: fiche.lat, lon: fiche.lon, rayonKm, protege }, (c) => {
+      env.cartes.push(...c);
+      if (env.vue) poserConsignes(env.vue, c, env.cartes.length - c.length);
+    }).catch(() => ({ cartes: [], sources: [], echecs: ["all"] }));
+    const vapeurs = Array.from({ length: 3 }, (_, i) => `<span class="vapeur" style="--i:${i}"></span>`).join("");
+    // une moitié de wrap : galette dorée, marques de grill, et la tranche avec la garniture en spirale (vue de côté)
+    const moitie = `<defs><linearGradient id="galette" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBDDA0"/>
+        <stop offset="0.55" stop-color="#E6AE5C"/><stop offset="1" stop-color="#B9772F"/></linearGradient></defs>
+      <path d="M170 20H44a24 60 0 0 0 0 120h126z" fill="url(#galette)"/>
+      <path d="M150 22c-30 30-62 40-112 44M162 60c-40 26-80 40-130 46" fill="none" stroke="#B9772F" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+      <g fill="#8A4E1B" opacity=".35"><ellipse cx="70" cy="40" rx="9" ry="4"/><ellipse cx="118" cy="34" rx="7" ry="3"/><ellipse cx="96" cy="88" rx="10" ry="4"/>
+        <ellipse cx="140" cy="118" rx="8" ry="3.5"/><ellipse cx="58" cy="118" rx="7" ry="3"/></g>
+      <ellipse cx="170" cy="80" rx="24" ry="60" fill="#F6DCA6"/><ellipse cx="170" cy="80" rx="20" ry="53" fill="#3DDC97"/>
+      <ellipse cx="171" cy="78" rx="16" ry="43" fill="#FF5A4E"/><ellipse cx="170" cy="80" rx="12" ry="33" fill="#F7C948"/>
+      <ellipse cx="171" cy="82" rx="7.5" ry="21" fill="#FFF3DC"/>
+      <path d="M170 34c14 4 16 30 10 48s-14 24-18 10 2-30 8-34" fill="none" stroke="#F6DCA6" stroke-width="3" opacity=".9"/>`;
+    ajouter({
+      cle: "environnement", duree: 17000, classe: "papier",
+      html: `${tete("One last bite before you go", `But in this area, <em>be careful</em>…`)}
+        <div class="corps emballage" id="emballage">
+          <span class="eclat" aria-hidden="true"></span>
+          <svg class="moitie g" viewBox="0 0 200 160" aria-hidden="true">${moitie}</svg>
+          <svg class="moitie d" viewBox="0 0 200 160" aria-hidden="true"><g transform="translate(200 0) scale(-1 1)">${moitie}</g></svg>
+          <span class="jointure" aria-hidden="true"></span>
+          <span class="sachet" aria-hidden="true"><img src="images/astrowrap-wordmark.png" alt=""></span>
+          <div class="vapeurs" aria-hidden="true">${vapeurs}</div>
+          <div class="garniture" id="garniture"><p class="deballe">Adding the ingredients<span>.</span><span>.</span><span>.</span></p></div>
+        </div>
+        <div class="pied a env-pied" style="--i:8"><span class="lg respect">Respect</span><span class="lg attention">Be careful</span><span class="lg calme">Good to know</span>
+          <p class="note" id="env-sources">Live from public APIs, around ${echapper(lieu)}.</p></div>`,
+    });
+  }
+  const ICONES = {
+    feuille: '<path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14zm0 0 7-7"/>',
+    mains: '<path d="M4 14l4-4 4 3 4-3 4 4M6 16l3 3h6l3-3"/>',
+    barriere: '<path d="M3 9h18v5H3zM6 14v6M18 14v6M7 9l-3 5M13 9l-4 5M19 9l-4 5"/>',
+    onde: '<path d="M2 12h4l2-6 3 12 3-9 2 3h6"/>',
+    flamme: '<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 4-11 3 2 4 5 4 7 1-1 2-2 2-3 2 2 2 4 2 7 0 3-2 6-6 6z"/>',
+    vent: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',
+    eau: '<path d="M12 3c4 5 6 8 6 11a6 6 0 0 1-12 0c0-3 2-6 6-11z"/>',
+    volcan: '<path d="M3 20l6-9h6l6 9zM10 11l2-4 2 4M12 3v2"/>',
+    thermo: '<path d="M10 14V5a2 2 0 1 1 4 0v9a4 4 0 1 1-4 0zM12 9v7"/>',
+    calendrier: '<path d="M4 6h16v14H4zM4 10h16M8 3v5M16 3v5"/>',
+    montagne: '<path d="M2 20l7-12 4 6 3-4 6 10z"/>',
+    soleil: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
+    flocon: '<path d="M12 2v20M3.5 7l17 10M3.5 17l17-10M9 4l3 2 3-2M9 20l3-2 3 2"/>',
+  };
+  const DEPART = 2.5;                                     // s : la garniture sort quand le wrap s'est ouvert (css/bilan.css)
+  /** Anime les nombres d'un texte de 0 à leur valeur (« 4,824 m », « −22 °C »…), comme les compteurs des autres diapositives. */
+  function compterTexte(el, apresMs) {
+    const cible = (el.dataset.v = el.dataset.v || el.textContent);
+    const nombres = [...cible.matchAll(/-?\d[\d,]*(\.\d+)?/g)];
+    if (!nombres.length || reduit) return;
+    setTimeout(() => {
+      const t0 = performance.now();
+      const pas = (t) => {
+        const k = Math.min(1, (t - t0) / 1100), e = 1 - (1 - k) ** 3;
+        el.textContent = k < 1 ? cible.replace(/-?\d[\d,]*(\.\d+)?/g, (m) => {
+          const v = +m.replace(/,/g, ""), d = (m.split(".")[1] || "").length;
+          return new Intl.NumberFormat("en-US", { maximumFractionDigits: d, minimumFractionDigits: d, useGrouping: m.includes(",") }).format(v * e);
+        }) : cible;
+        if (k < 1) requestAnimationFrame(pas);
+      };
+      requestAnimationFrame(pas);
+    }, apresMs);
+  }
+  /** Ajoute des ingrédients ; chacun jaillit de la tranche du wrap (--dx, --dy : du centre à sa place). */
+  function poserConsignes(g, cartes, debut) {
+    const attente = g.querySelector(".deballe");
+    const tard = !!g.dataset.vues;
+    const html = cartes.map((k, j) => `<article class="ingredient ${k.ton}" style="--i:${tard ? j : debut + j};--t:${tard ? 0 : DEPART}s;--rot:${((debut + j) % 3 - 1) * 3}deg"
+        title="${echapper(k.detail || "")}"><div class="pastille">
+        <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true">${ICONES[k.icone] || ICONES.feuille}</svg></span>
+        <b class="val">${echapper(k.valeur)}</b><span class="tit">${echapper(k.titre)}</span>${k.sous ? `<span class="sous">${echapper(k.sous)}</span>` : ""}</div></article>`).join("");
+    (attente || g).insertAdjacentHTML(attente ? "beforebegin" : "beforeend", html);
+    viser(g);
+    [...g.querySelectorAll(".ingredient")].slice(-cartes.length).forEach((el) =>
+      compterTexte(el.querySelector(".val"), 1000 * (parseFloat(el.style.getPropertyValue("--t")) + 0.17 * +el.style.getPropertyValue("--i")) + 200));
+  }
+  /** Chaque ingrédient part du centre du wrap : décalage entre le centre de la garniture et sa propre place. */
+  function viser(g) {
+    const cx = g.clientWidth / 2, cy = g.clientHeight / 2;
+    g.querySelectorAll(".ingredient").forEach((el) => {
+      el.style.setProperty("--dx", `${cx - (el.offsetLeft + el.offsetWidth / 2)}px`);
+      el.style.setProperty("--dy", `${cy - (el.offsetTop + el.offsetHeight / 2)}px`);
+    });
+  }
+  function monterEnvironnement(s) {
+    const g = s.querySelector("#garniture");
+    if (!g) return;
+    g.querySelectorAll(".ingredient").forEach((c, k) => { c.style.setProperty("--t", `${DEPART}s`); c.style.setProperty("--i", k); });
+    if (env.vue !== g) { env.vue = g; poserConsignes(g, env.cartes, 0); }
+    else {
+      viser(g);
+      g.querySelectorAll(".ingredient").forEach((el, k) => compterTexte(el.querySelector(".val"), 1000 * (DEPART + 0.17 * k) + 200));
+    }
+    delete g.dataset.vues;
+    setTimeout(() => { g.dataset.vues = "1"; }, DEPART * 1000);
+    env.fini.then((r) => {
+      const attente = g.querySelector(".deballe");
+      if (attente && r.cartes.length) attente.remove();
+      else if (attente) attente.textContent = "The wrap was empty: the environment services did not answer (offline?).";
+      s.querySelector("#env-sources").textContent = `Live, around ${lieu}: ${r.sources.join(" · ")}.${r.echecs.length ? ` Not reachable: ${r.echecs.join(", ")}.` : ""}`;
+    });
+  }
+
   // 11. Fin
   ajouter({
     cle: "fin", duree: 0,
@@ -517,6 +630,7 @@
     btnSuiv.disabled = i === diapos.length - 1;
     if (diapos[i].trois) monter3D(s);
     if (diapos[i].cle === "fin") brancherFin(s);
+    if (diapos[i].cle === "environnement") monterEnvironnement(s);
   }
   const suivant = () => aller(courante + 1);
   const precedent = () => aller(courante - 1);
@@ -531,7 +645,7 @@
     btnPause.textContent = p ? "▶" : "❚❚";
   });
   scene.addEventListener("click", (e) => {
-    if (e.target.closest("canvas,button,a,input,figure")) return;
+    if (e.target.closest("canvas,button,a,input,figure,.garniture")) return;
     if (e.clientX < innerWidth * 0.3) precedent(); else suivant();
   });
   function fermer() {
