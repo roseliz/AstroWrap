@@ -91,15 +91,25 @@
     feldspath: "#E5E5E5", mafique_autre: "#52796F", argile_al: "#DDB892", argile_fe_mg: "#B08968", mica: "#CDB4DB",
     sulfate: "#FFD166", silice_hydratee: "#90E0EF", sel: "#F8F9FA", autre_mineral: "#ADB5BD" };
 
-  /** Une valeur lisible : °C, %, centile, roche dominante… */
-  function lisible(v, meta) {
+  /** A readable value: °C, %, level within the body, dominant rock… */
+  // Level of a value within its body: below 20% of the cells "very low", etc.
+  const NIVEAUX_RANG = [[0.2, "very low"], [0.4, "low"], [0.6, "average"], [0.8, "high"], [Infinity, "very high"]];
+  function lisible(v, meta, cote) {
     if (v == null) return "–";
     if (meta.mode === "hellinger") {
       const top = Object.entries(v).filter(([, x]) => x != null && x >= 0.05).sort((a, b) => b[1] - a[1]).slice(0, 2);
       return top.length ? top.map(([k, x]) => `${CLASSES[k] || k.replace(/_/g, " ")} ${pct.format(x)}`).join(", ") : "no dominant type";
     }
     if (meta.mode === "deciles") return `${nb1.format(v[Math.floor(v.length / 2)] ?? 0)}°`;
-    if (meta.mode === "rank" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
+    if (meta.mode === "rank" || /_rang$/.test(meta.key)) {
+      // Rank within the body (0 to 1): a level in words ("high" for Mars), and the real value when the server gives it
+      const mot = NIVEAUX_RANG.find(([s]) => v < s)[1];
+      const reel = cote && meta[`${cote}_value`];
+      if (reel == null) return mot.replace(/^./, (x) => x.toUpperCase());
+      const u = (meta.value_unit || "").replace(/^per /, "/");
+      const t = Math.abs(reel) >= 100 ? nb.format(reel) : Math.abs(reel) >= 10 ? nb1.format(reel) : nb2.format(reel);
+      return `${t}${u.startsWith("×") ? u : " " + u} (${mot})`;
+    }
     if (meta.unit === "K") return meta.key === "amplitude" ? `${nb.format(v)} °C` : `${nb.format(v - 273.15)} °C`;
     if (meta.unit === "°") return `${nb1.format(v)}°`;
     if (!meta.unit && v >= 0 && v <= 1) return pct.format(v);
@@ -172,7 +182,7 @@
   const map = window.carteTerre;
   if (window.arreterRotationTerre) window.arreterRotationTerre();
   const sousTitre = document.querySelector(".titre p");
-  if (sousTitre) sousTitre.textContent = `The places on Earth that look most like your area ${SUR}.`;
+  if (sousTitre) sousTitre.hidden = true;               // the title of the right panel says the same
 
   panneau.innerHTML = `
     <div class="analogues-tete">
@@ -220,7 +230,6 @@
         <select id="an-preset" aria-label="Weight preset"></select>
       </div>
       <div id="an-poids"></div>
-      <p class="analogues-doux">0 = criterion ignored. The list updates right away.</p>
     </section>
     <details class="analogues-avance">
       <summary>Advanced settings</summary>
@@ -873,8 +882,6 @@
           `${nb.format(v.km)} km`, v.court, proche.i !== premier.i && gain >= 0.05 ? `−${fmtCo2(gain)} vs site 1` : null]
           .filter(Boolean).join(" · "), "portee")}</div>`);
       }
-    } else if (premier) {
-      cartes.push(`<p class="analogues-doux">Add a departure city to compare the flights.</p>`);
     }
     bloc.innerHTML = cartes.join("");
     bloc.querySelectorAll(".impact-carte").forEach((b) => b.addEventListener("click", () => ouvrirLigne(+b.dataset.i, b.dataset.entete)));
@@ -921,7 +928,7 @@
   function phrase(v) {
     const nom = COURTS[v.key] || v.label.replace(/ \(.*\)$/, "").toLowerCase();
     if (absent(v)) return `no ${nom}, as ${SUR}`;
-    return `${nom}: <b style="color:${COULEUR_TERRE}">${lisible(v.earth, v)}</b> here, <b style="color:${COULEUR_CORPS[corps]}">${lisible(v.reference, v)}</b> ${SUR}`;
+    return `${nom}: <b style="color:${COULEUR_TERRE}">${lisible(v.earth, v, "earth")}</b> here, <b style="color:${COULEUR_CORPS[corps]}">${lisible(v.reference, v, "reference")}</b> ${SUR}`;
   }
 
   function sensDifference(v) {
@@ -968,7 +975,7 @@
       return `<div class="duel-ligne duel-parts" style="--c:${n.couleur}">
         <span class="duel-label">${titre}${v.compared ? "" : ' <em title="The Earth data do not contain these classes">not comparable</em>'}</span>
         ${barreParts(v.reference, COULEUR_CORPS[corps])}${barreParts(v.earth, COULEUR_TERRE)}
-        <span class="duel-valeurs"><span>${lisible(v.reference, v)}</span><span>${lisible(v.earth, v)}</span></span>
+        <span class="duel-valeurs"><span>${lisible(v.reference, v, "reference")}</span><span>${lisible(v.earth, v, "earth")}</span></span>
       </div>`;
     }
     const a = v.mode === "deciles" ? (v.reference || [])[4] : v.reference;
@@ -980,11 +987,11 @@
     const segment = pa != null && pb != null ? `<i class="duel-ecart" style="left:${Math.min(pa, pb)}%;width:${Math.abs(pa - pb)}%"></i>` : "";
     return `<div class="duel-ligne" style="--c:${n.couleur}">
       <span class="duel-label">${titre}</span>
-      <span class="duel-gauche">${lisible(v.reference, v)}</span>
+      <span class="duel-gauche">${lisible(v.reference, v, "reference")}</span>
       <span class="duel-piste" aria-hidden="true">${segment}
         ${pa != null ? `<i class="duel-point" style="left:${pa}%;--p:${COULEUR_CORPS[corps]}"></i>` : ""}
         ${pb != null ? `<i class="duel-point" style="left:${pb}%;--p:${COULEUR_TERRE}"></i>` : ""}</span>
-      <span class="duel-droite">${lisible(v.earth, v)}</span>
+      <span class="duel-droite">${lisible(v.earth, v, "earth")}</span>
     </div>`;
   }
 
@@ -1043,14 +1050,12 @@
     const groupes = d.modules.map((m) => `<tbody>
         <tr class="cg"><th scope="rowgroup" colspan="3">${nomModule(m.key)}</th><td class="cm">${m.similarity != null ? pastille(m.similarity) : ""}</td></tr>
         ${m.variables.map((v) => `<tr><th scope="row">${echapper((COURTS[v.key] || v.label.replace(/ \(.*\)$/, "")).replace(/^./, (x) => x.toUpperCase()))}</th>
-          <td class="cz">${echapper(lisible(v.reference, v))}</td><td class="ct">${echapper(lisible(v.earth, v))}</td>
+          <td class="cz">${echapper(lisible(v.reference, v, "reference"))}</td><td class="ct">${echapper(lisible(v.earth, v, "earth"))}</td>
           <td class="cm">${v.compared && v.similarity != null ? `<span class="mot" style="--c:${niveau(v.similarity).couleur}">${pct.format(v.similarity)}</span>`
             : `<span class="analogues-doux">–</span>`}</td></tr>`).join("")}</tbody>`).join("");
     el.innerHTML = `<div class="comparaison" style="--zone:${COULEUR_CORPS[corps]}">
         <table><thead><tr><th scope="col">Variable</th><th scope="col" class="cz">${NOMS[corps].replace(/^the /, "The ")}</th>
-          <th scope="col" class="ct">Earth</th><th scope="col" class="cm">Match</th></tr></thead>${groupes}</table></div>
-      <p class="analogues-doux">Averages over your area and over the ${nb.format(d.footprint ? d.footprint.area_km2 : 0)} km² around the site.
-        Percentile: the rank of the value among the cells of each body. –: not compared.</p>`;
+          <th scope="col" class="ct">Earth</th><th scope="col" class="cm">Match</th></tr></thead>${groupes}</table></div>`;
   }
 
   // Onglets de la fiche : Overview (pourquoi, critères), Data (tableau) ; le dernier choisi est gardé.
@@ -1104,7 +1109,7 @@
       <p class="site-verdict" style="--c:${n.couleur}"><b>${n.nom}</b> to your area ${SUR} · <b>${pct.format(c.score)}</b> similar</p>
       <div class="site-actions">
         <button type="button" class="site-bilan" id="site-bilan" title="Your AstroWrap: an animated recap of the comparison, in a separate page">
-          <span class="site-bilan-titre">▶ Play the AstroWrap</span><span class="site-bilan-sous">Your area and this site, card by card</span></button>
+          <span class="site-bilan-titre">▶ Play the AstroWrap</span></button>
         ${window.vue3D ? `<button type="button" class="site-3d" id="site-3d">Compare the terrain</button>` : ""}
       </div>
       <div class="site-onglets" role="tablist" aria-label="Site card">
@@ -1115,7 +1120,6 @@
         <div id="site-data"><p class="analogues-doux">Loading…</p></div>
       </div>
       <div class="site-vue" id="site-vue-apercu" data-onglet="apercu" role="tabpanel" aria-labelledby="site-onglet-apercu" ${ongletSite === "apercu" ? "" : "hidden"}>
-      ${R.footprint ? `<p class="site-empreinte">Judged over ${nb.format(R.footprint.area_km2)} km² around the site (white outline on the globe), like your area (${nb.format(R.footprint.zone_area_km2)} km²).</p>` : ""}
       <section class="pourquoi" id="site-pourquoi"><h3>Why this site?</h3><p class="analogues-doux">…</p></section>
       <section class="criteres">
         <div class="criteres-tete"><span style="color:${COULEUR_CORPS[corps]}">● ${NOMS[corps].replace(/^the /, "The ")}</span>
@@ -1125,10 +1129,7 @@
       <details class="site-plus"><summary>More about this site</summary>
         <div id="site-fiche"><p class="analogues-doux">Loading…</p></div>
         <section class="site-wiki" id="site-wiki" hidden><h3>Nearby (Wikipedia)</h3><ul></ul></section>
-        <p class="site-coords">${lireCoords(c)} ·
-          <a href="https://www.openstreetmap.org/?mlat=${c.lat.toFixed(4)}&mlon=${c.lon.toFixed(4)}#map=10/${c.lat.toFixed(4)}/${c.lon.toFixed(4)}" target="_blank" rel="noopener">OpenStreetMap</a> ·
-          <a href="https://www.google.com/maps/@${c.lat.toFixed(5)},${c.lon.toFixed(5)},12z/data=!3m1!1e3" target="_blank" rel="noopener">Satellite view</a></p>
-        <p class="site-credits" id="site-credits">Similarity: ${pct.format(c.score)}.</p>
+        <p class="site-credits" id="site-credits"></p>
       </details>
       </div>`;
     fiche.hidden = false;
@@ -1177,8 +1178,7 @@
           ${s.items.map((x) => `<dt>${x.label}</dt><dd>${typeof x.value === "number" ? nb1.format(x.value) : echapper(x.value)}${x.unit === "%" ? "%" : x.unit ? " " + x.unit : ""}</dd>`).join("")}
         </dl></section>`).join("");
       const sources = (d.place.sources || []).map((s) => (s === "OpenStreetMap" ? "© OpenStreetMap contributors" : s));
-      fiche.querySelector("#site-credits").textContent = `Similarity: ${pct.format(c.score)}. H3 cell ${c.h3} (${nb.format(d.area_km2)} km²).` +
-        (sources.length ? ` Names: ${sources.join(", ")}.` : "");
+      fiche.querySelector("#site-credits").textContent = sources.length ? `Place names: ${sources.join(", ")}.` : "";
     }).catch(() => {
       if (ouverte !== i) return;
       fiche.querySelector("#site-fiche").innerHTML = `<p class="analogues-erreur">Site card unavailable: ${messageServeur()}</p>`;

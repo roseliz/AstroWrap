@@ -180,7 +180,8 @@ button { font: inherit; color: inherit; }
 .carte b { font-size: clamp(20px, 2.8vw, 36px); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.05; }
 .carte p { margin: 0; font-size: clamp(12px, 1.3vw, 15px); color: var(--doux); }
 .carte.site { --c: #F2545B; } .carte.donnee { --c: #8B7CF6; } .carte.corps { --c: var(--g); }
-.deux { display: flex; justify-content: space-between; gap: 10px; font-weight: 900; font-size: clamp(15px, 2vw, 26px); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.deux { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; font-weight: 900; font-size: clamp(15px, 2vw, 26px); font-variant-numeric: tabular-nums; }
+.deux > span { white-space: nowrap; }
 .deux .g { color: var(--g); } .deux .d { color: var(--d); }
 
 /* ------------------------------------------------------------------ fin */
@@ -202,6 +203,12 @@ button { font: inherit; color: inherit; }
   .m-barre.g, .m-barre.d { grid-row: 2; }
   .b-fleche { display: none; }
   .fun-l { grid-template-columns: 80px 1fr 64px; }
+  /* tighter cards, two per row; the body scrolls instead of sliding under the title */
+  .cartes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .carte { padding: 10px 12px; }
+  .carte .etq { font-size: 10px; letter-spacing: 0.1em; }
+  .carte p { font-size: 12px; }
+  .s > .corps { max-height: 100%; overflow-y: auto; align-self: stretch; align-content: center; }
 }
 @media (prefers-reduced-motion: reduce) {
   .a, .aG, .aD { opacity: 1; transform: none; animation: none !important; }
