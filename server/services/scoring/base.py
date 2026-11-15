@@ -47,6 +47,9 @@ class Variable:
     unit: str = ""
     compute: Optional[str] = None     # "difference": columns[0] − columns[1]
     classes: Optional[list] = None    # short class names (hellinger)
+    raw_unit: str = ""                # rank: unit of the real value, shown next to the level (m, per 1,000 km²...)
+    per_1000km2: bool = False         # rank: number of objects per cell, shown per 1,000 km² (H3 cells are smaller
+                                      # on Mars and the Moon)
 
 
 @dataclass
@@ -164,12 +167,13 @@ class ModuleScore:
         index = {c: i for i, c in enumerate(cells)}
         n = len(cells)
         pos = {t: np.array([index[c] for c in d["h3"]], dtype=np.int64) for t, d in data.items()}
-        ref = {"variables": {}, "reliability": None}
+        ref = {"variables": {}, "reliability": None, "raw": {}}
         for v in self.variables:
             x = self._value(v, data, n, pos)
             if x is None:
                 continue
             if v.mode == "rank":
+                ref["raw"][v.key] = weighted_mean(x, weights)       # real value, for display
                 s = self._sorted_values(body, v)
                 x = np.where(np.isfinite(x), np.searchsorted(s, x, side="left") / max(len(s) - 1, 1), np.nan)
             m = weighted_mean(x, weights)

@@ -211,11 +211,17 @@ def detail(body, cells, earth_cell, modules=None) -> dict:
             x = D.values.get(v.key)
             e = m.distance(v, ref, D, slice(0, 1))
             sim = None if e is None or not e[1][0] else round(1 - float(e[0][0]), 3)
-            variables.append({"key": v.key, "label": v.label, "mode": v.mode, "unit": v.unit,
-                              "reference": public_value(v, ref["variables"][v.key]),
-                              "earth": public_value(v, x[0]) if x is not None else None,
-                              "similarity": sim, "compared": e is not None,
-                              "range": [round(b, 3) for b in D0.bounds[v.key]] if v.key in D0.bounds else None})
+            entry = {"key": v.key, "label": v.label, "mode": v.mode, "unit": v.unit,
+                     "reference": public_value(v, ref["variables"][v.key]),
+                     "earth": public_value(v, x[0]) if x is not None else None,
+                     "similarity": sim, "compared": e is not None,
+                     "range": [round(b, 3) for b in D0.bounds[v.key]] if v.key in D0.bounds else None}
+            if v.mode == "rank" and v.raw_unit:             # real values, besides the rank within each body
+                raw_e = footprint._mean(D0.raw[v.key], idx)[0] if v.key in D0.raw else np.nan
+                entry.update(value_unit=v.raw_unit,
+                             reference_value=real_value(v, ref.get("raw", {}).get(v.key, np.nan), body),
+                             earth_value=real_value(v, raw_e, "earth"))
+            variables.append(entry)
         out.append({"key": key, "name": m.name, "similarity": None if not math.isfinite(s) else round(float(s), 3),
                     "reliability": as_float(D.reliability[0], 2), "variables": variables})
     cells_f = footprint.footprint_cells(earth_cell, k)
@@ -289,6 +295,15 @@ def public_value(v, x):
     if v.mode == "deciles":
         return [as_float(a, 2) for a in np.asarray(x, dtype=float)]
     return as_float(x, 4)
+
+
+def real_value(v, x, body):
+    """Real value of a rank variable (m, ...); counts of objects per cell, brought to 1,000 km²."""
+    if x is None or not np.isfinite(x):
+        return None
+    if v.per_1000km2:
+        x = x / (footprint.R5_AREA_KM2 * (footprint.RADIUS_KM[body] / footprint.RADIUS_KM["earth"]) ** 2) * 1000
+    return round(float(x), 3 if abs(x) < 10 else 1)
 
 
 def public_reference(key, ref):
