@@ -1,5 +1,4 @@
-/* Accueil : choix de l'astre (js/accueil.js), par-dessus la Terre qui tourne. */
-
+/* Home screen: Mars or Moon selection (js/accueil.js), over the rotating Earth. */
 .accueil:focus { outline: none; }
 .accueil {
   position: fixed; inset: 0; z-index: 60;
