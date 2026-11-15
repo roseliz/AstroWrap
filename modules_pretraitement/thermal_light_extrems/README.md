@@ -85,7 +85,7 @@ The source code is maintained in the notebook. The `scripts/lancer_3_corps.py` s
 
 **Modifying the notebook is sufficient to update the processing logic.**
 
-The notebook can also be opened directly in VS Code using the `analogues-pipeline (.venv)` kernel.
+The notebook can also be opened directly in VS Code using the kernel of the repository `.venv`.
 
 ### Output Directory
 

@@ -49,7 +49,7 @@ INPUT_DIR = ROOT / "inputs" / MODULE
 
 # Some servers (astrogeology.usgs.gov) reject the default "Python-urllib" agent with HTTP 403
 _opener = urllib.request.build_opener()
-_opener.addheaders = [("User-Agent", "analogues-pipeline/1.0 (NASA Space Apps Challenge 2026)")]
+_opener.addheaders = [("User-Agent", "astrowrap/1.0 (NASA Space Apps Challenge 2026)")]
 urllib.request.install_opener(_opener)
 # The lunar GeoTIFFs from Zenodo are not georeferenced: their latitude/longitude files are read instead
 warnings.filterwarnings("ignore", message="Dataset has no geotransform")
