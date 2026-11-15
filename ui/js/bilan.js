@@ -37,12 +37,12 @@
   const NOMS_SIMPLES = { thermal: "Temperature", topography: "Terrain", geology: "Rocks", wind: "Wind and dust",
     volatiles: "Ice and water", astro: "Volcanoes and caves" };
   const COURTS = { lst_day_mean: "ground temperature, day", lst_night_mean: "ground temperature, night", amplitude: "day-night range",
-    part_pente_inf_5: "flat ground", pentes: "typical slope", rugosite_rms: "roughness", denivele: "local elevation range",
-    densite_crateres: "craters", lithologie: "rocks", mineraux: "minerals", part_oxyde_fer: "iron oxides",
+    part_pente_inf_5: "flat ground", slopes: "typical slope", rugosite_rms: "roughness", elevation_range: "local elevation range",
+    densite_crateres: "craters", lithology: "rocks", mineraux: "minerals", part_oxyde_fer: "iron oxides",
     part_sol_nu: "bare ground", part_dunes: "dunes", vent_fort_rel: "strong winds", poussiere_rang: "dust", tempetes_rang: "dust storms",
     indice_glace_sol: "ground ice", part_glace_surface: "surface ice", eau_sol_rang: "soil water",
     cold_fraction: "very cold time", hot_fraction: "very hot time", daylight_fraction_min: "daylight, dark season",
-    daylight_fraction_max: "daylight, bright season", volcans: "volcanoes", cavites: "caves and pits" };
+    daylight_fraction_max: "daylight, bright season", volcanoes: "volcanoes", caves: "caves and pits" };
   const CLASSES = { sedimentaire_clastique: "sedimentary", non_consolide: "loose sediments", volcanique_felsique: "felsic volcanic",
     plutonique_basique: "gabbro", plutonique_felsique: "granite", metamorphique: "metamorphic", evaporite: "evaporites",
     argile_al: "Al clays", argile_fe_mg: "Fe-Mg clays", silice_hydratee: "hydrated silica", mafique_autre: "other mafics",
@@ -83,7 +83,7 @@
       return top.length ? top.map(([k, x]) => `${CLASSES[k] || k.replace(/_/g, " ")} ${pct.format(x)}`).join(", ") : "no dominant type";
     }
     if (meta.mode === "deciles") return `${nb1.format(v[Math.floor(v.length / 2)] ?? 0)}°`;
-    if (meta.mode === "rang" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
+    if (meta.mode === "rank" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
     if (meta.unit === "K") return meta.key === "amplitude" ? `${nb.format(v)} °C` : `${nb.format(v - 273.15)} °C`;
     if (meta.unit === "°") return `${nb1.format(v)}°`;
     if (!meta.unit && v >= 0 && v <= 1) return pct.format(v);
@@ -338,7 +338,7 @@
   const proches = choisir(comparables.filter((v) => v.similarity >= 0.8)
     .sort((a, b) => (b.similarity - (absent(b) ? 0.15 : 0)) - (a.similarity - (absent(a) ? 0.15 : 0))), 4);
   const loins = choisir(comparables.filter((v) => v.similarity < 0.4).sort((a, b) => a.similarity - b.similarity), 4);
-  const noteRang = (liste) => (liste.some((v) => v.mode === "rang" || /_rang$/.test(v.key)) ? " “Percentile”: the rank of the value among the cells of each body." : "");
+  const noteRang = (liste) => (liste.some((v) => v.mode === "rank" || /_rang$/.test(v.key)) ? " “Percentile”: the rank of the value among the cells of each body." : "");
   const legendeMiroir = `<div class="m-corps a" style="--i:1;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">
     <span style="text-align:right;color:var(--g)">${NOMS[corps]}</span><span></span><span></span><span style="color:var(--d)">Earth</span></div>`;
   if (proches.length) {

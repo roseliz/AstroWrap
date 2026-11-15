@@ -70,13 +70,13 @@
   const NOMS_SIMPLES = { thermal: "Temperature", topography: "Terrain", geology: "Rocks", wind: "Wind and dust",
     volatiles: "Ice and water", astro: "Volcanoes and caves" };
   // Variables mises en avant (deux par critère) et leur nom court ; les autres restent dans « En savoir plus ».
-  const VEDETTES = { thermal: ["lst_day_mean", "lst_night_mean"], topography: ["part_pente_inf_5", "pentes"],
-    geology: ["lithologie"], wind: ["part_sol_nu", "part_dunes"], volatiles: ["indice_glace_sol", "part_glace_surface"],
-    astro: ["volcans", "cavites"] };
+  const VEDETTES = { thermal: ["lst_day_mean", "lst_night_mean"], topography: ["part_pente_inf_5", "slopes"],
+    geology: ["lithology"], wind: ["part_sol_nu", "part_dunes"], volatiles: ["indice_glace_sol", "part_glace_surface"],
+    astro: ["volcanoes", "caves"] };
   const COURTS = { lst_day_mean: "ground temperature by day", lst_night_mean: "ground temperature at night",
-    part_pente_inf_5: "flat ground", pentes: "typical slope", lithologie: "rocks", mineraux: "minerals",
+    part_pente_inf_5: "flat ground", slopes: "typical slope", lithology: "rocks", mineraux: "minerals",
     part_sol_nu: "bare ground", part_dunes: "dunes", indice_glace_sol: "ground ice", part_glace_surface: "surface ice",
-    volcans: "volcanoes", cavites: "caves and pits", amplitude: "day-night range", part_oxyde_fer: "iron oxides" };
+    volcanoes: "volcanoes", caves: "caves and pits", amplitude: "day-night range", part_oxyde_fer: "iron oxides" };
   const COULEUR_CORPS = { mars: "#E0794F", moon: "#C9CED6" };
   const COULEUR_TERRE = "#4FD1FF";
   const CLASSES = { sedimentaire_clastique: "sedimentary", non_consolide: "loose sediments", volcanique_felsique: "felsic volcanic",
@@ -99,7 +99,7 @@
       return top.length ? top.map(([k, x]) => `${CLASSES[k] || k.replace(/_/g, " ")} ${pct.format(x)}`).join(", ") : "no dominant type";
     }
     if (meta.mode === "deciles") return `${nb1.format(v[Math.floor(v.length / 2)] ?? 0)}°`;
-    if (meta.mode === "rang" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
+    if (meta.mode === "rank" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
     if (meta.unit === "K") return meta.key === "amplitude" ? `${nb.format(v)} °C` : `${nb.format(v - 273.15)} °C`;
     if (meta.unit === "°") return `${nb1.format(v)}°`;
     if (!meta.unit && v >= 0 && v <= 1) return pct.format(v);
@@ -557,7 +557,7 @@
       return k;
     }).sort((x, y) => ordreConnu(x) - ordreConnu(y));
   }
-  const ordreConnu = (k) => (k.scope === "mineralogie" ? 2 : 0) + (k.cause ? 1 : 0) + (k.part ?? 1) * 0.99;
+  const ordreConnu = (k) => (k.scope === "mineralogy" ? 2 : 0) + (k.cause ? 1 : 0) + (k.part ?? 1) * 0.99;
 
   /** Sur le globe, MapLibre grossit les hautes latitudes à zoom égal : on compense pour garder la même échelle. */
   const zoomA = (z, lat, min) => Math.max(min, z - Math.log2(1 / Math.max(0.05, Math.cos(lat * Math.PI / 180))));
@@ -656,7 +656,7 @@
         if (k.lat == null) return null;
         const el = document.createElement("button");
         el.type = "button";
-        el.className = `connu-marqueur ${k.scope === "mineralogie" ? "hors" : ""}`;
+        el.className = `connu-marqueur ${k.scope === "mineralogy" ? "hors" : ""}`;
         el.innerHTML = "<i></i>";                     // le losange : MapLibre place l'élément avec transform
         el.setAttribute("aria-label", `Known analog: ${k.name}`);
         el.title = `${k.name}: ${texteRang(k)}`;
@@ -687,7 +687,7 @@
     const K = classement.connus;
     $("#an-connus").hidden = !K.length;
     $("#an-connus-liste").innerHTML = K.map((k, j) => {
-      const hors = k.scope === "mineralogie";
+      const hors = k.scope === "mineralogy";
       const etiquette = hors ? "minerals" : k.part != null ? `Top ${fmtPart(k.part)}` : "set aside";
       return `<li><button type="button" data-k="${j}" class="connu${hors ? " hors" : ""}" ${k.lat == null ? "disabled" : ""}
           title="${echapper(`${k.name} (${k.country}): ${k.analog_of}. ${hors ? "Mineral analog: the tool does not compare minerals." : texteRang(k)}`)}">
@@ -1100,7 +1100,7 @@
       <h2 id="site-titre">${echapper(connu && connu.connu ? connu.connu.name : noms[c.h3] || lireCoords(c))}</h2>
       <p class="site-sous-titre" id="site-sous-titre"></p>
       ${connu && connu.connu ? `<p class="site-connu">Known analog for ${echapper(connu.connu.analog_of)} (${echapper(connu.connu.source)}).
-        ${echapper(texteRang(connu.connu))}${connu.connu.scope === "mineralogie" ? ". The tool does not compare minerals: this rank says nothing about the analogy." : "."}</p>` : ""}
+        ${echapper(texteRang(connu.connu))}${connu.connu.scope === "mineralogy" ? ". The tool does not compare minerals: this rank says nothing about the analogy." : "."}</p>` : ""}
       <p class="site-verdict" style="--c:${n.couleur}"><b>${n.nom}</b> to your area ${SUR} · <b>${pct.format(c.score)}</b> similar</p>
       <div class="site-actions">
         <button type="button" class="site-bilan" id="site-bilan" title="Your AstroWrap: an animated recap of the comparison, in a separate page">
@@ -1154,7 +1154,7 @@
     const bouton3D = fiche.querySelector("#site-3d");
     if (bouton3D) bouton3D.addEventListener("click", () => {
       const topo = c.detail && (c.detail.modules || []).find((m) => m.key === "topography");
-      const v = topo && topo.variables.find((x) => x.key === "pentes");
+      const v = topo && topo.variables.find((x) => x.key === "slopes");
       window.vue3D.ouvrir({
         api: API, corps, zone, pentes: v ? { zone: v.reference, site: v.earth } : null,
         site: { lat: c.lat, lon: c.lon, h3: c.h3, empreinte, nom: noms[c.h3] || lireCoords(c) },
