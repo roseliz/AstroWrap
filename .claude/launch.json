@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "astrowrap",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "ui", "start"],
+      "port": 8080
+    }
+  ]
+}
