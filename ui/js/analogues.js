@@ -44,13 +44,17 @@
     moyen: { cle: "moyen", nom: "Medium impact", texte: "partly protected, or land that nothing has transformed yet" },
     haut: { cle: "protege", nom: "Protected area", texte: "mostly in a protected area: tests would need permits and disturb a preserved environment" },
   };
-  const PROCHE_MIN = 0.85;            // « à portée » : au moins 85 % de la ressemblance du site 1
+  // Green mode ("responsible testing"): the 10 sites become "similar enough, lowest impact". Kept: at least
+  // `plancher` × the similarity of the best site, outside protected areas, and under the CO₂ budget of the flight
+  // from the departure city if there is one; ranked by impact (CO₂ of the flight, otherwise distance to the airport;
+  // ground already transformed by mines comes slightly ahead), similarity breaking the ties.
+  const VERT = { protegeMax: 0.1, strictMax: 0.01, cle: "astrowrap-vert", cleReglages: "astrowrap-vert-reglages",
+    planchers: [0.8, 0.9, 0.95], budgets: [null, 0.5, 1, 2], equipe: 5 };
   const MINES_MIN = 0.005;            // 0,5 % de la surface en mines : le terrain est déjà transformé
   // Avion : facteurs de conversion du gouvernement britannique 2025 (DESNZ, Greenhouse gas reporting: conversion factors),
   // classe économique, effets hors CO₂ compris : 0,126 kg CO₂e par passager-km en court-courrier, 0,117 au-delà de
   // 3 700 km ; distance à vol d'oiseau + 8 % pour les détours (méthode du gouvernement britannique) ; aller-retour.
   const VOL = { court: 0.126, long: 0.117, seuilKm: 3700, detour: 1.08, terreKm: 500 };
-  const RAYONS_KM = [1000, 2000, 5000];
   const CLE_DEPART = "analogues-depart";
   const VILLES = window.VILLES || [];
   const pct = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 });
@@ -189,6 +193,9 @@
       <div class="analogues-titre-ligne"><h2 id="an-titre">Searching…</h2>
         <button type="button" class="replier" id="an-replier" aria-expanded="true" aria-label="Collapse the results panel" title="Collapse"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg></button></div>
       <a class="analogues-retour" href="${PAGES[corps] || "index.html"}${location.search}${zoneId ? "#" + zoneId : ""}">← Edit the area ${SUR}</a>
+      <button type="button" class="vert-bascule" id="an-vert" role="switch" aria-checked="false" hidden>
+        <span class="vert-piste" aria-hidden="true"><i></i></span><span>Green mode</span></button>
+      <p class="vert-bilan" id="an-vert-bilan" hidden></p>
     </div>
     <p class="analogues-etat" id="an-etat" hidden></p>
     <div class="analogues-chargement" id="an-chargement" role="status" hidden>
@@ -211,6 +218,7 @@
         </div>
         <datalist id="an-villes"></datalist>
       </div>
+      <div class="vert-reglages" id="an-vert-reglages" hidden></div>
       <div class="impact-cartes" id="an-impact-cartes"></div>
       <p class="impact-sources" id="an-impact-sources"></p>
     </section>
@@ -254,7 +262,7 @@
   // Écart entre les sites de la liste : recalcul dans le navigateur, gardé pour les prochaines fois
   panneau.querySelectorAll(".an-ecart button").forEach((b) => b.addEventListener("click", () => {
     ecartKm = +b.dataset.km;
-    try { localStorage.setItem(CLE_ECART, String(ecartKm)); } catch (e) { /* navigation privée */ }
+    try { localStorage.setItem(CLE_ECART, String(ecartKm)); } catch (e) { /* private browsing */ }
     panneau.querySelectorAll(".an-ecart button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     recalculer(true);
   }));
@@ -339,6 +347,17 @@
     }));
     majCurseurs();
     $("#an-vegetation").addEventListener("change", () => chercher());
+    panneau.querySelectorAll(".vert-bascule").forEach((b) => b.addEventListener("click", () => {
+      modeVert = !modeVert;
+      try { sessionStorage.setItem(cleVert, modeVert ? "1" : "0"); } catch (e) { /* private browsing */ }
+      appliquerModeVert();
+      fermerSite();
+      recalculer();
+      // the responsible testing tab (settings and gains of green mode) opens; without a departure city, the cursor
+      // goes to that field (the CO₂ of the flight ranks the sites)
+      ouvrirOnglet($("#an-onglet-impact"));
+      if (modeVert && !depart) $("#an-depart").focus();
+    }));
     $("#an-protegees").addEventListener("change", () => chercher());
     preparerDepart();
     afficherRecherche(await premiere);
@@ -360,7 +379,10 @@
   }
 
   /** Pendant la recherche : le panneau ne montre que son titre et l'indicateur. */
+  let balayage = false;                  // search or scans running: the sites cannot be browsed yet
   function chargement(oui) {
+    if (oui) { balayage = true; document.body.classList.add("an-balayage"); }
+    else if (balayage && !$("#an-etat").hidden) { balayage = false; document.body.classList.remove("an-balayage"); }
     if (oui && window.satellites) window.satellites.chercher();      // they finish their turn in afficherRecherche
     panneau.classList.toggle("en-chargement", oui);
     $("#an-chargement").hidden = !oui;
@@ -464,17 +486,29 @@
     R = d;
     if (window.satellites) window.satellites.contexte({ actifs: R.active_modules });
     $("#an-protegees-case").hidden = !(R.pool.impact && R.pool.impact.protected);
+    $("#an-vert").hidden = !(R.pool.impact && R.pool.impact.protected);
+    if ($("#an-vert").hidden && modeVert) { modeVert = false; }
+    appliquerModeVert();
     if (zoneId && R.footprint && window.navigation) window.navigation.memoriser({ body: corps, id: zoneId, km2: R.footprint.zone_area_km2 });
     etat("");
-    chargement(false);
     majCurseurs();
     afficherReference();
     recalculer(true);
-    // "Your AstroWrap is ready" when each satellite has finished its scan and the 3D terrain of the wrap is ready
-    // (area and site 1, kept by the server; 45 s at most): the wrap then opens without waiting for the Moon.
-    const relief = prechargerRelief(classement && classement.candidats[0]);
-    const prete = Promise.race([relief, new Promise((r) => setTimeout(r, 45000))]);
-    (window.satellites ? window.satellites.terminer(prete) : prete).then(() => wrapPret());
+    // The results stay hidden while the satellites scan; "Your AstroWrap is ready" opens right after the last scan,
+    // before the sites can be browsed. The 3D terrain of the wrap (area and site 1) keeps being computed behind: the
+    // wrap waits for it itself if it is not ready yet.
+    prechargerRelief(classement && classement.candidats[0]);
+    const titre = $("#an-titre").textContent;
+    $("#an-titre").textContent = "Scanning your area with each module…";
+    const fini = window.satellites ? window.satellites.terminer() : Promise.resolve();
+    Promise.race([fini, new Promise((r) => setTimeout(r, 15000))]).then(() => {
+      if (!balayage) return;
+      balayage = false;
+      document.body.classList.remove("an-balayage");
+      chargement(false);
+      $("#an-titre").textContent = titre;
+      wrapPret();
+    });
   }
 
   /** Ce que la zone de référence est, critère par critère, en clair. */
@@ -510,17 +544,33 @@
       if (!r.ecarte) scores[i] = r.score;
     }
     const ordre = [...scores.keys()].filter((i) => scores[i] >= 0).sort((a, b) => scores[b] - scores[a]);
-    const coords = (i) => H.cellToLatLng(P.h3[i]);
-    const candidats = [];
-    for (const i of ordre) {
-      const [la, lo] = coords(i);
-      if (candidats.every((c) => distanceKm(la, lo, c.lat, c.lon) >= ecartKm)) {
-        candidats.push({ i, h3: P.h3[i], lat: la, lon: lo, score: scores[i], impact: impactSite(P.impact, i),
-          modules: Object.fromEntries(actifs.map((m) => [m, P.score_per_module[m][i]])) });
-        if (candidats.length >= N_CANDIDATS) break;
+    const choisirSites = (liste) => {
+      const out = [];
+      for (const i of liste) {
+        const [la, lo] = H.cellToLatLng(P.h3[i]);
+        if (out.every((c) => distanceKm(la, lo, c.lat, c.lon) >= ecartKm)) {
+          out.push({ i, h3: P.h3[i], lat: la, lon: lo, score: scores[i], impact: impactSite(P.impact, i),
+            modules: Object.fromEntries(actifs.map((m) => [m, P.score_per_module[m][i]])) });
+          if (out.length >= N_CANDIDATS) break;
+        }
       }
+      return out;
+    };
+    let candidats = choisirSites(ordre), standard = null;
+    if (modeVert && P.impact) {
+      const I = P.impact, plancher = (ordre.length ? scores[ordre[0]] : 0) * reglagesVert.plancher, gardes = [];
+      for (const i of ordre) {
+        if (scores[i] < plancher) break;                       // ordre is sorted: the rest is under the floor
+        if (exclueProtegee(I, i)) continue;
+        const c = coutVert(I, i);
+        if (reglagesVert.budget != null && c.co2 != null && c.co2 > reglagesVert.budget) continue;
+        gardes.push({ i, cout: c.cout });
+      }
+      gardes.sort((a, b) => a.cout - b.cout || scores[b.i] - scores[a.i]);
+      standard = candidats;
+      candidats = choisirSites(gardes.map((x) => x.i));
     }
-    classement = { ordre, scores, candidats,
+    classement = { ordre, scores, candidats, standard,
       connus: situerConnus(scores, libres, actifs, w, eauMax) };
     if (afficherAussi) afficher(true);
   }
@@ -646,12 +696,13 @@
 
   function afficher(premier) {
     const C = classement;
+    bilanVert();
     const n = C.candidats.length;
     $("#an-titre").textContent = n ? `${n} site${n > 1 ? "s" : ""} that look${n > 1 ? "" : "s"} like your area ${SUR}` : "No site found";
     $("#an-liste").innerHTML = C.candidats.map((c, i) => `
       <li><button type="button" data-i="${i}" title="Similarity: ${pct.format(c.score)}">
         <span class="analogues-rang">${i + 1}</span>
-        <span class="analogues-lieu-bloc"><span class="analogues-lieu">${noms[c.h3] || lireCoords(c)}</span>${etiquetteImpact(c.impact)}</span>
+        <span class="analogues-lieu-bloc"><span class="analogues-lieu">${noms[c.h3] || lireCoords(c)}</span>${etiquetteImpact(c.impact)}${modeVert ? `<span class="analogues-vert">${resumeVert(c)}</span>` : ""}</span>
         ${pastille(c.score)}
       </button></li>`).join("") || `<li class="analogues-doux">No place passes every criterion: try other weights.</li>`;
     $("#an-liste").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => choisir(+b.dataset.i)));
@@ -721,6 +772,7 @@
 
   /** Fiche d'un analogue connu : la même que pour un site, avec son rang réel au lieu de « Site n sur 10 ». */
   function choisirConnu(j) {
+    if (balayage) return;
     const k = classement && classement.connus[j];
     if (!k || k.lat == null) return;
     choisir(CONNU + j, { h3: k.cellule, lat: k.lat, lon: k.lon, score: k.score, modules: k.modules,
@@ -765,6 +817,68 @@
    *  aire protégée — au moins 20 % en protection stricte (UICN Ia à II) ou au moins la moitié protégée ;
    *  faible — moins de 10 % protégé, sur un terrain déjà transformé par des mines (au moins 0,5 % de la surface) ;
    *  moyen — le reste. Les parts sont des moyennes sur l'empreinte du site ; l'aéroport ne joue que sur l'avion. */
+  // ------------------------------------------------------------------ green mode
+  // Off by default, and for each new area: it only stays on for the same area, in this tab (when coming back from
+  // the wrap, for example).
+  const cleVert = `${VERT.cle}-${corps}-${zoneId || zone.join(",").length + ":" + zone.length}`;
+  let modeVert = (() => { try { return sessionStorage.getItem(cleVert) === "1"; } catch (e) { return false; } })();
+  const reglagesVert = Object.assign({ plancher: 0.9, budget: null, protege: "tout" },
+    (() => { try { return JSON.parse(localStorage.getItem(VERT.cleReglages) || "{}") || {}; } catch (e) { return {}; } })());
+  const garderReglages = () => { try { localStorage.setItem(VERT.cleReglages, JSON.stringify(reglagesVert)); } catch (e) { /* private browsing */ } };
+  /** Protected area to set aside: "tout" (10% of the footprint, or of strict protection), or only "strict". */
+  function exclueProtegee(I, i) {
+    const st = I.strict ? I.strict[i] ?? 0 : 0, pr = I.protected ? I.protected[i] ?? 0 : 0;
+    return st >= VERT.strictMax || (reglagesVert.protege === "tout" && pr >= VERT.protegeMax);
+  }
+  /** Impact of a campaign on row i: CO₂ of the flight from the departure city (t per person, round trip), otherwise
+   *  distance to the airport (in thousands of km); ground already transformed by mines counts a little less. */
+  function coutVert(I, i) {
+    const mines = I.mines && (I.mines[i] ?? 0) >= MINES_MIN ? 0.05 : 0;
+    if (depart) {
+      const [la, lo] = H.cellToLatLng(R.pool.h3[i]), v = texteVol(la, lo);
+      return { co2: v.t, cout: v.t - mines };
+    }
+    const a = I.airport_km ? I.airport_km[i] : null;
+    return { co2: null, cout: (a == null ? 9 : a / 1000) - mines };
+  }
+  /** What ranks a site in green mode, in a few words (in the list). */
+  function resumeVert(c) {
+    if (depart) { const v = texteVol(c.lat, c.lon); return v.t ? `${fmtCo2(v.t)} CO₂e` : "by land"; }
+    return c.impact && c.impact.aeroport != null ? `airport ${nb.format(c.impact.aeroport)} km` : "";
+  }
+  function appliquerModeVert() {
+    document.body.classList.toggle("mode-vert", modeVert);
+    panneau.querySelectorAll(".vert-bascule").forEach((b) => b.setAttribute("aria-checked", String(modeVert)));
+    $("#an-protegees-case").classList.toggle("inactif", modeVert);   // protected areas are already set aside
+  }
+  /** What green mode changes compared with the usual ranking (the 10 sites, on average). */
+  function gainsVert() {
+    const C = classement;
+    if (!modeVert || !C || !C.standard || !C.candidats.length) return null;
+    const moy = (l, f) => { const v = l.map(f).filter((x) => x != null); return v.length ? v.reduce((a, x) => a + x, 0) / v.length : null; };
+    const g = {
+      proteges: C.standard.filter((c) => R.pool.impact && exclueProtegee(R.pool.impact, c.i)).length,
+      aeroport: [moy(C.standard, (c) => c.impact && c.impact.aeroport), moy(C.candidats, (c) => c.impact && c.impact.aeroport)],
+      score: [moy(C.standard, (c) => c.score), moy(C.candidats, (c) => c.score)],
+      co2: depart ? [moy(C.standard, (c) => texteVol(c.lat, c.lon).t), moy(C.candidats, (c) => texteVol(c.lat, c.lon).t)] : null,
+    };
+    g.perte = Math.round(100 * (g.score[0] - g.score[1]));
+    return g;
+  }
+  /** The line under the switch of the header. */
+  function bilanVert() {
+    const el = $("#an-vert-bilan"), g = gainsVert();
+    if (!el) return;
+    if (!g) { el.hidden = true; return; }
+    const morceaux = [];
+    if (g.co2 && g.co2[0] - g.co2[1] >= 0.05) morceaux.push(`${fmtCo2(g.co2[0] - g.co2[1])} CO₂e less per person`);
+    else if (g.aeroport[0] != null && g.aeroport[1] != null && g.aeroport[0] - g.aeroport[1] >= 5) morceaux.push(`airports ${nb.format(g.aeroport[0] - g.aeroport[1])} km closer`);
+    morceaux.push(g.proteges ? `${g.proteges} protected site${g.proteges > 1 ? "s" : ""} set aside` : "no protected site");
+    morceaux.push(g.perte > 0 ? `similarity −${g.perte} pt${g.perte > 1 ? "s" : ""}` : "similarity unchanged");
+    el.textContent = morceaux.join(" · ");
+    el.hidden = false;
+  }
+
   function impactSite(I, i) {
     if (!I) return null;
     const val = (x) => (x && x[i] != null ? x[i] : null);
@@ -813,8 +927,9 @@
   const libelleVille = (v) => [v[0], v[1] && v[1] !== v[0] ? v[1] : null, v[2]].filter(Boolean).join(", ");
   function choisirDepart(d, libelle) {
     depart = d;
-    try { if (d) localStorage.setItem(CLE_DEPART, JSON.stringify(d)); else localStorage.removeItem(CLE_DEPART); } catch (e) { /* navigation privée */ }
+    try { if (d) localStorage.setItem(CLE_DEPART, JSON.stringify(d)); else localStorage.removeItem(CLE_DEPART); } catch (e) { /* private browsing */ }
     $("#an-depart").value = d ? libelle || d.nom : "";
+    if (modeVert && R) recalculer();               // the flight from the city counts in the green ranking
     afficherImpact();
   }
   /** Branche le champ de ville de départ (et son bouton de position) du panneau de droite. */
@@ -853,52 +968,64 @@
     });
   }
 
-  let rayonKm = 2000;
-  /** L'encart « Tester de façon responsable » : le n° 1, la meilleure alternative à faible impact, le meilleur site à portée. */
+    /** The "Responsible testing" panel: the settings of green mode and what it changes in the list of 10 sites. */
   function afficherImpact() {
     const C = classement, bloc = $("#an-impact-cartes");
     if (!C || !R) return;
     const I = R.pool.impact, P = R.pool;
-    const avecNiveau = !!(I && I.protected);
-    const cartes = [];
     const premier = C.candidats[0];
-    const ligne = (i) => { const [lat, lon] = H.cellToLatLng(P.h3[i]); return { i, lat, lon, score: C.scores[i], impact: impactSite(I, i) }; };
-    const carte = (titre, x, texte, cle) => `<button type="button" class="impact-carte" data-i="${x.i}" data-entete="${echapper(titre)}">
+    const carte = (titre, x, texte) => `<button type="button" class="impact-carte" data-i="${x.i}" data-entete="${echapper(titre)}">
         <span class="impact-carte-titre">${titre}</span>
         <span class="impact-carte-nom" data-h3="${P.h3[x.i]}">${echapper(noms[P.h3[x.i]] || lireCoords(x))}</span>
         ${etiquetteImpact(x.impact)}
         <span class="impact-carte-texte">${texte}</span></button>`;
-    if (premier) {
-      const im = premier.impact, v = texteVol(premier.lat, premier.lon);
-      const faits = [...(im ? im.faits : []), v ? v.court : null].filter(Boolean);
-      cartes.push(carte("Your site 1", { ...premier }, faits.length ? faits.join(" · ") : "No impact data on the server.", "premier"));
-    }
-    if (avecNiveau && premier) {
-      const alt = C.ordre.map(ligne).find((x) => x.impact && x.impact.niveau === IMPACT.bas);
-      if (!alt) cartes.push(`<p class="analogues-doux">No low-impact site in the ranking.</p>`);
-      else if (alt.i !== premier.i) {
-        const v = texteVol(alt.lat, alt.lon);
-        cartes.push(carte("Low-impact alternative", alt, [`${pct.format(alt.score)} similar`, ...alt.impact.faits, v ? v.court : null]
-          .filter(Boolean).join(" · "), "alt"));
+    const faitsSite = (c) => [...(c.impact ? c.impact.faits : []), depart ? texteVol(c.lat, c.lon).court : null, `${pct.format(c.score)} similar`].filter(Boolean).join(" · ");
+
+    // green mode settings: they change the 10 sites directly
+    const reg = $("#an-vert-reglages");
+    const choix = (cle, valeurs, nom, actif, inactif = () => false) => `<div class="an-ecart">${valeurs.map((v) =>
+      `<button type="button" data-${cle}="${v ?? ""}" aria-pressed="${actif(v)}" ${inactif(v) ? "disabled" : ""}>${nom(v)}</button>`).join("")}</div>`;
+    reg.hidden = !modeVert;
+    reg.innerHTML = modeVert ? `
+      <div class="vert-reglage"><span>Similarity floor <em>vs the best site</em></span>
+        ${choix("plancher", VERT.planchers, (v) => pct.format(v), (v) => reglagesVert.plancher === v)}</div>
+      <div class="vert-reglage"><span>CO₂ budget <em>per person, round trip</em></span>
+        ${choix("budget", VERT.budgets, (v) => (v == null ? "None" : `${nb1.format(v)} t`), (v) => reglagesVert.budget === v, (v) => v != null && !depart)}</div>
+      <div class="vert-reglage"><span>Protected areas</span>
+        ${choix("protege", ["tout", "strict"], (v) => (v === "tout" ? "All excluded" : "Strict only"), (v) => reglagesVert.protege === v)}</div>` : "";
+    reg.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      if (b.dataset.plancher) reglagesVert.plancher = +b.dataset.plancher;
+      if ("budget" in b.dataset) reglagesVert.budget = b.dataset.budget ? +b.dataset.budget : null;
+      if (b.dataset.protege) reglagesVert.protege = b.dataset.protege;
+      garderReglages();
+      fermerSite();
+      recalculer();
+    }));
+
+    const cartes = [];
+    if (!modeVert) {
+      if (premier) cartes.push(carte("Your site 1", premier, faitsSite(premier)));
+      cartes.push(`<p class="vert-invite">Turn on <b>Green mode</b> above: the 10 sites become the lowest-impact ones among those that look enough like your area.</p>`);
+    } else if (!premier) {
+      cartes.push(`<p class="vert-invite">No site passes these limits: raise the CO₂ budget or lower the similarity floor.</p>`);
+    } else {
+      const g = gainsVert(), chiffres = [];
+      if (g && g.co2) {
+        const d = g.co2[0] - g.co2[1];
+        chiffres.push([d >= 0.05 ? `−${fmtCo2(d)}` : "≈ 0 t", `CO₂e per person on average${d >= 0.05 ? `, −${fmtCo2(d * VERT.equipe)} for a team of ${VERT.equipe}` : ""}`]);
+      } else if (g && g.aeroport[0] != null && g.aeroport[1] != null) {
+        const d = g.aeroport[0] - g.aeroport[1];
+        chiffres.push([d >= 5 ? `−${nb.format(d)} km` : "≈ 0 km", "to the nearest airport, on average. Add a departure city to count the flights."]);
       }
-    }
-    if (depart && premier) {
-      const proche = C.ordre.map(ligne).find((x) => x.score >= PROCHE_MIN * premier.score &&
-        distanceKm(depart.lat, depart.lon, x.lat, x.lon) <= rayonKm);
-      const choix = `<label class="impact-rayon">Within <select id="an-rayon">${RAYONS_KM.map((r) => `<option value="${r}" ${r === rayonKm ? "selected" : ""}>${nb.format(r)} km</option>`).join("")}</select> of ${echapper(depart.nom)}</label>`;
-      if (!proche) cartes.push(`<div class="impact-portee">${choix}<p class="analogues-doux">Nothing that close: widen the radius.</p></div>`);
-      else {
-        const v = texteVol(proche.lat, proche.lon), v1 = texteVol(premier.lat, premier.lon);
-        const gain = v1.t - v.t;
-        cartes.push(`<div class="impact-portee">${choix}${carte("Closest good site", proche, [`${pct.format(proche.score)} similar`,
-          `${nb.format(v.km)} km`, v.court, proche.i !== premier.i && gain >= 0.05 ? `−${fmtCo2(gain)} vs site 1` : null]
-          .filter(Boolean).join(" · "), "portee")}</div>`);
+      if (g) {
+        chiffres.push([nb.format(g.proteges), `protected site${g.proteges === 1 ? "" : "s"} of the usual list set aside`]);
+        chiffres.push([g.perte > 0 ? `−${g.perte} pt${g.perte > 1 ? "s" : ""}` : "0 pt", "of similarity on average: the price of the greener list"]);
       }
+      cartes.push(`<div class="vert-gains">${chiffres.map(([n, t]) => `<p><b>${n}</b> ${t}</p>`).join("")}</div>`);
+      cartes.push(carte("Your greenest good site", premier, faitsSite(premier)));
     }
     bloc.innerHTML = cartes.join("");
     bloc.querySelectorAll(".impact-carte").forEach((b) => b.addEventListener("click", () => ouvrirLigne(+b.dataset.i, b.dataset.entete)));
-    const r = bloc.querySelector("#an-rayon");
-    if (r) r.addEventListener("change", () => { rayonKm = +r.value; afficherImpact(); });
     const wdpa = I && I.source ? (I.source.match(/\(([^)]*)\), Protected Planet: [^,]*, ([^,]+),/) || []) : [];
     $("#an-impact-sources").innerHTML = [I && I.source ? `Protected areas: UNEP-WCMC and IUCN (${wdpa[1] || ""}), Protected Planet,
         WDPA ${wdpa[2] || ""}, <a href="https://www.protectedplanet.net" target="_blank" rel="noopener">protectedplanet.net</a>` : null,
@@ -1091,6 +1218,7 @@
   let siteOuvert = null;
   let siteReplie = false;
   function choisir(i, connu = null) {
+    if (balayage) return;
     const C = classement;
     const c = connu || (C && C.candidats[i]);
     if (!c) return;
@@ -1238,7 +1366,12 @@
     q.set("w", Object.entries(poids).map(([k, v]) => `${k}:${v}`).join(","));
     q.set("s", String(c.score));
     if (!$("#an-vegetation").checked) q.set("v", "0");
-    if ($("#an-protegees").checked) q.set("p", "1");
+    if ($("#an-protegees").checked || modeVert) q.set("p", "1");
+    if (modeVert) {
+      q.set("g", "1");
+      const s1 = classement && classement.standard && classement.standard[0];
+      if (s1 && s1.i !== c.i) q.set("ref", `${s1.lat.toFixed(3)},${s1.lon.toFixed(3)}`);
+    }
     if (rang) q.set("n", `${rang}/${classement ? classement.candidats.length : N_CANDIDATS}`);
     const url = `bilan.html?${q}#${corps}/${zoneId || "-"}/${c.h3}`;
     if (fenetre) fenetre.location.href = url; else location.href = url;

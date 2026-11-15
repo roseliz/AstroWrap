@@ -216,3 +216,7 @@ button { font: inherit; color: inherit; }
   .pile { clip-path: none; animation: none !important; }
   .radar-forme { transform: none; opacity: 1; animation: none !important; }
 }
+
+/* Green mode (bilan.html?g=1): the accent turns green */
+.mode-vert { --accent: #3DDC97; --terre: #7FE3A8; }
+.mode-vert .s { --d: #7FE3A8; }

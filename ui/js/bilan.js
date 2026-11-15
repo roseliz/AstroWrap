@@ -74,6 +74,7 @@
     return erreur("Incomplete address: open your AstroWrap from a site card (the “Play the AstroWrap” button).");
   }
   document.documentElement.style.setProperty("--corps", COULEUR_CORPS[corps]);
+  if (q.get("g") === "1") document.documentElement.classList.add("mode-vert");    // green mode of the results page
 
   /** A readable value: °C, %, level within the body, dominant rock… (same rule as the site card). */
   // Level of a value within its body: below 20% of the cells "very low", etc.
@@ -400,11 +401,22 @@
     let dep = null;
     try { dep = JSON.parse(localStorage.getItem("analogues-depart") || "null"); } catch (e) { dep = null; }
     if (dep && fiche && Number.isFinite(dep.lat)) {
-      const r = Math.PI / 180, h = Math.sin((fiche.lat - dep.lat) * r / 2) ** 2 + Math.cos(dep.lat * r) * Math.cos(fiche.lat * r) * Math.sin((fiche.lon - dep.lon) * r / 2) ** 2;
-      const km = 12742 * Math.asin(Math.min(1, Math.sqrt(h))), d = km * 1.08;          // + 8 % de détours (js/analogues.js)
-      const t = (2 * d * (d < 3700 ? 0.126 : 0.117)) / 1000;
+      /** Round-trip flight from the departure city: (km, t CO₂e per person; 0 under 500 km, by road). */
+      const vol = (lat, lon) => {
+        const r = Math.PI / 180, h = Math.sin((lat - dep.lat) * r / 2) ** 2 + Math.cos(dep.lat * r) * Math.cos(lat * r) * Math.sin((lon - dep.lon) * r / 2) ** 2;
+        const km = 12742 * Math.asin(Math.min(1, Math.sqrt(h))), d = km * 1.08;        // + 8% for detours (js/analogues.js)
+        return { km, t: km < 500 ? 0 : (2 * d * (d < 3700 ? 0.126 : 0.117)) / 1000 };
+      };
+      const { km, t } = vol(fiche.lat, fiche.lon);
       cartesI.push(km < 500 ? { t: "corps", etq: "Getting there", g: `${nb.format(km)} km`, p: `from ${echapper(dep.nom)}: reachable by land.` }
         : { t: "site", etq: "Getting there", g: `${t < 0.1 ? "< 0.1" : nb1.format(t)} t CO₂e`, p: `per person, round trip by plane from ${echapper(dep.nom)} (${nb.format(km)} km).` });
+      // green mode: what this site avoids compared with site 1 of the usual ranking (?ref=lat,lon)
+      const ref = (q.get("ref") || "").split(",").map(Number);
+      if (ref.length === 2 && ref.every(Number.isFinite)) {
+        const d = vol(ref[0], ref[1]).t - t;
+        if (d >= 0.05) cartesI.unshift({ t: "corps", etq: "Green choice", g: `−${nb1.format(d)} t CO₂e`,
+          p: `per person, compared with the closest match of the usual ranking (−${nb1.format(5 * d)} t for a team of 5).` });
+      }
     }
     if (cartesI.length) {
       ajouter({
