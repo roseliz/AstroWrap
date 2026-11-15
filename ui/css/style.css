@@ -1,0 +1,184 @@
+/* Analogues terrestres : globe terrestre */
+
+:root {
+  --espace: #081120;                  /* fond de l'espace, bleu nuit */
+  --panneau: rgba(10, 21, 40, 0.74);
+  --panneau-trait: rgba(169, 200, 238, 0.18);
+  --texte: #E9EEF5;
+  --texte-doux: #9DAAC0;
+  --atmosphere: #A9C8EE;              /* accent : la couleur du halo */
+  --police: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: var(--police);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--texte);
+  background: var(--espace);
+  overflow: hidden;
+}
+
+h1, p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--atmosphere); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ globe */
+#globe {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 55%, #10264A 0%, #0A1730 38%, var(--espace) 75%);
+}
+.erreur { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 44ch; text-align: center; }
+
+/* ------------------------------------------------------------------ titre */
+.titre {
+  position: fixed;
+  top: 22px;
+  left: 26px;
+  max-width: 480px;
+  pointer-events: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
+}
+.titre h1 {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 760;
+  font-stretch: 122%;
+  letter-spacing: -0.01em;
+}
+.titre p { margin-top: 10px; color: var(--texte-doux); font-size: 15px; }
+
+.titre .avis {
+  margin-top: 14px;
+  padding: 8px 12px;
+  max-width: 46ch;
+  font-size: 13px;
+  color: var(--texte);
+  background: var(--panneau);
+  border-left: 3px solid var(--atmosphere);
+  border-radius: 4px;
+  text-shadow: none;
+}
+#globe.leaflet-container { background: var(--espace); font-family: var(--police); }
+.leaflet-bar a { background: var(--panneau); color: var(--texte); border-bottom-color: var(--panneau-trait); }
+.leaflet-bar a:hover { background: rgba(255, 255, 255, 0.12); color: var(--texte); }
+.leaflet-control-scale-line { background: var(--panneau); color: var(--texte); border-color: var(--texte-doux); }
+.leaflet-control-attribution { background: var(--panneau) !important; color: var(--texte-doux); }
+.leaflet-control-attribution a { color: var(--texte); }
+
+/* ------------------------------------------------------------------ bas de l'écran */
+.bas {
+  position: fixed;
+  left: 20px;
+  right: 170px;
+  bottom: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+.bas > * { pointer-events: auto; }
+
+.panneau {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px;
+  background: var(--panneau);
+  border: 1px solid var(--panneau-trait);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  flex-wrap: wrap;
+}
+
+.bascule {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.bascule button {
+  border: 0;
+  background: none;
+  padding: 5px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--texte-doux);
+  font-weight: 600;
+}
+.bascule button[aria-pressed="true"] { background: var(--texte); color: var(--espace); }
+
+.case { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.case input { accent-color: var(--atmosphere); }
+.case.inactive { opacity: 0.4; cursor: default; }
+.note { flex-basis: 100%; font-size: 12px; color: var(--texte-doux); max-width: 40ch; }
+
+.position p {
+  min-width: 25ch;
+  font-variant-numeric: tabular-nums;
+  font-stretch: 92%;
+}
+#recentrer {
+  border: 1px solid var(--panneau-trait);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+#recentrer:hover { background: rgba(255, 255, 255, 0.14); }
+
+.aide {
+  max-width: 46ch;
+  font-size: 12px;
+  color: var(--texte-doux);
+  padding-bottom: 6px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ------------------------------------------------------------------ contrôles MapLibre, en sombre */
+.maplibregl-ctrl-top-right { top: 14px; right: 14px; }
+.maplibregl-ctrl-group {
+  background: var(--panneau);
+  border: 1px solid var(--panneau-trait);
+  box-shadow: none !important;
+  backdrop-filter: blur(10px);
+}
+.maplibregl-ctrl-group button + button { border-top-color: var(--panneau-trait); }
+.maplibregl-ctrl-group button:not(:disabled):hover { background-color: rgba(255, 255, 255, 0.1); }
+.maplibregl-ctrl button .maplibregl-ctrl-icon { filter: invert(1) hue-rotate(180deg) brightness(1.5); }
+.maplibregl-ctrl-scale {
+  background: var(--panneau);
+  color: var(--texte);
+  border-color: var(--texte-doux);
+  font-family: var(--police);
+}
+.maplibregl-ctrl-attrib {
+  background: var(--panneau) !important;
+  color: var(--texte-doux);
+  font-family: var(--police);
+}
+.maplibregl-ctrl-attrib-inner, .maplibregl-ctrl-attrib a { color: var(--texte-doux); }
+.maplibregl-ctrl-attrib-button { filter: invert(1); }
+
+/* ------------------------------------------------------------------ petits écrans */
+@media (max-width: 720px) {
+  .titre { top: 14px; left: 16px; right: 70px; }
+  .titre h1 { font-size: 24px; }
+  .titre p { font-size: 13px; }
+  .bas { left: 12px; right: 12px; bottom: 44px; gap: 8px; }
+  .position p { min-width: 0; }
+  .aide { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { scroll-behavior: auto !important; }
+}

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mars · AstroWrap</title>
+  <meta name="description" content="Interactive globe of Mars from AstroWrap (NASA Space Apps Challenge 2026).">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
+  <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css" onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'">
+  <link rel="stylesheet" href="css/mars.css">
+  <link rel="stylesheet" href="css/selection.css">
+  <link rel="stylesheet" href="css/reperes.css">
+  <link rel="stylesheet" href="css/navigation.css">
+</head>
+<body>
+  <script src="js/navigation.js"></script>
+  <div id="globe" role="region" tabindex="0"
+       aria-label="Interactive globe of Mars. Arrow keys to rotate, plus and minus to zoom, Escape to see the whole planet."></div>
+
+  <div id="carte2d" role="region" tabindex="0" hidden
+       aria-label="Flat map of Mars. Arrow keys to move, plus and minus to zoom, Escape to see everything."></div>
+
+  <p class="chargement" id="chargement">Loading the surface of Mars…</p>
+
+  <header class="titre">
+    <h1>Mars</h1>
+    <p>Explore the planet, then paint the area you want an Earth equivalent for: a crater, a delta, a plain. For example Jezero crater (18.4° N, 77.6° E), explored by Perseverance.</p>
+    <p class="avis" id="avis-3d" role="status" hidden>The 3D view cannot be displayed: this browser could not enable WebGL 2 (graphics card or driver refused). The 2D map below remains fully usable.</p>
+  </header>
+
+  <div class="controles" role="group" aria-label="Zoom and display">
+    <button type="button" id="zoom-plus" aria-label="Zoom in">+</button>
+    <button type="button" id="zoom-moins" aria-label="Zoom out">−</button>
+    <button type="button" id="plein-ecran" aria-label="Full screen" title="Full screen">
+      <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 8V3h5M12 3h5v5M17 12v5h-5M8 17H3v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+    </button>
+  </div>
+
+  <div class="bas">
+    <div class="panneau" role="group" aria-label="View type">
+      <div class="bascule" role="group" aria-label="View type">
+        <button type="button" data-vue="globe" aria-pressed="true">Globe</button>
+        <button type="button" data-vue="carte" aria-pressed="false">2D map</button>
+      </div>
+      <p class="note" id="etat-images" aria-live="polite"></p>
+    </div>
+
+    <div class="panneau position">
+      <p id="position">Hover over Mars to read the coordinates.</p>
+      <p id="altitude" class="altitude"></p>
+    </div>
+
+    <p class="aide">Drag to rotate the globe, use the scroll wheel or two fingers to zoom. Escape returns to the whole planet. The pale halo is the atmosphere of Mars, about a hundred times thinner than Earth's.</p>
+  </div>
+
+  <p class="credit">Images: NASA; detailed version: NASA Mars Trek, Viking mosaic and MOLA elevation (NASA/JPL/USGS)</p>
+
+  <script src="node_modules/globe.gl/dist/globe.gl.min.js"></script>
+  <script>window.Globe || document.write('<script src="https://cdn.jsdelivr.net/npm/globe.gl@2.45.3/dist/globe.gl.min.js"><\/script>')</script>
+  <script src="node_modules/leaflet/dist/leaflet.js"></script>
+  <script>window.L || document.write('<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>')</script>
+  <script src="js/carte-plane.js"></script>
+  <script src="textures/mars-surface.js"></script>
+  <script src="js/globe-mars.js"></script>
+  <script src="node_modules/h3-js/dist/h3-js.umd.js"></script>
+  <script>window.h3 || document.write('<script src="https://unpkg.com/h3-js@4.4.0/dist/h3-js.umd.js"><\/script>')</script>
+  <script src="js/selection-zone.js"></script>
+  <script src="js/reperes.js"></script>
+</body>
+</html>

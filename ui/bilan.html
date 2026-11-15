@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your AstroWrap</title>
+  <meta name="description" content="Animated recap of the comparison between an area of Mars or the Moon and a site on Earth (AstroWrap, NASA Space Apps Challenge 2026).">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap">
+  <link rel="stylesheet" href="css/bilan.css">
+</head>
+<body>
+  <div id="bilan" role="region" aria-label="Animated recap of the analog site">
+    <div class="b-progres" id="b-progres" aria-hidden="true"></div>
+    <header class="b-haut">
+      <span class="b-marque"><img src="images/astrowrap-wordmark.png" alt="AstroWrap" height="22"><span>Your wrap</span></span>
+      <span class="b-outils">
+        <button type="button" id="b-pause" aria-pressed="false" title="Pause (P)">❚❚</button>
+        <button type="button" id="b-fermer" title="Close the recap (Escape)" aria-label="Close the recap">×</button>
+      </span>
+    </header>
+    <main class="b-scene" id="b-scene" aria-live="polite">
+      <p class="b-attente" id="b-attente">Preparing the recap…</p>
+    </main>
+    <button type="button" class="b-fleche b-prec" id="b-prec" aria-label="Previous">‹</button>
+    <button type="button" class="b-fleche b-suiv" id="b-suiv" aria-label="Next">›</button>
+  </div>
+
+  <script src="node_modules/h3-js/dist/h3-js.umd.js"></script>
+  <script>window.h3 || document.write('<script src="https://unpkg.com/h3-js@4.4.0/dist/h3-js.umd.js"><\/script>')</script>
+  <script src="js/relief-bilan.js"></script>
+  <script src="js/bilan.js"></script>
+</body>
+</html>
