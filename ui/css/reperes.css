@@ -1,0 +1,56 @@
+/* Repères des sites connus (js/reperes.js), partagés par mars.html et lune.html.
+   Le conteneur est de taille nulle et posé sur le point : le contenu est décalé pour que le rond
+   tombe exactement sur les coordonnées et que le nom se lise à droite. */
+
+.repere, .repere-leaflet { width: 0; height: 0; overflow: visible; }
+
+.repere-contenu {
+  position: absolute;
+  left: -5px;
+  top: -9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--texte);
+  font: 600 12px/18px var(--police);
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.95), 0 1px 6px rgba(0, 0, 0, 0.8);
+  transition: opacity 0.2s;
+}
+
+.repere-point {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+}
+/* Site d'atterrissage : rond plein ; relief : anneau */
+.repere-mission .repere-point { background: #FFFFFF; }
+.repere-relief .repere-point { background: transparent; border: 2px solid #FFFFFF; }
+
+.repere-nom {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.35);
+}
+.repere-contenu:hover .repere-nom,
+.repere-contenu:focus-visible .repere-nom { background: var(--texte); color: var(--espace); text-shadow: none; }
+
+/* Niveau 2 : seulement le point, sauf de près ou au survol */
+.niveau-2 .repere-nom { display: none; }
+body.reperes-detailles .niveau-2 .repere-nom,
+.niveau-2 .repere-contenu:hover .repere-nom,
+.niveau-2 .repere-contenu:focus-visible .repere-nom { display: inline; }
+
+/* Derrière la planète */
+.repere-cache .repere-contenu { opacity: 0; pointer-events: none; }
+
+/* Pendant qu'on peint, les repères restent visibles mais laissent passer le pinceau */
+body[data-outil="peindre"] .repere-contenu,
+body[data-outil="gommer"] .repere-contenu { pointer-events: none; opacity: 0.75; }

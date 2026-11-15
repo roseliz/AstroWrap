@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AstroWrap · Terrestrial analogs of the Moon and Mars</title>
+  <meta name="description" content="AstroWrap (NASA Space Apps Challenge 2026): choose the Moon or Mars, paint an area, and find the places on Earth that look most like it.">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
+  <link rel="stylesheet" href="node_modules/maplibre-gl/dist/maplibre-gl.css" onerror="this.onerror=null;this.href='https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.css'">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/analogues.css">
+  <link rel="stylesheet" href="css/accueil.css">
+  <link rel="stylesheet" href="css/navigation.css">
+</head>
+<body>
+  <script src="js/navigation.js"></script>
+  <div id="globe" role="region" aria-label="Interactive globe of the Earth. Arrow keys to rotate, plus and minus to zoom, Escape to see the whole Earth."></div>
+
+  <header class="titre">
+    <h1>AstroWrap</h1>
+    <p>Earth first: explore it before comparing it with the Moon and Mars.</p>
+  </header>
+
+  <div class="bas">
+    <div class="panneau" role="group" aria-label="View type">
+      <div class="bascule">
+        <button type="button" data-vue="globe" aria-pressed="true">Globe</button>
+        <button type="button" data-vue="carte" aria-pressed="false">2D map</button>
+      </div>
+    </div>
+
+    <div class="panneau position">
+      <p id="position">Hover over the globe to read the coordinates.</p>
+    </div>
+
+    <p class="aide"></p>
+  </div>
+
+  <script src="node_modules/maplibre-gl/dist/maplibre-gl.js"></script>
+  <script>window.maplibregl || document.write('<script src="https://unpkg.com/maplibre-gl@5.9.0/dist/maplibre-gl.js"><\/script>')</script>
+  <script src="js/globe-terre.js"></script>
+  <script src="node_modules/h3-js/dist/h3-js.umd.js"></script>
+  <script>window.h3 || document.write('<script src="https://unpkg.com/h3-js@4.4.0/dist/h3-js.umd.js"><\/script>')</script>
+  <script src="node_modules/three/build/three.min.js"></script>
+  <script>window.THREE || document.write('<script src="https://unpkg.com/three@0.147.0/build/three.min.js"><\/script>')</script>
+  <script src="textures/accueil.js"></script>
+  <script src="js/accueil.js"></script>
+  <script src="js/vue-3d.js"></script>
+  <script src="js/villes.js"></script>
+  <script src="js/relief-bilan.js"></script>
+  <script src="js/analogues.js"></script>
+</body>
+</html>

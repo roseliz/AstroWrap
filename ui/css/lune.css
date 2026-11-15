@@ -1,0 +1,213 @@
+/* Analogues terrestres : globe lunaire
+   Même mise en page que le globe terrestre ; l'accent passe du bleu de l'atmosphère
+   au gris clair du régolithe, puisque la Lune n'a pas d'atmosphère. */
+
+:root {
+  --espace: #070B14;
+  --panneau: rgba(16, 19, 26, 0.76);
+  --panneau-trait: rgba(214, 211, 202, 0.18);
+  --texte: #ECEBE6;
+  --texte-doux: #A4A29B;
+  --regolithe: #D6D3CA;              /* accent */
+  --police: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: var(--police);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--texte);
+  background: var(--espace);
+  overflow: hidden;
+}
+
+h1, p { margin: 0; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--regolithe); outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ globe */
+#globe {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 52%, #161A22 0%, #0C1018 40%, var(--espace) 75%);
+  cursor: grab;
+}
+#globe:active { cursor: grabbing; }
+#globe:focus-visible { outline-offset: -4px; }
+
+.chargement {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--texte-doux);
+  text-align: center;
+  max-width: 44ch;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ carte 2D */
+#carte2d {
+  position: fixed;
+  inset: 0;
+  background: var(--espace);
+}
+#carte2d[hidden] { display: none; }
+#carte2d.leaflet-container { background: var(--espace); font-family: var(--police); cursor: grab; }
+#carte2d.leaflet-dragging { cursor: grabbing; }
+#carte2d:focus-visible { outline: 2px solid var(--texte-doux); outline-offset: -4px; }
+
+/* ------------------------------------------------------------------ titre */
+.titre {
+  position: fixed;
+  top: 22px;
+  left: 26px;
+  max-width: 480px;
+  pointer-events: none;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.6);
+}
+.titre h1 {
+  font-size: 34px;
+  line-height: 1;
+  font-weight: 760;
+  font-stretch: 122%;
+  letter-spacing: -0.01em;
+}
+.titre p { margin-top: 10px; color: var(--texte-doux); font-size: 15px; max-width: 46ch; }
+
+.titre .avis {
+  margin-top: 14px;
+  padding: 8px 12px;
+  max-width: 46ch;
+  font-size: 13px;
+  color: var(--texte);
+  background: var(--panneau);
+  border-left: 3px solid var(--texte-doux);
+  border-radius: 4px;
+  text-shadow: none;
+}
+.titre .avis[hidden] { display: none; }
+
+/* ------------------------------------------------------------------ zoom et plein écran */
+.controles {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  background: var(--panneau);
+  border: 1px solid var(--panneau-trait);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow: hidden;
+}
+.controles button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+}
+.controles button + button { border-top: 1px solid var(--panneau-trait); }
+.controles button:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* ------------------------------------------------------------------ bas de l'écran */
+.bas {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: 30px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+.bas > * { pointer-events: auto; }
+
+.panneau {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 12px;
+  background: var(--panneau);
+  border: 1px solid var(--panneau-trait);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  flex-wrap: wrap;
+}
+
+.case { display: flex; align-items: center; gap: 7px; cursor: pointer; }
+.bascule {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.bascule button {
+  border: 0;
+  background: none;
+  padding: 5px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--texte-doux);
+  font-weight: 600;
+}
+.bascule button[aria-pressed="true"] { background: var(--texte); color: var(--espace); }
+.bascule button:disabled { opacity: 0.4; cursor: default; }
+.case:has(input:disabled) { opacity: 0.45; cursor: default; }
+
+.case input { accent-color: var(--regolithe); }
+
+.position { column-gap: 14px; row-gap: 2px; }
+.position p { font-variant-numeric: tabular-nums; font-stretch: 92%; }
+#position { min-width: 25ch; }
+.altitude { color: var(--texte-doux); }
+.aller { display: flex; gap: 6px; }
+.aller button {
+  border: 1px solid var(--panneau-trait);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.aller button:hover { background: rgba(255, 255, 255, 0.14); }
+
+.aide {
+  max-width: 46ch;
+  font-size: 12px;
+  color: var(--texte-doux);
+  padding-bottom: 6px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+
+.credit {
+  position: fixed;
+  right: 12px;
+  bottom: 8px;
+  font-size: 11px;
+  color: var(--texte-doux);
+}
+
+/* ------------------------------------------------------------------ petits écrans */
+@media (max-width: 720px) {
+  .titre { top: 14px; left: 16px; right: 64px; }
+  .titre h1 { font-size: 26px; }
+  .titre p { font-size: 13px; }
+  .bas { left: 12px; right: 12px; bottom: 30px; gap: 8px; }
+  .credit { left: 12px; right: 12px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #position { min-width: 0; }
+  .aide { display: none; }
+}
