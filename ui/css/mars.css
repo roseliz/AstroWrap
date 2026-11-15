@@ -1,6 +1,6 @@
-/* Analogues terrestres : globe martien
-   Même mise en page que les globes de la Terre et de la Lune ; l'accent prend la couleur
-   ocre de la poussière martienne. */
+/* Earth Analogues: Mars globe
+   Same layout as the Earth and Moon globes; the accent color takes on
+   the ochre hue of Martian dust. */
 
 :root {
   --espace: #0B0807;

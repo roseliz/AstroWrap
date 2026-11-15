@@ -1,6 +1,6 @@
-/* Barre de navigation (js/navigation.js), en haut de index, mars, lune et apropos.
-   Chargée après les styles de la page : elle décale vers le bas ce qui était collé en haut de l'écran
-   (titre, boutons de zoom, panneaux) de la hauteur de la barre. */
+/* Navigation bar (js/navigation.js), at the top of index, mars, lune, and apropos.
+   Loaded after the page styles: it shifts elements positioned at the top of the screen
+   (title, zoom buttons, panels) downward by the height of the navigation bar. */
 
 :root { --nav-h: 48px; }
 

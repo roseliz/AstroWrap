@@ -1,6 +1,6 @@
-/* Analogues terrestres : globe lunaire
-   Même mise en page que le globe terrestre ; l'accent passe du bleu de l'atmosphère
-   au gris clair du régolithe, puisque la Lune n'a pas d'atmosphère. */
+/* Earth Analogues: Moon globe
+   Same layout as the Earth globe; the accent color shifts from atmospheric blue
+   to light regolith gray, since the Moon has no atmosphere. */
 
 :root {
   --espace: #070B14;

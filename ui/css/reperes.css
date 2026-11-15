@@ -1,6 +1,6 @@
-/* Repères des sites connus (js/reperes.js), partagés par mars.html et lune.html.
-   Le conteneur est de taille nulle et posé sur le point : le contenu est décalé pour que le rond
-   tombe exactement sur les coordonnées et que le nom se lise à droite. */
+/* Known site markers (js/reperes.js), shared by mars.html and lune.html.
+   The container has zero dimensions and is positioned at the point: its content is offset
+   so that the circle aligns exactly with the coordinates and the label appears to the right. */
 
 .repere, .repere-leaflet { width: 0; height: 0; overflow: visible; }
 

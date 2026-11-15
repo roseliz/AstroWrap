@@ -1,5 +1,5 @@
-/* Bilan animé d'un site analogue (bilan.html, js/bilan.js). Une diapositive plein écran à la fois ;
-   à gauche la zone de Mars (ou de la Lune), à droite le site de la Terre. */
+/* Animated recap of an analogue site (bilan.html, js/bilan.js). One full-screen slide at a time;
+   the Mars (or Moon) region on the left, and the Earth site on the right. */
 
 :root {
   --espace: #081120;
