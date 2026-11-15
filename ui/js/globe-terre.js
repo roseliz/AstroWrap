@@ -12,8 +12,8 @@
   const IMAGERIE = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
   const ATTRIBUTION = "Imagery © Esri, Maxar, Earthstar Geographics";
   const VUE_DEPART = { center: [-30, 22], zoom: zoomQuiCadreLaTerre(), pitch: 0, bearing: 0 };
-  const AIDE_GLOBE = "Drag to rotate the globe, use the scroll wheel or two fingers to zoom, and right-drag to tilt the view. Escape returns to the whole Earth.";
-  const AIDE_CARTE = "Drag to move the map, use the scroll wheel or two fingers to zoom. Escape returns to the whole Earth.";
+  const AIDE_GLOBE = "Right-drag to tilt, Esc shows the whole Earth.";
+  const AIDE_CARTE = "Esc shows the whole Earth.";
 
   /** Zoom for which the globe occupies about 70% of the window's smallest side.
    *  (Globe diameter in pixels ≈ 512 × 2^zoom / π.) */
