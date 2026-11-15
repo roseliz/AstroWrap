@@ -1,15 +1,15 @@
-// Globe martien en 3D (globe.gl / three.js).
-// Affichage immédiat avec la texture NASA intégrée (1440 px), puis remplacement par une version
-// détaillée assemblée à partir des tuiles NASA Mars Trek, si le navigateur peut les charger.
+// 3D Martian globe (globe.gl / three.js).
+// Immediate display with the built-in NASA texture (1440 px), then replacement with a detailed
+// version assembled from NASA Mars Trek tiles, if the browser can load them.
 
 (function () {
   const $ = (s) => document.querySelector(s);
   const RAYON_KM = 3389.5;
-  const VUE_ENTIERE = { lat: 10, lng: 60, altitude: 2.4 };   // altitude en rayons martiens (recalculée plus bas)
+  const VUE_ENTIERE = { lat: 10, lng: 60, altitude: 2.4 };   // altitude in Martian radii (recalculated further down)
   const ALTITUDE_MIN = 0.03;   // ~100 km
   const ALTITUDE_MAX = 6;
 
-  // Tuiles NASA Mars Trek (grille géographique : niveau n = 2^(n+1) colonnes x 2^n lignes de 256 px)
+  // NASA Mars Trek tiles (geographic grid: level n = 2^(n+1) columns x 2^n rows of 256 px)
   const TREK = "https://trek.nasa.gov/tiles/Mars/EQ";
   const PRODUITS = {
     viking: { id: "Mars_Viking_MDIM21_ClrMosaic_global_232m", ext: "jpg", niveau: 3, nom: "Viking mosaic" },
@@ -20,8 +20,8 @@
     const p = PRODUITS[cle];
     return `${TREK}/${p.id}/1.0.0//default/default028mm/{z}/{y}/{x}.${p.ext}`;
   };
-  // En 2D, les tuiles s'affichent comme de simples images : pas besoin d'autorisation CORS,
-  // donc la pleine résolution Trek est disponible (Viking jusqu'au niveau 7, ~232 m/px).
+  // In 2D, tiles are displayed as simple images: no CORS authorization needed,
+  // so full Trek resolution is available (Viking up to level 7, ~232 m/px).
   const tuiles2D = (cle) => ({ url: urlTuiles(cle), maxZoom: cle === "viking" ? 7 : 6 });
 
   if (!window.TEXTURE_MARS) {
@@ -30,7 +30,7 @@
   }
 
   const conteneur = $("#globe");
-  // null si la 3D est impossible dans ce navigateur : la page passe alors en carte 2D.
+  // null if 3D is impossible in this browser: the page then switches to the 2D map.
   const globe = window.creerGlobe3D ? window.creerGlobe3D(conteneur) : null;
   if (globe) globe
     .width(window.innerWidth)
@@ -43,7 +43,7 @@
     .showGraticules(true)
     .globeCurvatureResolution(2);
 
-  /** Altitude pour laquelle Mars occupe environ 72 % du plus petit côté de la fenêtre. */
+  /** Altitude for which Mars occupies about 72% of the window's smallest side. */
   function altitudeQuiCadreMars() {
     const fov = globe ? globe.camera().fov : 50;
     const demiV = (fov / 2) * (Math.PI / 180);
@@ -54,7 +54,7 @@
   VUE_ENTIERE.altitude = altitudeQuiCadreMars();
   if (globe) globe.pointOfView(VUE_ENTIERE, 0);
 
-  // ------------------------------------------------------------------ éclairage
+  // ------------------------------------------------------------------ lighting
   const lumieres = globe ? globe.lights() : [];
   const soleil = lumieres.find((l) => l.isDirectionalLight);
   const ambiante = lumieres.find((l) => l.isAmbientLight);
@@ -70,7 +70,7 @@
   const materiau = globe ? globe.globeMaterial() : null;
   const anisotropie = globe ? globe.renderer().capabilities.getMaxAnisotropy() : 1;
 
-  /** Applique une image au globe, puis règle son filtrage une fois la texture créée. */
+  /** Applies an image to the globe, then adjusts its filtering once the texture is created. */
   function poserImage(url) {
     if (!globe) return;
     const avant = materiau.map;
@@ -86,13 +86,13 @@
     setTimeout(() => clearInterval(attente), 15000);
   }
 
-  // ------------------------------------------------------------------ images détaillées (NASA Mars Trek)
+  // ------------------------------------------------------------------ detailed images (NASA Mars Trek)
   const images = { viking: null, relief: null };
   let detailIndisponible = false;
   const enCours = {};
   const etat = $("#etat-images");
 
-  /** Assemble les tuiles d'un produit Trek en une seule image équirectangulaire (data URL), ou null. */
+  /** Assembles tiles of a Trek product into a single equirectangular image (data URL), or null. */
   function assembler(cle) {
     if (enCours[cle]) return enCours[cle];
     const p = PRODUITS[cle];
@@ -119,7 +119,7 @@
       const travailleurs = Array.from({ length: 8 }, async () => {
         while (file.length) {
           await charger(file.shift());
-          if (echecs > 3 && echecs > taches.length * 0.1) return; // le serveur refuse : inutile d'insister
+          if (echecs > 3 && echecs > taches.length * 0.1) return; // server refuses: no need to insist
         }
       });
       await Promise.all(travailleurs);
@@ -127,7 +127,7 @@
       try {
         return canvas.toDataURL(p.ext === "png" ? "image/png" : "image/jpeg", 0.9);
       } catch (e) {
-        return null; // image « contaminée » : le serveur n'autorise pas son usage en WebGL
+        return null; // "tainted" image: server does not allow its usage in WebGL
       }
     })();
     return enCours[cle];
@@ -152,14 +152,14 @@
     }
   }
 
-  // ------------------------------------------------------------------ relief (toujours actif en 3D)
+  // ------------------------------------------------------------------ relief (always active in 3D)
   function appliquerRelief() {
     if (!materiau) return;
     materiau.bumpScale = 8;
     materiau.needsUpdate = true;
   }
 
-  // ------------------------------------------------------------------ contrôles de caméra
+  // ------------------------------------------------------------------ camera controls
   const controles = globe ? globe.controls() : {};
   controles.enableDamping = true;
   controles.dampingFactor = 0.08;
@@ -205,15 +205,15 @@
   }
 
 
-  // ------------------------------------------------------------------ carte 2D (projection équirectangulaire)
+  // ------------------------------------------------------------------ 2D map (equirectangular projection)
   let mode = "globe";
   let plane = null;
   const aide = $(".aide");
   const AIDE_GLOBE = aide.textContent;
   const AIDE_CARTE = "Drag to move the map, use the scroll wheel or two fingers to zoom, Escape to see everything. Near the poles, a flat map stretches the terrain: its true shape shows on the globe.";
-  /** Demi-angle de vue horizontal de la caméra 3D. */
+  /** 3D camera horizontal half-field-of-view angle. */
   const demiH = () => Math.atan(Math.tan(((globe ? globe.camera().fov : 50) / 2) * (Math.PI / 180)) * (window.innerWidth / window.innerHeight));
-  /** Correspondance approximative entre l'altitude 3D et la largeur de terrain visible en 2D (degrés). */
+  /** Approximate correspondence between 3D altitude and visible 2D terrain width (degrees). */
   const altitudeVersLargeur = (a) => Math.min(360, (2 * a * Math.tan(demiH()) * 180) / Math.PI);
   const largeurVersAltitude = (w) => Math.min(ALTITUDE_MAX, Math.max(ALTITUDE_MIN, ((w * Math.PI) / 180) / (2 * Math.tan(demiH()))));
 
@@ -232,7 +232,7 @@
     plane.afficherGrille(true);
   }
 
-  /** Passe du globe à la carte 2D (ou l'inverse) en gardant à peu près la même zone à l'écran. */
+  /** Switches from the globe to the 2D map (or vice versa) while keeping roughly the same area on screen. */
   function changerVue(v) {
     if (v === mode || !globe) return;
     if (v === "carte" && !window.L) {
@@ -260,7 +260,7 @@
     document.querySelectorAll("[data-vue]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.vue === mode)));
     survol = false;
     aide.textContent = mode === "carte" ? AIDE_CARTE : AIDE_GLOBE;
-    // En 2D, les tuiles Trek s'affichent directement : le message sur la version détaillée ne concerne que la 3D.
+    // In 2D, Trek tiles are displayed directly: the detailed version message only concerns 3D.
     etat.textContent = mode === "globe" && detailIndisponible ? "Detailed version unavailable: showing low resolution." : "";
     majAltitude();
     (mode === "carte" ? $("#carte2d") : $("#globe")).focus({ preventScroll: true });
@@ -275,7 +275,7 @@
     else document.documentElement.requestFullscreen?.();
   });
 
-  // Clavier : flèches pour tourner, + et − pour zoomer, Échap pour revoir toute la planète.
+  // Keyboard: arrows to rotate, + and − to zoom, Escape to see the whole planet again.
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { allerA(VUE_ENTIERE); return; }
     if (e.target.closest && e.target.closest("input")) return;
@@ -300,7 +300,7 @@
     else if (e.key === "-" || e.key === "_") zoomer(1.4);
   });
 
-  // ------------------------------------------------------------------ coordonnées et altitude
+  // ------------------------------------------------------------------ coordinates and altitude
   const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtKm = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
   const lire = ({ lat, lng }) => {
@@ -325,7 +325,7 @@
   }
   if (globe) globe.onZoom(majAltitude);
 
-  /** Coordonnées martiennes sous un point de l'écran : intersection du rayon de la caméra avec la sphère. */
+  /** Martian coordinates under a point on the screen: intersection of the camera ray with the sphere. */
   function coordsSousPoint(x, y) {
     if (!globe) return null;
     const cam = globe.camera();
@@ -361,7 +361,7 @@
     position.textContent = `View center: ${lire(globe.pointOfView())}`;
   });
 
-  // ------------------------------------------------------------------ démarrage
+  // ------------------------------------------------------------------ startup
   if (globe) globe.onGlobeReady(() => {
     $("#chargement").hidden = true;
     window.renforcerGrille3D(globe);
@@ -372,7 +372,7 @@
   });
   else demarrerSans3D();
 
-  /** Sans WebGL (ou sans globe.gl), la page s'ouvre directement sur la carte 2D, qui n'en a pas besoin. */
+  /** Without WebGL (or without globe.gl), the page opens directly on the 2D map, which does not need it. */
   function demarrerSans3D() {
     $("#chargement").hidden = true;
     $("#globe").hidden = true;
@@ -400,8 +400,8 @@
     if (plane) plane.rafraichir();
   });
 
-  // ------------------------------------------------------------------ interface pour la sélection de zone
-  // Utilisée par js/selection-zone.js (tuiles H3), chargé après ce fichier.
+  // ------------------------------------------------------------------ interface for area selection
+  // Used by js/selection-zone.js (H3 tiles), loaded after this file.
   window.vueCorps = {
     corps: "mars",
     rayonKm: RAYON_KM,
@@ -410,16 +410,16 @@
     mode: () => mode,
     plane: () => plane,
     coordsSousPoint,
-    /** Largeur de terrain visible, en km : sert à régler la taille du pinceau. */
+    /** Visible terrain width in km: used to set brush size. */
     largeurVueKm() {
       if (mode === "carte" && plane) return plane.largeurKm();
       if (!globe) return 2 * RAYON_KM;
       return Math.min(2 * RAYON_KM, 2 * globe.pointOfView().altitude * Math.tan(demiH()) * RAYON_KM);
     },
     arreterRotation,
-    /** Vole jusqu'à un point ; altitude en rayons du corps (convertie en largeur de vue en 2D). */
+    /** Flies to a point; altitude in body radii (converted to view width in 2D). */
     allerA: (lat, lng, altitude) => allerA({ lat, lng, altitude }),
   };
 
-  window.globeMars = globe; // pratique pour déboguer dans la console
+  window.globeMars = globe; // handy for debugging in the console
 })();

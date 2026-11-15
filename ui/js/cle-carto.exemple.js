@@ -1,4 +1,4 @@
-// Copiez ce fichier en js/cle-carto.js et collez votre clé CARTO entre les guillemets.
-// js/cle-carto.js est ignoré par git : la clé ne part pas sur GitHub.
-// Sans ce fichier, la vue Satellite fonctionne ; le fond Plan et les noms de lieux ont un filigrane.
+// Copy this file to js/cle-carto.js and paste your CARTO key between the quotation marks.
+// js/cle-carto.js is ignored by git: the key won't be pushed to GitHub.
+// Without this file, the Satellite view works; the Map background and place names have a watermark.
 window.CLE_CARTO = "";

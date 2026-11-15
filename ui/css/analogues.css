@@ -1,5 +1,4 @@
-/* Panneau des analogues (js/analogues.js) sur le globe terrestre. */
-
+/* Analogues panel (js/analogues.js) on the Earth globe. */
 :root { --analogue: #FF2E63; --analogue-doux: #F2C14E; }
 
 .analogues {

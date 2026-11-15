@@ -1,5 +1,5 @@
-/* Pages de texte (apropos.html). Mêmes couleurs que le reste de l'outil ; la page défile sous la barre de navigation. */
-
+/* Text pages (apropos.html). Same colors as the rest of the application;
+   the page scrolls beneath the navigation bar. */
 :root {
   --espace: #081120;
   --panneau: rgba(10, 21, 40, 0.74);

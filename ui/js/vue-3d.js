@@ -1,28 +1,28 @@
-// Comparer les reliefs : la zone peinte sur Mars (ou la Lune) et un site retenu sur la Terre, côte à côte, à la même
-// échelle (même carré en km, cadré sur la zone peinte). Le contour blanc de la zone est reporté tel quel (même forme,
-// même surface) autour du site ; en pointillé blanc, l'empreinte jugée sur Terre (disque de même surface,
-// services/empreinte.py).
+// Compare terrain: the painted region on Mars (or the Moon) and a selected site on Earth, side by side, at the same
+// scale (same square in km, centered on the painted region). The white outline of the region is reproduced exactly
+// (same shape, same area) around the site; the evaluated footprint on Earth is shown as a dashed white outline
+// (a disk of equal area, services/empreinte.py).
 //
-// Ce qui se lit le mieux est en premier :
-// - deux cartes vues de dessus, même ombrage, couleur d'altitude relative (du plus bas au plus haut de chaque carré),
-//   la mer en bleu ;
-// - une coupe à travers les deux zones, sur le même graphique (cliquer sur une carte la déplace) ;
-// - la répartition des pentes : les déciles mesurés à 500 m que compare le critère Relief (POST /api/search/detail),
-//   ou, à défaut, les pentes de la grille ;
-// - en option, les deux maquettes en 3D (three.js r147, chargé à la demande), caméras liées ;
-// - la zone est colorée selon la ressemblance du relief (vert : très proche ... rouge : éloigné), la même des deux
-//   côtés : moyenne de la ressemblance des coupes (dénivelé et rugosité sur toute la zone, toutes les lignes et
-//   colonnes de la grille ; elle ne dépend donc pas de la coupe affichée) et de celle des pentes (part commune des
-//   classes). Pas de comparaison point par point : rien n'oblige le coin nord-est de la
-//   zone de Mars à ressembler au coin nord-est du site ;
-// - à l'intérieur de la zone, un dégradé du rouge au vert : à chaque endroit, le terrain local (pente et rugosité sur
-//   ~1,5 km) se retrouve-t-il ailleurs dans la zone d'en face ? Vert : oui, c'est un terrain courant de l'autre côté ;
-//   rouge : il n'y existe pas (bord de cratère sur Mars, vallée encaissée sur Terre...).
+// The most intuitive visualizations come first:
+// - two top-down maps, with identical hillshading and relative elevation colors (from lowest to highest within
+//   each square), with the ocean shown in blue;
+// - a cross-section through both regions, displayed on the same graph (clicking a map moves the cross-section);
+// - the slope distribution: the deciles measured at 500 m resolution and compared by the Relief criterion
+//   (POST /api/search/detail), or, if unavailable, slopes calculated from the grid;
+// - optionally, two 3D terrain models (three.js r147, loaded on demand), with synchronized cameras;
+// - the region is colored according to terrain similarity (green: very close ... red: distant), identically on
+//   both sides: the average of cross-section similarity (elevation range and roughness across the entire region,
+//   using all rows and columns of the grid; therefore independent of the displayed cross-section) and slope
+//   similarity (overlap between slope classes). No point-by-point comparison: the northeastern corner of the
+//   Martian region does not need to resemble the northeastern corner of the Earth site;
+// - inside the region, a red-to-green gradient: at each location, does the local terrain (slope and roughness over
+//   ~1.5 km) also occur elsewhere in the opposite region? Green: yes, this terrain is common on the other side;
+//   red: this terrain does not exist there (crater rim on Mars, deep valley on Earth, etc.).
 //
-// Le serveur fournit pour chaque côté une grille d'altitude de 256 x 256 points sur le même carré et l'image drapée
-// (GET /api/relief : MOLA, LOLA, Copernicus ; Trek, Esri).
+// For each side, the server provides a 256 x 256 elevation grid covering the same square and a draped image
+// (GET /api/relief: MOLA, LOLA, Copernicus; Trek, Esri).
 //
-// Utilisation (js/analogues.js) :
+// Usage (js/analogues.js):
 //   window.vue3D.ouvrir({ api, corps, zone, site: { lat, lon, h3, nom, empreinte }, pentes: { zone, site } | null })
 
 (function () {
@@ -33,8 +33,7 @@
   const RAYON_KM = { earth: 6371.0088, mars: 3389.5, moon: 1737.4 };
   const NOMS = { mars: "Mars", moon: "Moon", earth: "Earth" };
   const COULEURS = { mars: "#E0794F", moon: "#C9CED6", earth: "#4FD1FF" };
-  const EMPREINTE = "rgba(255,255,255,0.85)";      // pointillé : ne se confond avec aucune couleur de niveau
-  // Mêmes seuils et couleurs que la liste des sites (js/analogues.js)
+  const EMPREINTE = "rgba(255,255,255,0.85)";      
   const NIVEAUX = [
     { min: 0.8, nom: "Very close", couleur: "#3DDC97" },
     { min: 0.6, nom: "Close", couleur: "#B9E05A" },
@@ -50,9 +49,9 @@
   const nb1 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
   const echapper = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-  // ------------------------------------------------------------------ géométrie (sphère du corps)
+
   const rad = (d) => (d * Math.PI) / 180;
-  /** Projection azimutale équidistante autour de (lat0, lon0) : (x vers l'est, y vers le nord) en km. */
+
   function versPlan(lat, lon, lat0, lon0, R) {
     const p = rad(lat), l = rad(lon) - rad(lon0), p0 = rad(lat0);
     const cosc = Math.sin(p0) * Math.sin(p) + Math.cos(p0) * Math.cos(p) * Math.cos(l);
@@ -61,7 +60,6 @@
     return [R * k * Math.cos(p) * Math.sin(l), R * k * (Math.cos(p0) * Math.sin(p) - Math.sin(p0) * Math.cos(p) * Math.cos(l))];
   }
 
-  /** Centre (moyenne sur la sphère, pondérée par la surface) et taille du carré qui contient la zone. */
   function cadreZone(zone, corps) {
     const H = window.h3;
     let x = 0, y = 0, z = 0;
@@ -83,7 +81,6 @@
     return { lat, lon, taille };
   }
 
-  /** Contours de cellules H3 (même résolution) en km sur le plan de la vue. */
   function contours(cellules, lat0, lon0, R) {
     const H = window.h3;
     try {
@@ -94,7 +91,7 @@
     }
   }
 
-  // ------------------------------------------------------------------ chargement de three.js
+  // ------------------------------------------------------------------ three.js
   let chargement = null;
   function chargerThree() {
     if (window.THREE && window.THREE.OrbitControls) return Promise.resolve();
@@ -113,7 +110,7 @@
   }
 
   // ------------------------------------------------------------------ interface
-  let vue = null;   // état de la vue ouverte
+  let vue = null;   
 
   function fermer() {
     if (!vue) return;
@@ -127,7 +124,6 @@
     vue = null;
   }
 
-  // Avant js/analogues.js (chargé après) : Échap ferme d'abord cette vue, les flèches ne changent pas de site.
   window.addEventListener("keydown", (e) => {
     if (!vue) return;
     if (e.key === "Escape") { e.stopImmediatePropagation(); e.preventDefault(); fermer(); }

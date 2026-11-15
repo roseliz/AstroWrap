@@ -1,5 +1,5 @@
-// Globe terrestre en 3D (MapLibre GL), avec bascule vers une carte 2D (projection Mercator)
-// et grille des coordonnées toujours affichée.
+// Terrestrial 3D globe (MapLibre GL), with toggle to a 2D map (Mercator projection)
+// and coordinate grid always displayed.
 
 (function () {
   const $ = (s) => document.querySelector(s);
@@ -15,16 +15,16 @@
   const AIDE_GLOBE = "Drag to rotate the globe, use the scroll wheel or two fingers to zoom, and right-drag to tilt the view. Escape returns to the whole Earth.";
   const AIDE_CARTE = "Drag to move the map, use the scroll wheel or two fingers to zoom. Escape returns to the whole Earth.";
 
-  /** Zoom pour lequel le globe occupe environ 70 % du plus petit côté de la fenêtre.
-   *  (Diamètre du globe en pixels ≈ 512 × 2^zoom / π.) */
+  /** Zoom for which the globe occupies about 70% of the window's smallest side.
+   *  (Globe diameter in pixels ≈ 512 × 2^zoom / π.) */
   function zoomQuiCadreLaTerre() {
     const cote = Math.min(window.innerWidth, window.innerHeight);
     return Math.max(0, Math.log2((cote * 0.7 * Math.PI) / 512));
   }
 
-  // ------------------------------------------------------------------ grille des coordonnées
-  /** Lignes de latitude et de longitude tous les `pas` degrés, avec un point par degré
-   *  pour qu'elles suivent la courbure du globe. */
+  // ------------------------------------------------------------------ coordinate grid
+  /** Latitude and longitude lines every `pas` degrees, with one point per degree
+   *  so they follow the curvature of the globe. */
   function grille(pas) {
     const traits = [];
     for (let lat = -90 + pas; lat < 90; lat += pas) {
@@ -39,7 +39,7 @@
     }
     return { type: "FeatureCollection", features: traits };
   }
-  // L'espacement de la grille suit le zoom : 30°, 10°, 5°, puis 1°.
+  // Grid spacing follows the zoom: 30°, 10°, 5°, then 1°.
   const NIVEAUX_GRILLE = [{ pas: 30, min: 0, max: 3 }, { pas: 10, min: 3, max: 5 }, { pas: 5, min: 5, max: 7 }, { pas: 1, min: 7, max: 24 }];
 
   const style = {
@@ -47,14 +47,14 @@
     projection: { type: "globe" },
     sources: {
       satellite: { type: "raster", tiles: [IMAGERIE], tileSize: 256, maxzoom: 19, attribution: ATTRIBUTION },
-      // tolerance 0 : sans elle, MapLibre simplifie les lignes en Mercator, où un parallèle est droit ; il n'en garde
-      // que les bouts, et sur le globe le parallèle devient une corde droite, coupée au bord des tuiles.
+      // tolerance 0: without it, MapLibre simplifies lines in Mercator, where a parallel is straight; it only keeps
+      // the ends, and on the globe the parallel becomes a straight chord, cut at tile boundaries.
       ...Object.fromEntries(NIVEAUX_GRILLE.map((n) => [`grille${n.pas}`, { type: "geojson", data: grille(n.pas), tolerance: 0 }])),
     },
     layers: [
       { id: "ocean", type: "background", paint: { "background-color": "#0E2340" } },
       { id: "satellite", type: "raster", source: "satellite" },
-      // Trait blanc sur un liseré sombre, lisible sur l'océan comme sur la banquise.
+      // White line on a dark border, legible on both ocean and pack ice.
       ...NIVEAUX_GRILLE.flatMap((n) => [
         { id: `grille${n.pas}-lisere`, type: "line", source: `grille${n.pas}`, minzoom: n.min, maxzoom: n.max,
           paint: { "line-color": "#000000", "line-opacity": 0.25, "line-width": 2.2 } },
@@ -62,7 +62,7 @@
           paint: { "line-color": "#FFFFFF", "line-opacity": 0.6, "line-width": 0.8 } },
       ]),
     ],
-    // Soleil en haut à gauche de l'écran : le bord éclairé du globe dessine l'atmosphère.
+    // Sun at the top left of the screen: the lit edge of the globe draws the atmosphere.
     light: { anchor: "viewport", position: [1.15, 210, 30] },
     sky: {
       "sky-color": "#08162E",
@@ -87,7 +87,7 @@
       attributionControl: { compact: true },
     });
   } catch (e) {
-    // WebGL refusé par le navigateur ou le pilote graphique : carte à plat Leaflet, sans WebGL.
+    // WebGL refused by browser or graphics driver: Leaflet flat map, without WebGL.
     console.warn("3D globe unavailable:", e.message);
     demarrerCarteSecours();
     return;
@@ -97,7 +97,7 @@
   map.addControl(new maplibregl.FullscreenControl(), "top-right");
   map.addControl(new maplibregl.ScaleControl({ unit: "metric", maxWidth: 120 }), "bottom-right");
 
-  // ------------------------------------------------------------------ globe ou carte 2D
+  // ------------------------------------------------------------------ globe or 2D map
   let mode = "globe";
   function changerVue(v) {
     if (v === mode) return;
@@ -111,7 +111,7 @@
   document.querySelectorAll("[data-vue]").forEach((b) => b.addEventListener("click", () => changerVue(b.dataset.vue)));
   $(".aide").textContent = AIDE_GLOBE;
 
-  // ------------------------------------------------------------------ coordonnées sous le curseur
+  // ------------------------------------------------------------------ coordinates under the cursor
   const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const lire = ({ lat, lng }) => {
     const lon = ((lng + 540) % 360) - 180;
@@ -126,8 +126,8 @@
     if (tactile || !map.getCanvas().matches(":hover")) position.textContent = `View center: ${lire(map.getCenter())}`;
   });
 
-  // ------------------------------------------------------------------ rotation lente au départ
-  // Le globe tourne doucement jusqu'à la première interaction (sauf si l'utilisateur limite les animations).
+  // ------------------------------------------------------------------ slow rotation at startup
+  // The globe rotates gently until the first interaction (unless user limits animations).
   let enRotation = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function tourner() {
     if (!enRotation) return;
@@ -144,18 +144,18 @@
   ["mousedown", "touchstart", "wheel", "keydown"].forEach((ev) =>
     map.getContainer().addEventListener(ev, arreterRotation, { passive: true }));
 
-  // Échap : revenir à la Terre entière.
+  // Escape: return to the whole Earth.
   window.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     arreterRotation();
     map.flyTo({ ...VUE_DEPART, zoom: zoomQuiCadreLaTerre(), duration: 1800, essential: true });
   });
 
-  window.carteTerre = map; // pratique pour déboguer dans la console
-  window.arreterRotationTerre = arreterRotation; // analogues.js arrête la rotation pour montrer les résultats
+  window.carteTerre = map; // handy for debugging in the console
+  window.arreterRotationTerre = arreterRotation; // analogues.js stops rotation to show results
 
-  // ------------------------------------------------------------------ secours sans WebGL
-  /** Carte à plat (Leaflet, projection Web Mercator), pour les navigateurs sans WebGL. */
+  // ------------------------------------------------------------------ fallback without WebGL
+  /** Flat map (Leaflet, Web Mercator projection), for browsers without WebGL. */
   function demarrerCarteSecours() {
     const avis = document.createElement("p");
     avis.className = "avis";
@@ -175,13 +175,13 @@
 
     const css = document.createElement("link");
     css.rel = "stylesheet";
-    css.href = "node_modules/leaflet/dist/leaflet.css";                 // npm install, sinon unpkg
+    css.href = "node_modules/leaflet/dist/leaflet.css";                 // npm install, or unpkg
     css.onerror = () => { css.onerror = null; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"; };
     document.head.appendChild(css);
     const js = document.createElement("script");
     js.src = "node_modules/leaflet/dist/leaflet.js";
     js.onerror = () => {
-      // Une balise script ne se recharge pas : on en crée une autre pour unpkg
+      // A script tag cannot be reloaded: create another one for unpkg
       const secours = document.createElement("script");
       secours.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
       secours.onload = js.onload;
@@ -195,7 +195,7 @@
       L.control.scale({ imperial: false, position: "bottomright" }).addTo(carte);
       L.tileLayer(IMAGERIE, { attribution: ATTRIBUTION, maxZoom: 19 }).addTo(carte);
 
-      // Grille : même espacement que sur le globe.
+      // Grid: same spacing as on the globe.
       const traits = L.layerGroup().addTo(carte);
       const styles = [
         { color: "#000000", weight: 2.2, opacity: 0.25, interactive: false },

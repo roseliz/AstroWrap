@@ -1,6 +1,6 @@
-/* Panneau « Zone de référence » (js/selection-zone.js), partagé par mars.html et lune.html.
-   Il reprend les variables de couleur de la page (--panneau, --texte...). Le bleu clair de la
-   sélection tranche aussi bien sur le sol rouge de Mars que sur le gris de la Lune. */
+/* Reference Region panel (js/selection-zone.js), shared by mars.html and lune.html.
+   It uses the page's color variables (--panneau, --texte...). The light blue selection
+   stands out against both the red Martian surface and the gray lunar surface. */
 
 :root { --selection: #4FD1FF; }
 

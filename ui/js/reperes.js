@@ -1,11 +1,11 @@
-// Repères : sites connus de Mars et de la Lune, affichés sur le globe 3D et sur la carte 2D.
-// Ils servent à se situer avant de peindre une zone ; un clic sur un repère y amène la vue.
+// Landmarks: known sites on Mars and the Moon, displayed on both the 3D globe and the 2D map.
+// They help users orient themselves before painting a region; clicking a landmark centers the view on it.
 //
-// Coordonnées planétocentriques, longitude est positive (-180 à 180). Sites d'atterrissage : point
-// d'atterrissage publié par la mission. Reliefs : centre approximatif.
-// niveau 1 = nom toujours affiché ; niveau 2 = nom affiché quand on zoome (le point reste visible).
+// Planetocentric coordinates, with positive east longitude (-180 to 180). Landing sites: landing
+// coordinates published by the mission. Terrain features: approximate center.
+// Level 1 = name always displayed; Level 2 = name displayed when zoomed in (the marker remains visible).
 //
-// Dépend de window.vueCorps (globe-mars.js ou globe-lune.js).
+// Depends on window.vueCorps (globe-mars.js or globe-lune.js).
 
 (function () {
   const v = window.vueCorps;
@@ -45,7 +45,7 @@
     ],
   }[v.corps] || [];
 
-  // Altitude de la vue après un clic sur un repère (en rayons du corps).
+  // Altitude of the view after clicking a landmark (in body radii).
   const ALTITUDE_ZOOM = v.corps === "lune" ? 0.3 : 0.18;
   const TYPES = { mission: "Landing site", relief: "Landform" };
 
@@ -57,7 +57,6 @@
     const bouton = el.querySelector("button");
     bouton.title = `${r.nom} (${TYPES[r.type]}): ${r.info}`;
     bouton.setAttribute("aria-label", `${r.nom}, ${TYPES[r.type].toLowerCase()}. ${r.info} Click to go there.`);
-    // Le clic ne doit pas faire tourner le globe ni déplacer la carte.
     ["pointerdown", "mousedown", "touchstart", "dblclick"].forEach((ev) => bouton.addEventListener(ev, (e) => e.stopPropagation()));
     bouton.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -76,11 +75,10 @@
       .htmlAltitude(0.004)
       .htmlElement(element)
       .htmlTransitionDuration(0)
-      // Repère caché quand il passe derrière la planète.
       .htmlElementVisibilityModifier((el, visible) => el.classList.toggle("repere-cache", !visible));
   }
 
-  // --- carte 2D (créée à la demande)
+  // --- 2D map 
   let couche2D = null;
   function preparer2D() {
     const p = v.plane();
@@ -90,14 +88,14 @@
       L.marker([r.lat, r.lng], {
         icon: L.divIcon({ className: "repere-leaflet", html: element(r), iconSize: [0, 0] }),
         keyboard: false,
-        interactive: false,   // le bouton à l'intérieur gère le clic
+        interactive: false,   
       }).addTo(couche2D);
     }
   }
   document.addEventListener("vue:changee", preparer2D);
   preparer2D();
 
-  // --- noms de niveau 2 affichés seulement quand on zoome
+  // --- Level 2 names displayed only when zoomed in
   setInterval(() => {
     let proche;
     if (v.mode() === "carte") {

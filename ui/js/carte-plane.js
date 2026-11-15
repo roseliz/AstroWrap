@@ -1,18 +1,18 @@
-// Carte à plat (2D) d'un corps céleste, en projection équirectangulaire (Leaflet, CRS EPSG:4326).
-// La latitude et la longitude y sont des axes droits : c'est le format natif des cartes de la Lune
-// et de Mars, et les pôles restent visibles (étirés sur toute la largeur, comme sur toute carte plane).
+// Flat map (2D) of a celestial body in equirectangular projection (Leaflet, CRS EPSG:4326).
+// Latitude and longitude are straight axes here: this is the native format for Moon and Mars maps,
+// and the poles remain visible (stretched across the entire width, as on any flat map).
 //
-// Utilisée par lune.html et mars.html.
+// Used by lune.html and mars.html.
 
 window.CartePlane = class CartePlane {
   /**
    * @param {object} o
-   * @param {HTMLElement} o.element   conteneur de la carte
-   * @param {number} o.rayonKm        rayon du corps (pour les distances affichées)
-   * @param {string} o.image          image équirectangulaire du corps entier (data URL), toujours affichée dessous
-   * @param {object} [o.tuiles]       { url, maxZoom } : tuiles plus fines par-dessus (grille 2 x 1 au niveau 0)
-   * @param {function} [o.surMouvement]  appelée après chaque déplacement
-   * @param {function} [o.surSurvol]     appelée avec {lat, lng} ou null au survol
+   * @param {HTMLElement} o.element   map container
+   * @param {number} o.rayonKm        body radius (for displayed distances)
+   * @param {string} o.image          equirectangular image of the whole body (data URL), always displayed underneath
+   * @param {object} [o.tuiles]       { url, maxZoom }: finer tiles on top (2 x 1 grid at level 0)
+   * @param {function} [o.surMouvement]  called after each movement
+   * @param {function} [o.surSurvol]     called with {lat, lng} or null on hover
    */
   constructor(o) {
     this.o = o;
@@ -47,7 +47,7 @@ window.CartePlane = class CartePlane {
     return { lat: Math.max(-90, Math.min(90, lat)), lng: Math.max(-180, Math.min(180, lng)) };
   }
 
-  /** Remplace les tuiles fines ({ url, maxZoom }) ; null pour n'afficher que l'image de fond. */
+  /** Replaces fine tiles ({ url, maxZoom }); null to display only the background image. */
   changerTuiles(t) {
     if (this.tuiles) this.carte.removeLayer(this.tuiles);
     this.tuiles = null;
@@ -63,7 +63,7 @@ window.CartePlane = class CartePlane {
 
   changerImage(url) { this.fond.setUrl(url); }
 
-  /** Lignes de latitude et de longitude ; l'espacement suit le zoom. */
+  /** Latitude and longitude lines; spacing follows the zoom level. */
   afficherGrille(visible) {
     this.grilleVisible = visible;
     if (this._majGrille) this.carte.off("zoomend", this._majGrille);
@@ -73,7 +73,7 @@ window.CartePlane = class CartePlane {
       this.grille.clearLayers();
       const z = this.carte.getZoom();
       const pas = z < 2 ? 30 : z < 4 ? 10 : z < 6 ? 5 : 1;
-      // Trait blanc sur un liseré sombre : lisible sur un sol clair (Lune) comme sur un sol sombre.
+      // White line on a dark border: readable on light ground (Moon) as well as dark ground.
       const styles = [
         { color: "#000000", weight: 2.4, opacity: 0.28, interactive: false },
         { color: "#ffffff", weight: 0.9, opacity: 0.7, interactive: false },
@@ -88,15 +88,15 @@ window.CartePlane = class CartePlane {
     this.grille.addTo(this.carte);
   }
 
-  // ------------------------------------------------------------------ vue
+  // ------------------------------------------------------------------ view
 
-  /** Zoom auquel `largeurDeg` degrés de longitude remplissent la largeur de la fenêtre. */
+  /** Zoom level at which `largeurDeg` degrees of longitude fill the window width. */
   zoomPourLargeur(largeurDeg) {
     const w = this.element.clientWidth || window.innerWidth;
     return Math.log2((360 * w) / (512 * Math.max(0.01, largeurDeg)));
   }
 
-  /** Exécute `action` tout de suite, ou à la fin d'un zoom animé en cours (sinon Leaflet l'annulerait). */
+  /** Executes `action` immediately, or at the end of an ongoing animated zoom (otherwise Leaflet would cancel it). */
   apresAnimation(action) {
     if (this.carte._animatingZoom) this.carte.once("zoomend", action);
     else action();
@@ -119,13 +119,13 @@ window.CartePlane = class CartePlane {
 
   centre() { return this.normaliser(this.carte.getCenter()); }
 
-  /** Largeur de terrain visible (en degrés de longitude). */
+  /** Visible terrain width (in degrees of longitude). */
   largeurDeg() {
     const b = this.carte.getBounds();
     return Math.min(360, b.getEast() - b.getWest());
   }
 
-  /** Largeur visible en kilomètres, mesurée au centre de la vue. */
+  /** Visible width in kilometers, measured at the center of the view. */
   largeurKm() {
     const lat = this.centre().lat * (Math.PI / 180);
     return this.largeurDeg() * (Math.PI / 180) * this.o.rayonKm * Math.max(0.05, Math.cos(lat));
@@ -136,9 +136,9 @@ window.CartePlane = class CartePlane {
   rafraichir() { this.carte.invalidateSize(); }
 };
 
-// ------------------------------------------------------------------ 3D : détection et création prudente
+// ------------------------------------------------------------------ 3D: careful detection and creation
 
-/** Vrai si le navigateur peut créer un contexte WebGL 2 (nécessaire à three.js / globe.gl). */
+/** True if the browser can create a WebGL 2 context (required for three.js / globe.gl). */
 window.webgl2Disponible = function () {
   try {
     const gl = document.createElement("canvas").getContext("webgl2");
@@ -152,8 +152,8 @@ window.webgl2Disponible = function () {
 };
 
 /**
- * Crée le globe globe.gl, ou renvoie null si la 3D est impossible (pas de WebGL 2, pilote graphique
- * refusé...). Un second essai utilise des réglages plus légers (sans anticrénelage, basse consommation).
+ * Creates the globe.gl globe, or returns null if 3D is impossible (no WebGL 2, graphics driver
+ * refused...). A second attempt uses lighter settings (no antialiasing, low power).
  */
 window.creerGlobe3D = function (conteneur) {
   if (!window.Globe) return null;
@@ -173,7 +173,7 @@ window.creerGlobe3D = function (conteneur) {
   return null;
 };
 
-/** globe.gl dessine sa grille (tous les 10°) en gris presque transparent : on la rend lisible. */
+/** globe.gl draws its grid (every 10°) in nearly transparent gray: we make it legible. */
 window.renforcerGrille3D = function (globe) {
   if (!globe) return;
   globe.scene().traverse((o) => {
@@ -181,7 +181,7 @@ window.renforcerGrille3D = function (globe) {
       o.material.color.set("#ffffff");
       o.material.opacity = 0.5;
       o.material.needsUpdate = true;
-      o.scale.setScalar(1.002); // juste au-dessus de la surface, sinon la sphère la cache à moitié
+      o.scale.setScalar(1.002); // just above the surface, otherwise the sphere half-hides it
       o.renderOrder = 1;
     }
   });

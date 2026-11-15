@@ -1,10 +1,10 @@
-// Sélection d'une zone de référence par tuiles H3, sur le globe 3D comme sur la carte 2D (Mars et Lune).
+// Reference region selection using H3 cells, on both the 3D globe and the 2D map (Mars and Moon).
 //
-// La zone est un ensemble de cellules H3 à une résolution de base fixe (RES_BASE) : exactement les
-// cellules que le prétraitement utilisera. Le pinceau, lui, s'adapte au zoom : vu de loin il pose de
-// grandes cellules (découpées en cellules de base), vu de près de petites.
+// The region is a set of H3 cells at a fixed base resolution (RES_BASE): exactly the
+// cells used during preprocessing. The brush adapts to the zoom level: when zoomed out,
+// it paints large cells (subdivided into base-resolution cells); when zoomed in, it paints smaller cells.
 //
-// Dépend de h3-js (window.h3) et de window.vueCorps, exposé par globe-mars.js ou globe-lune.js.
+// Depends on h3-js (window.h3) and window.vueCorps, exposed by globe-mars.js or globe-lune.js.
 
 (function () {
   const v = window.vueCorps;
@@ -14,13 +14,13 @@
     return;
   }
 
-  // ------------------------------------------------------------------ réglages
-  const RAYON_H3_KM = 6371.007180918475;     // rayon de la sphère sur laquelle H3 calcule ses surfaces
-  const K = v.rayonKm / RAYON_H3_KM;          // facteur de longueur Terre -> corps
-  const RES_BASE = 6;                          // Mars : ~10 km² par tuile ; Lune : ~2,7 km²
+  // ------------------------------------------------------------------ settings
+  const RAYON_H3_KM = 6371.007180918475;     // radius of the sphere on which H3 calculates its surfaces
+  const K = v.rayonKm / RAYON_H3_KM;          // length factor Earth -> body
+  const RES_BASE = 6;                          // Mars : ~10 km² per tile ; Moon : ~2,7 km²
   const MIN_TUILES = 10;
   const MAX_TUILES = 60000;
-  const PINCEAUX = { fin: 0.005, moyen: 0.015, large: 0.04 };   // rayon du pinceau / largeur de la vue
+  const PINCEAUX = { fin: 0.005, moyen: 0.015, large: 0.04 };   // radius of the brush / width of the view
   const COULEURS = {
     remplissage: "rgba(79, 209, 255, 0.30)",
     trait: "rgba(176, 238, 255, 0.95)",
@@ -29,18 +29,18 @@
   };
   const NOM_CORPS = { mars: "Mars", lune: "the Moon" }[v.corps] || v.corps;
 
-  const arete = (res) => H.getHexagonEdgeLengthAvg(res, "km") * K;      // km sur le corps
-  const surfaceTuile = (c) => H.cellArea(c, "km2") * K * K;             // km² sur le corps
+  const arete = (res) => H.getHexagonEdgeLengthAvg(res, "km") * K;      // km on the body
+  const surfaceTuile = (c) => H.cellArea(c, "km2") * K * K;             // km² on the body
   const distanceKm = (a, b) => H.greatCircleDistance(a, b, "km") * K;
   const surfaceMoyenne = () => H.getHexagonAreaAvg(RES_BASE, "km2") * K * K;
-  // Un coup de pinceau couvre au plus 1/12 de la zone maximale : vu de loin, le premier geste reste utilisable.
+  // A single brush stroke covers at most 1/12 of the maximum area: from a distance, the first gesture remains usable.
   const RAYON_MAX_KM = Math.sqrt((MAX_TUILES * surfaceMoyenne()) / 12 / Math.PI);
 
   const nb = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
   const nb1 = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
   const deg = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  // ------------------------------------------------------------------ état
+  // ------------------------------------------------------------------ state
   const etat = {
     outil: "naviguer",
     pinceau: "moyen",
@@ -107,7 +107,7 @@
     return etat.outil === "naviguer" || etat.espace;
   }
 
-  /** Active ou bloque le glisser de la vue selon l'outil (le zoom à la molette reste toujours actif). */
+/** Enables or disables view dragging depending on the selected tool (mouse wheel zoom remains enabled at all times). */
   function appliquerModeVue() {
     const nav = navigationActive();
     document.body.dataset.outil = nav ? "naviguer" : etat.outil;
@@ -135,7 +135,7 @@
   }
 
   // ------------------------------------------------------------------ pinceau
-  /** Cellules couvertes par le pinceau autour d'un point. Leur résolution suit le zoom. */
+  /** Cells covered by the brush around a point. Their resolution follows the zoom. */
   function empreinte(lat, lng) {
     const rayon = rayonPinceau();
     let res = RES_BASE;
@@ -147,7 +147,7 @@
     return { cellules, res };
   }
 
-  /** Applique le pinceau entre le point précédent et le point courant (sans trous si la souris va vite). */
+  /** Applies the brush between the previous point and the current point (without gaps if the mouse moves quickly). */
   function peindreJusqua(lat, lng) {
     const t = etat.trait;
     const points = [];
@@ -193,7 +193,7 @@
   }
 
   // ------------------------------------------------------------------ souris et doigts
-  /** Coordonnées sous le pointeur, dans la vue active ; null hors de la planète. */
+  /** Coordinates under the pointer, in the active view ; null outside the planet. */
   function coordsPointeur(e) {
     if (v.mode() === "carte") {
       const p = v.plane();
@@ -234,7 +234,7 @@
   function finTrait() {
     if (!etat.trait) return;
     etat.trait = null;
-    // Un trait qui n'a rien changé ne doit pas encombrer l'historique.
+    // A stroke that hasn't changed anything shouldn't clutter the history.
     const avant = etat.historique[etat.historique.length - 1];
     if (avant && avant.length === etat.tuiles.size && avant.every((c) => etat.tuiles.has(c))) etat.historique.pop();
     apresChangement(true);
@@ -243,7 +243,7 @@
   function brancher(element) {
     if (!element || element.dataset.zoneBranche) return;
     element.dataset.zoneBranche = "1";
-    // Phase de capture : on passe avant les contrôles de la caméra ou de Leaflet.
+    // Capture phase: runs before the camera or Leaflet controls.
     element.addEventListener("pointerdown", debutTrait, true);
     element.addEventListener("pointermove", mouvement);
     element.addEventListener("pointerup", finTrait);
@@ -251,7 +251,7 @@
     element.addEventListener("pointerleave", () => { etat.survol = null; if (!etat.trait) cacherPinceau(); });
   }
 
-  // ------------------------------------------------------------------ clavier
+  // ------------------------------------------------------------------ Keyboard
   window.addEventListener("keydown", (e) => {
     if (e.target.closest && e.target.closest("input, textarea, select")) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); annuler(); return; }
@@ -276,7 +276,7 @@
     }
   });
 
-  // ------------------------------------------------------------------ historique
+  // ------------------------------------------------------------------ history
   function memoriser() {
     etat.historique.push([...etat.tuiles]);
     if (etat.historique.length > 30) etat.historique.shift();
@@ -289,12 +289,12 @@
     apresChangement(true);
   }
 
-  // ------------------------------------------------------------------ dessin
+  // ------------------------------------------------------------------ drawing
   let cacheCompactes = [];
   let compactesAJour = true;
   let renduPrevu = false;
 
-  /** La zone sous forme compacte (grandes cellules là où la zone est pleine). */
+  /** The zone in compact form (large cells where the zone is full). */
   function compactes() {
     if (!compactesAJour) {
       cacheCompactes = etat.tuiles.size ? H.compactCells([...etat.tuiles]) : [];
@@ -318,15 +318,15 @@
   }
 
   // --- 3D
-  // Les polygones de globe.gl recalculent une géométrie par cellule (plus d'une seconde pour quelques
-  // dizaines de tuiles) : on construit plutôt un seul maillage (triangles en éventail) et un seul jeu de
-  // segments pour toutes les tuiles, posés juste au-dessus de la surface.
-  const RES_DESSIN_MIN = 3;          // au-dessus, une tuile plate s'enfoncerait dans la sphère
-  const ALT_TUILES = 0.0015;         // en rayons du corps
+// globe.gl polygons recalculate geometry for each cell (taking more than a second for just a few
+// dozen cells): instead, we build a single mesh (triangle fans) and a single set of
+// line segments for all cells, positioned just above the surface.
+  const RES_DESSIN_MIN = 3;          
+  const ALT_TUILES = 0.0015;        
   const ALT_PINCEAU = 0.003;
   let objets3D = null;
 
-  /** Classes three.js récupérées sur les objets du globe (globe.gl n'exporte pas three.js). */
+/** three.js classes retrieved from the globe objects (globe.gl does not export three.js). */
   function preparer3D() {
     if (objets3D || !v.globe) return Boolean(objets3D);
     const scene = v.globe.scene();
@@ -338,9 +338,9 @@
     if (!traits || !maillage) return false;
     const T = {
       LineSegments: traits.constructor,
-      Materiau: traits.material.constructor,               // LineBasicMaterial : couleur unie, sans éclairage
+      Materiau: traits.material.constructor,               // LineBasicMaterial 
       Mesh: maillage.constructor,
-      Geometrie: maillage.geometry.toNonIndexed().constructor,  // BufferGeometry de base
+      Geometrie: maillage.geometry.toNonIndexed().constructor,  // BufferGeometry 
       Attribut: maillage.geometry.attributes.position.constructor,
     };
     const materiau = (couleur, opacite) => new T.Materiau({ color: couleur, transparent: true, opacity: opacite, depthWrite: false });

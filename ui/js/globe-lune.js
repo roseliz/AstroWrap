@@ -1,15 +1,15 @@
-// Globe lunaire en 3D (globe.gl / three.js).
-// Contrairement au globe terrestre (MapLibre, limité à ±85° de latitude), ce globe affiche les pôles :
-// indispensable pour le pôle sud et les régions Artemis.
+// 3D Lunar globe (globe.gl / three.js).
+// Unlike the terrestrial globe (MapLibre, limited to ±85° latitude), this globe displays the poles:
+// essential for the south pole and Artemis regions.
 
 (function () {
   const $ = (s) => document.querySelector(s);
   const RAYON_KM = 1737.4;
-  const VUE_ENTIERE = { lat: 0, lng: 0, altitude: 2.4 };   // altitude en rayons lunaires (recalculée plus bas)
-  const ALTITUDE_MIN = 0.04;   // ~70 km : en dessous, la texture devient floue
+  const VUE_ENTIERE = { lat: 0, lng: 0, altitude: 2.4 };   // altitude in lunar radii (recalculated further down)
+  const ALTITUDE_MIN = 0.04;   // ~70 km: below this, the texture becomes blurry
   const ALTITUDE_MAX = 6;
-  // Tuiles NASA Moon Trek (mosaïque LRO WAC, ~100 m/px) pour la carte 2D ; si elles ne répondent pas,
-  // l'image intégrée reste visible dessous.
+  // NASA Moon Trek tiles (LRO WAC mosaic, ~100 m/px) for the 2D map; if they do not respond,
+  // the embedded image remains visible underneath.
   const TUILES_LUNE = {
     url: "https://trek.nasa.gov/tiles/Moon/EQ/LRO_WAC_Mosaic_Global_303ppd_v02/1.0.0//default/default028mm/{z}/{y}/{x}.jpg",
     maxZoom: 7,
@@ -21,7 +21,7 @@
   }
 
   const conteneur = $("#globe");
-  // null si la 3D est impossible dans ce navigateur : la page passe alors en carte 2D.
+  // null if 3D is impossible in this browser: the page then switches to the 2D map.
   const globe = window.creerGlobe3D ? window.creerGlobe3D(conteneur) : null;
   if (globe) globe
     .width(window.innerWidth)
@@ -33,7 +33,7 @@
     .showGraticules(true)
     .globeCurvatureResolution(2);
 
-  /** Altitude pour laquelle la Lune occupe environ 72 % du plus petit côté de la fenêtre. */
+  /** Altitude for which the Moon occupies about 72% of the window's smallest side. */
   function altitudeQuiCadreLaLune() {
     const fov = globe ? globe.camera().fov : 50;
     const demiV = (fov / 2) * (Math.PI / 180);
@@ -44,9 +44,9 @@
   VUE_ENTIERE.altitude = altitudeQuiCadreLaLune();
   if (globe) globe.pointOfView(VUE_ENTIERE, 0);
 
-  // ------------------------------------------------------------------ éclairage
-  // Soleil rasant venant du haut à gauche de l'écran, attaché à la caméra :
-  // les cratères gardent un relief lisible quel que soit le côté regardé.
+  // ------------------------------------------------------------------ lighting
+  // Grazing sunlight coming from the top left of the screen, attached to the camera:
+  // craters maintain readable relief regardless of the viewed side.
   const lumieres = globe ? globe.lights() : [];
   const soleil = lumieres.find((l) => l.isDirectionalLight);
   const ambiante = lumieres.find((l) => l.isAmbientLight);
@@ -59,7 +59,7 @@
     if (!camera.parent) globe.scene().add(camera);
   }
 
-  // ------------------------------------------------------------------ relief et grille
+  // ------------------------------------------------------------------ relief and grid
   const materiau = globe ? globe.globeMaterial() : null;
   function appliquerRelief() {
     if (!materiau) return;
@@ -67,7 +67,7 @@
     materiau.needsUpdate = true;
   }
 
-  // ------------------------------------------------------------------ contrôles de caméra
+  // ------------------------------------------------------------------ camera controls
   const controles = globe ? globe.controls() : {};
   controles.enableDamping = true;
   controles.dampingFactor = 0.08;
@@ -77,14 +77,14 @@
   controles.minDistance = rayonScene * (1 + ALTITUDE_MIN);
   controles.maxDistance = rayonScene * (1 + ALTITUDE_MAX);
 
-  // Rotation plus lente quand on est proche de la surface, pour garder le contrôle.
+  // Slower rotation when close to the surface, to maintain control.
   function ajusterVitesse() {
     if (!globe) return;
     const alt = globe.pointOfView().altitude;
     controles.rotateSpeed = Math.min(0.6, 0.12 + alt * 0.25);
   }
 
-  // Rotation lente au départ, jusqu'à la première interaction.
+  // Slow rotation at startup, until the first interaction.
   const animationsReduites = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   controles.autoRotate = !animationsReduites;
   controles.autoRotateSpeed = 0.35;
@@ -92,7 +92,7 @@
   ["pointerdown", "wheel", "touchstart", "keydown"].forEach((ev) =>
     conteneur.addEventListener(ev, arreterRotation, { passive: true }));
 
-  // Déplace la caméra, puis met à jour l'altitude affichée une fois le mouvement fini.
+  // Moves the camera, then updates the displayed altitude once movement finishes.
   function deplacer(vue, duree) {
     const d = animationsReduites ? 0 : duree;
     globe.pointOfView(vue, d);
@@ -116,15 +116,15 @@
   }
 
 
-  // ------------------------------------------------------------------ carte 2D (projection équirectangulaire)
+  // ------------------------------------------------------------------ 2D map (equirectangular projection)
   let mode = "globe";
   let plane = null;
   const aide = $(".aide");
   const AIDE_GLOBE = aide.textContent;
   const AIDE_CARTE = "Drag to move the map, use the scroll wheel or two fingers to zoom, Escape to see everything. Near the poles, a flat map stretches the terrain: its true shape shows on the globe.";
-  /** Demi-angle de vue horizontal de la caméra 3D. */
+  /** 3D camera horizontal half-field-of-view angle. */
   const demiH = () => Math.atan(Math.tan(((globe ? globe.camera().fov : 50) / 2) * (Math.PI / 180)) * (window.innerWidth / window.innerHeight));
-  /** Correspondance approximative entre l'altitude 3D et la largeur de terrain visible en 2D (degrés). */
+  /** Approximate correspondence between 3D altitude and visible 2D terrain width (degrees). */
   const altitudeVersLargeur = (a) => Math.min(360, (2 * a * Math.tan(demiH()) * 180) / Math.PI);
   const largeurVersAltitude = (w) => Math.min(ALTITUDE_MAX, Math.max(ALTITUDE_MIN, ((w * Math.PI) / 180) / (2 * Math.tan(demiH()))));
 
@@ -143,7 +143,7 @@
     plane.afficherGrille(true);
   }
 
-  /** Passe du globe à la carte 2D (ou l'inverse) en gardant à peu près la même zone à l'écran. */
+  /** Switches from the globe to the 2D map (or vice versa) while keeping roughly the same area on screen. */
   function changerVue(v) {
     if (v === mode || !globe) return;
     if (v === "carte" && !window.L) {
@@ -184,7 +184,7 @@
     else document.documentElement.requestFullscreen?.();
   });
 
-  // Clavier : flèches pour tourner, + et − pour zoomer, Échap pour revoir toute la Lune.
+  // Keyboard: arrows to rotate, + and − to zoom, Escape to see the whole Moon again.
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { allerA(VUE_ENTIERE); return; }
     if (e.target.closest && e.target.closest("input")) return;
@@ -209,7 +209,7 @@
     else if (e.key === "-" || e.key === "_") zoomer(1.4);
   });
 
-  // ------------------------------------------------------------------ coordonnées et altitude
+  // ------------------------------------------------------------------ coordinates and altitude
   const fmt = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtKm = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
   const lire = ({ lat, lng }) => {
@@ -234,7 +234,7 @@
   }
   if (globe) globe.onZoom(majAltitude);
 
-  /** Coordonnées lunaires sous un point de l'écran : intersection du rayon de la caméra avec la sphère. */
+  /** Lunar coordinates under a point on the screen: intersection of the camera ray with the sphere. */
   function coordsSousPoint(x, y) {
     if (!globe) return null;
     const cam = globe.camera();
@@ -270,8 +270,8 @@
     position.textContent = `View center: ${lire(globe.pointOfView())}`;
   });
 
-  // ------------------------------------------------------------------ prêt, texture fine, redimensionnement
-  // Filtrage anisotrope : évite le flou de la texture près des pôles, où elle est très étirée.
+  // ------------------------------------------------------------------ ready, fine texture, resize
+  // Anisotropic filtering: prevents texture blurring near the poles, where it is heavily stretched.
   const anisotropie = globe ? globe.renderer().capabilities.getMaxAnisotropy() : 1;
   function affinerTexture() {
     const t = materiau && materiau.map;
@@ -288,7 +288,7 @@
   });
   else demarrerSans3D();
 
-  /** Sans WebGL (ou sans globe.gl), la page s'ouvre directement sur la carte 2D, qui n'en a pas besoin. */
+  /** Without WebGL (or without globe.gl), the page opens directly on the 2D map, which does not need it. */
   function demarrerSans3D() {
     $("#chargement").hidden = true;
     $("#globe").hidden = true;
@@ -311,7 +311,7 @@
     chargerTextureFine();
   }
 
-  /** Remplace la texture 4096 px par la 8192 px si la carte graphique l'accepte. */
+  /** Replaces the 4096 px texture with the 8192 px one if the graphics card supports it. */
   function chargerTextureFine() {
     const max = globe ? globe.renderer().capabilities.maxTextureSize : 16384;
     if (max < 8192) return;
@@ -322,7 +322,7 @@
       const avant = materiau && materiau.map;
       if (globe) globe.globeImageUrl(window.TEXTURE_LUNE_8K);
       if (plane) plane.changerImage(window.TEXTURE_LUNE_8K);
-      // La nouvelle texture arrive de façon asynchrone : on attend qu'elle remplace l'ancienne.
+      // The new texture arrives asynchronously: wait for it to replace the old one.
       const attente = setInterval(() => {
         if (!materiau || (materiau.map && materiau.map !== avant)) { clearInterval(attente); affinerTexture(); }
       }, 200);
@@ -337,8 +337,8 @@
     if (plane) plane.rafraichir();
   });
 
-  // ------------------------------------------------------------------ interface pour la sélection de zone
-  // Utilisée par js/selection-zone.js (tuiles H3), chargé après ce fichier.
+  // ------------------------------------------------------------------ interface for area selection
+  // Used by js/selection-zone.js (H3 tiles), loaded after this file.
   window.vueCorps = {
     corps: "lune",
     rayonKm: RAYON_KM,
@@ -347,16 +347,16 @@
     mode: () => mode,
     plane: () => plane,
     coordsSousPoint,
-    /** Largeur de terrain visible, en km : sert à régler la taille du pinceau. */
+    /** Visible terrain width in km: used to set brush size. */
     largeurVueKm() {
       if (mode === "carte" && plane) return plane.largeurKm();
       if (!globe) return 2 * RAYON_KM;
       return Math.min(2 * RAYON_KM, 2 * globe.pointOfView().altitude * Math.tan(demiH()) * RAYON_KM);
     },
     arreterRotation,
-    /** Vole jusqu'à un point ; altitude en rayons du corps (convertie en largeur de vue en 2D). */
+    /** Flies to a point; altitude in body radii (converted to view width in 2D). */
     allerA: (lat, lng, altitude) => allerA({ lat, lng, altitude }),
   };
 
-  window.globeLune = globe; // pratique pour déboguer dans la console
+  window.globeLune = globe; // handy for debugging in the console
 })();

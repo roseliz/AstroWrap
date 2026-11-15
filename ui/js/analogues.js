@@ -1,27 +1,27 @@
-// Analogues terrestres : envoie la zone peinte sur Mars ou la Lune au serveur (application/server) et montre
-// sur le globe terrestre les sites qui lui ressemblent le plus.
+// Earth analogs: sends the painted area on Mars or the Moon to the server (application/server) and shows
+// the most similar sites on the terrestrial globe.
 //
-// Ouvert par selection-zone.js avec index.html#mars/<id> : la zone est enregistrée sur le serveur
-// (POST /api/zones) et relue ici (GET /api/zones/<id>) ; l'adresse ne porte jamais les cellules H3.
-// Sans identifiant (#mars seul), la zone vient de localStorage (« analogues-zone-mars »).
-// Serveur : http://127.0.0.1:8000 par défaut, ou ?api=http://autre:port dans l'adresse.
+// Opened by selection-zone.js with index.html#mars/<id>: the area is saved on the server
+// (POST /api/zones) and re-read here (GET /api/zones/<id>); the address never carries H3 cells.
+// Without an identifier (#mars alone), the area comes from localStorage ("analogues-zone-mars").
+// Server: http://127.0.0.1:8000 by default, or ?api=http://other:port in the address.
 //
-// Trois moments, pensés pour quelqu'un qui ne connaît pas les données :
-// 1. Le chargement : POST /api/search (1 à 3 s), un indicateur dans le panneau de droite, puis le classement.
-//    (L'entonnoir n'est plus rejoué étape par étape : trop long. Ses étapes restent dans la réponse, pour bilan.html.)
-// 2. Le résultat, à droite : la liste des sites, avec un mot de couleur. Le menu « Priorité » et les réglages
-//    avancés recalculent dans le navigateur (le serveur envoie la ressemblance de chaque critère pour ~20 000
-//    cellules).
-// 2 bis. Les analogues connus (sous la liste) : sites que la littérature compare à Mars ou à la Lune, à leur rang réel
-//    pour cette zone, notés comme les autres sites (mêmes poids, filtres, entonnoir) ; jamais ajoutés au classement.
-//    Le serveur envoie leurs ressemblances avec la recherche (R.known) ; contrôle global : GET /api/validation.
-// 2 ter. « Tester de façon responsable » (sous les analogues connus) : l'impact d'une campagne sur chaque site
-//    (aires protégées de la WDPA, mines, distance à l'aéroport ; serveur : services/impact.py), le meilleur site à faible
-//    impact, et l'avion depuis la ville de départ (js/villes.js) avec son CO₂ ; case pour écarter les aires protégées.
-// 3. La fiche d'un site, à gauche : « Pourquoi ce site ? » en phrases, puis les critères Mars ⟷ Terre, et le bouton
-//    de la vue 3D côte à côte (js/vue-3d.js) ;
-//    POST /api/search/detail (valeurs variable par variable) et GET /api/site/{cellule} (nom, fiche).
-// Dépend de MapLibre (window.carteTerre, créé par globe-terre.js) et de h3-js (window.h3).
+// Three stages, designed for someone unfamiliar with the data:
+// 1. Loading: POST /api/search (1 to 3 s), an indicator in the right panel, then the ranking.
+//    (The funnel is no longer replayed step by step: too slow. Its steps remain in the response, for bilan.html.)
+// 2. The result, on the right: the list of sites, with a colored word. The "Priority" menu and advanced
+//    settings recalculate in the browser (the server sends the similarity of each criterion for ~20,000
+//    cells).
+// 2 bis. Known analogs (below the list): sites that literature compares to Mars or the Moon, at their actual rank
+//    for this area, scored like other sites (same weights, filters, funnel); never added to the ranking.
+//    The server sends their similarities with the search (R.known); global check: GET /api/validation.
+// 2 ter. "Test responsibly" (below known analogs): the impact of a campaign on each site
+//    (WDPA protected areas, mines, airport distance; server: services/impact.py), the best low-impact site,
+//    and the flight from the departure city (js/villes.js) with its CO₂; checkbox to exclude protected areas.
+// 3. A site's details card, on the left: "Why this site?" in sentences, then the Mars ⟷ Earth criteria, and the
+//    side-by-side 3D view button (js/vue-3d.js);
+//    POST /api/search/detail (variable-by-variable values) and GET /api/site/{cell} (name, card).
+// Depends on MapLibre (window.carteTerre, created by globe-terre.js) and h3-js (window.h3).
 
 (async function () {
   // Serveur : local (http://127.0.0.1:8000) sur cette machine ou en file://, https://api.astrowrap.earth en ligne ; ?api=... l'emporte.
