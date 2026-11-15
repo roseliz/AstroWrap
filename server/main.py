@@ -1,8 +1,16 @@
-"""Entry point: uvicorn server.main:app (from the repository root).
+"""Entry point: `uvicorn main:app` from server/, or `uvicorn server.main:app` from the repository root.
 
 FastAPI, read-only over pretreatment_data/. The Earth is read in the background at startup (~15 s);
 GET /api/health tells when it is ready.
 """
+
+if not __package__:
+    # Started as `uvicorn main:app` from server/: load the rest of the package as `server`.
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    __package__ = "server"
 
 from contextlib import asynccontextmanager
 

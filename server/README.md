@@ -4,15 +4,16 @@ FastAPI application, read-only over the preprocessing results in `pretreatment_d
 
 ## Running
 
-The simplest way is `npm install` then `npm start` in `../ui` (see `../ui/README.md`): it sets up `server/.venv` and starts the server. By hand, from the repository root:
+The simplest way is `npm install` then `npm start` in `../ui` (see `../ui/README.md`): it sets up `server/.venv` and starts the server. By hand, from `server/` (PowerShell; Linux, macOS: `source .venv/bin/activate`):
 
 ```bash
-python -m venv server/.venv
-server/.venv/Scripts/python -m pip install -r server/requirements.txt      # Linux, macOS: server/.venv/bin/python
-server/.venv/Scripts/python -m uvicorn server.main:app --host 127.0.0.1 --port 8000
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn main:app --port 8000
 ```
 
-The app must be started as `server.main:app` from the repository root (the package uses relative imports). `GET /api/health` tells when the Earth data is loaded (about 15 s after startup).
+From the repository root, the same app is `uvicorn server.main:app --port 8000`. `GET /api/health` tells when the Earth data is loaded (about 15 s after startup).
 
 Settings are environment variables `ANALOGUES_<NAME>` (see `core/config.py`): `ANALOGUES_DATA` (module results, default `pretreatment_data/`), `ANALOGUES_CACHE` (default `server/cache/`), `ANALOGUES_CORS` (allowed origins, default `*`), `ANALOGUES_DUCKDB_MEMORY`, `ANALOGUES_DUCKDB_THREADS`.
 
