@@ -28,6 +28,17 @@
     gomme: "rgba(255, 122, 122, 0.95)",
   };
   const NOM_CORPS = { mars: "Mars", lune: "the Moon" }[v.corps] || v.corps;
+  // Mission chosen before painting: it sets the brush here and the weights of the search on the Earth page (same
+  // keys as the server presets, GET /api/presets). A landing site leaves out rough ground.
+  const MISSIONS = {
+    balanced: { nom: "Any mission", pinceau: "moyen" },
+    landing: { nom: "Landing site", pinceau: "fin", plat: true },
+    geology: { nom: "Geology", pinceau: "moyen" },
+    astrobiology: { nom: "Astrobiology", pinceau: "fin" },
+    climate: { nom: "Extreme climate", pinceau: "large" },
+  };
+  const CORPS = { lune: "moon" }[v.corps] || v.corps;
+  const CLE_MISSION = `astrowrap-mission-${CORPS}`;     // each globe has its own mission, like its own area
 
   const arete = (res) => H.getHexagonEdgeLengthAvg(res, "km") * K;      // km on the body
   const surfaceTuile = (c) => H.cellArea(c, "km2") * K * K;             // km² on the body
@@ -59,6 +70,10 @@
   panneau.innerHTML = `
     <summary><span class="zone-titre">Reference area</span><span class="zone-resume" id="zone-resume"></span></summary>
     <div class="zone-corps">
+      <label class="zone-ligne zone-mission">
+        <span>Mission</span>
+        <select id="zone-mission">${Object.entries(MISSIONS).map(([k, m]) => `<option value="${k}">${m.nom}</option>`).join("")}</select>
+      </label>
       <div class="zone-outils" role="group" aria-label="Tool">
         <button type="button" data-outil="naviguer" title="Navigate (V)">Navigate</button>
         <button type="button" data-outil="peindre" title="Paint tiles (B)">Paint</button>
@@ -77,6 +92,7 @@
         <dt>Tiles</dt><dd id="zone-tuiles">–</dd>
         <dt>Parts</dt><dd id="zone-parties">–</dd>
         <dt>Center</dt><dd id="zone-centre">–</dd>
+        <dt class="zone-plat" hidden>Flat ground</dt><dd class="zone-plat" id="zone-plat" hidden>–</dd>
       </dl>
       <p class="zone-message" id="zone-message" role="status" aria-live="polite"></p>
       <div class="zone-actions">
@@ -100,6 +116,7 @@
     apresChangement(true);
   });
   $("#zone-exporter").addEventListener("click", exporter);
+  $("#zone-mission").addEventListener("change", () => choisirMission($("#zone-mission").value, true));
   $("#zone-comparer").addEventListener("click", comparerAvecTerre);
 
   // ------------------------------------------------------------------ outils
@@ -178,6 +195,12 @@
       return;
     }
     let nouvelles = [...touchees].filter((c) => !etat.tuiles.has(c));
+    // landing site: ground already known to be rough is not painted
+    if (mission().plat) {
+      const avant = nouvelles.length;
+      nouvelles = nouvelles.filter((c) => !accidentee(c));
+      if (nouvelles.length < avant) { etat.message = messageAccidente(); majMessage(); }
+    }
     if (!nouvelles.length) return;
     // One area at a time: with an area already painted, only the tiles that extend it are kept (neighbors of a tile
     // of the area, or linked to it by other tiles of this brush stroke).
@@ -293,7 +316,80 @@
     }
   });
 
-  // ------------------------------------------------------------------ history
+  // ------------------------------------------------------------------ mission
+  const mission = () => MISSIONS[$("#zone-mission").value] || MISSIONS.balanced;
+  function choisirMission(cle, garder) {
+    if (!MISSIONS[cle]) cle = "balanced";
+    $("#zone-mission").value = cle;
+    choisirPinceau(MISSIONS[cle].pinceau);
+    if (garder) { try { localStorage.setItem(CLE_MISSION, cle); } catch (e) { /* private browsing */ } }
+    panneau.querySelectorAll(".zone-plat").forEach((x) => { x.hidden = !MISSIONS[cle].plat; });
+    etat.message = null;
+    majMessage();
+    if (garder) verifierTerrain();
+  }
+
+  // Flat ground of the resolution-5 cells (share of slope < 5°, POST /api/zones/terrain), kept for the page.
+  const plat = new Map();
+  let seuilPlat = 0.5, terrainEnCours = false;
+  const mere = (c) => H.cellToParent(c, 5);
+  const accidentee = (c) => { const p = plat.get(mere(c)); return p != null && p < seuilPlat; };
+  const messageAccidente = (n) => ({ type: "alerte",
+    texte: `${n ? nb.format(n) + " rough tiles left out" : "Rough ground left out"}: a landing site needs flat ground (at least half of it under 5° of slope).` });
+
+  /** Landing site: asks for the ground of the cells not known yet, then removes the rough tiles (keeping the
+   *  largest piece if the area splits). */
+  async function verifierTerrain() {
+    if (!mission().plat || !etat.tuiles.size) { majPlat(); return; }
+    const inconnues = [...new Set([...etat.tuiles].map(mere))].filter((c) => !plat.has(c));
+    if (inconnues.length && !terrainEnCours) {
+      terrainEnCours = true;
+      try {
+        const r = await fetch(`${API}/api/zones/terrain`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ body: { lune: "moon" }[v.corps] || v.corps, h3_cells: inconnues }),
+        });
+        if (r.ok) {
+          const d = await r.json();
+          seuilPlat = d.threshold ?? seuilPlat;
+          inconnues.forEach((c) => plat.set(c, d.cells[c] ?? null));     // null: no data, kept
+        }
+      } catch (e) { /* server unreachable: nothing is removed */ }
+      terrainEnCours = false;
+    }
+    if (etat.trait || !mission().plat) return;           // a stroke in progress: come back at the end of the stroke
+    const retirees = [...etat.tuiles].filter(accidentee);
+    if (retirees.length) {
+      // no separate undo step: in landing mode, rough ground never enters the area
+      retirees.forEach((c) => etat.tuiles.delete(c));
+      garderPlusGrandMorceau();
+      etat.message = etat.tuiles.size ? messageAccidente(retirees.length)
+        : { type: "alerte", texte: `No flat ground here for a landing site: try a plain or a crater floor on ${NOM_CORPS}.` };
+      apresChangement(true);
+    }
+    majPlat();
+  }
+
+  function garderPlusGrandMorceau() {
+    const restantes = new Set(etat.tuiles);
+    let grand = [];
+    while (restantes.size) {
+      const depart = restantes.values().next().value, morceau = [depart], pile = [depart];
+      restantes.delete(depart);
+      while (pile.length) for (const n of H.gridDisk(pile.pop(), 1)) if (restantes.delete(n)) { morceau.push(n); pile.push(n); }
+      if (morceau.length > grand.length) grand = morceau;
+    }
+    if (grand.length < etat.tuiles.size) etat.tuiles = new Set(grand);
+  }
+
+  /** Flat ground share of the area, mean of the known cells weighted by the painted tiles. */
+  function majPlat() {
+    let s = 0, n = 0;
+    if (mission().plat) etat.tuiles.forEach((c) => { const p = plat.get(mere(c)); if (p != null) { s += p; n++; } });
+    $("#zone-plat").textContent = n ? `${Math.round((100 * s) / n)}% under 5°` : "–";
+  }
+
+  // ------------------------------------------------------------------ historique
   function memoriser() {
     etat.historique.push([...etat.tuiles]);
     if (etat.historique.length > 30) etat.historique.shift();
@@ -536,6 +632,7 @@
       $("#zone-centre").textContent = n ? lireCoords(centre()) : "–";
       majMessage();
       majAdresse();
+      verifierTerrain();
       // the satellites (js/satellites.js) come and stand above the area
       document.dispatchEvent(new CustomEvent("zone:changee", { detail: { tuiles: n, centre: n ? centre() : null, surfaceKm2: n ? surfaceKm2() : 0 } }));
     }, 150);
@@ -573,7 +670,7 @@
       else localStorage.removeItem(CLE_ZONE);
     } catch (e) { /* navigation privée ou stockage plein : la zone reste seulement dans la page */ }
     // no area: no more cached results behind the "Earth" link (except while an area is read back from the server)
-    if (!liste.length && !relectureServeur && window.navigation && window.navigation.oublier) window.navigation.oublier();
+    if (!liste.length && !relectureServeur && window.navigation && window.navigation.oublier) window.navigation.oublier(CORPS);
   }
   let relectureServeur = false;
 
@@ -585,7 +682,7 @@
     relectureServeur = true;
     fetch(`${API}/api/zones/${m[1]}`).then((r) => (r.ok ? r.json() : null)).then((d) => {
       relectureServeur = false;
-      if (!d || !d.h3_cells) return;
+      if (!d || !d.h3_cells || d.body !== CORPS) return;      // never the area of another body
       const tuiles = new Set();
       H.uncompactCells(d.h3_cells.filter((c) => H.isValidCell(c) && H.getResolution(c) <= RES_BASE), RES_BASE)
         .forEach((c) => tuiles.add(c));
@@ -690,7 +787,7 @@
     dessiner2D();
   });
   choisirOutil("naviguer");
-  choisirPinceau("moyen");
+  choisirMission((() => { try { return localStorage.getItem(CLE_MISSION); } catch (e) { return null; } })(), false);
   lireAdresse();
   apresChangement(true);
   lireZoneServeur();

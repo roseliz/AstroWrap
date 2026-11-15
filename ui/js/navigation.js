@@ -34,9 +34,12 @@
     majTerre();
   }
 
-  /** No area painted any more (on Mars or the Moon): forget the last compared area, and "Earth" opens the globe
-   *  to explore instead of old results. Called by selection-zone.js. */
-  function oublier() {
+  /** No area painted any more on this body (mars or moon): forget the last compared area if it was this body's,
+   *  and "Earth" opens the globe to explore instead of old results. The area of the other body stays. Called by
+   *  selection-zone.js. */
+  function oublier(corps) {
+    const z = lire();
+    if (!z || (corps && z.body !== corps)) return;
     try { localStorage.removeItem(CLE); } catch (e) { /* private browsing */ }
     majTerre();
   }

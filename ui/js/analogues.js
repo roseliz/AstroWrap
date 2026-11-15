@@ -289,6 +289,10 @@
 
   let modules = [];               // GET /api/modules (ceux qui ont des données pour ce corps)
   let presets = [];
+  // Mission chosen before painting (selection-zone.js): the search starts with its weights (server preset)
+  // (only a preset key the server knows: an unknown one would make the search fail)
+  const mission = (() => { try { return localStorage.getItem(`astrowrap-mission-${corps}`) || ""; } catch (e) { return ""; } })()
+    .replace(/^(?!(balanced|landing|geology|astrobiology|climate)$).*/, "");
   let poids = {};                 // poids bruts
   let R = null;                   // dernière réponse de /api/search
   let classement = null;          // calcul local : { ordre, scores, candidats, connus }
@@ -323,9 +327,11 @@
       etat(messageServeur(), true);
       return;
     }
-    modules.forEach((x) => { poids[x.key] = x.default_weight; });
+    const pm = presets.find((p) => p.key === mission);
+    modules.forEach((x) => { poids[x.key] = pm ? pm.weights[x.key] ?? x.default_weight : x.default_weight; });
     if (window.satellites) window.satellites.contexte({ poids });     // the window of a satellite reads the weights
     $("#an-preset").innerHTML = presets.map((p) => `<option value="${p.key}">${p.name}</option>`).join("") + `<option value="">Custom</option>`;
+    if (pm) $("#an-preset").value = pm.key;
     $("#an-preset").addEventListener("change", () => {
       const p = presets.find((x) => x.key === $("#an-preset").value);
       if (!p) return;
@@ -336,7 +342,7 @@
     $("#an-poids").innerHTML = modules.map((x) => `
       <label class="analogues-curseur">
         <span>${nomModule(x.key)}</span>
-        <input type="range" min="0" max="3" step="0.5" value="${x.default_weight}" data-module="${x.key}">
+        <input type="range" min="0" max="3" step="0.5" value="${poids[x.key]}" data-module="${x.key}">
         <output></output>
       </label>`).join("");
     $("#an-poids").querySelectorAll("input").forEach((i) => i.addEventListener("input", () => {
@@ -405,6 +411,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: corps, h3_cells: zone, weights: poids, top_k: 2000,
+          ...(mission && !Object.keys(poids).length ? { preset: mission } : {}),
           filters: filtres(),
         }),
       });
