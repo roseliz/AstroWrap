@@ -37,3 +37,9 @@ def test_meta(app):
         assert modules["thermal"]["available"]["earth"] and not modules["wind"]["available"]["mars"]
         presets = {p["key"]: p for p in client.get("/api/presets").json()["presets"]}
         assert presets["landing"]["weights"]["topography"] == 3
+
+
+def test_funnel_tolerance():
+    """One criterion below the Earth's median is forgiven from three active criteria, none below."""
+    from server.services import combine
+    assert [combine.tolerated_misses(n) for n in (1, 2, 3, 6)] == [0, 0, 1, 1]
