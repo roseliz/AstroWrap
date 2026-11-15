@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 .env
+.claude
 
 # Data produced by the preprocessing modules
 cache/
