@@ -40,22 +40,24 @@ The coordinate grid is always visible. Moon and Mars 2D maps use an **equirectan
 
 ## Running
 
-From `application/client/`, with Node.js 18 or later:
+From `ui/`, with Node.js 18 or later and Python 3.9 to 3.12:
 
 ```bash
-npm install     # Libraries (node_modules) and Python server (../server/.venv, requirements.txt)
-npm start       # Frontend at http://localhost:8080 and application server on port 8000
+npm install
+npm start
 ```
 
-`npm install` also **updates** dependencies: rerun after `git pull` (new libraries or Python requirements). It creates `../server/.venv` with the first available Python 3.9+ (`py -3` on Windows, `python3`, `python`) and installs `requirements.txt`; failures are reported without blocking installation. `ANALOGUES_SANS_PYTHON=1` skips this step; `ANALOGUES_PYTHON=path` selects Python.
+`npm install` fetches the JavaScript libraries (`node_modules/`), then creates `server/.venv` with the first Python found (`ANALOGUES_PYTHON`, `py -3` on Windows, `python3`, `python`) and installs `server/requirements.txt`. A failure there is reported but does not stop the install. Rerun it after a `git pull`. `ANALOGUES_SANS_PYTHON=1` skips the Python step.
+
+`npm start` serves the interface at http://localhost:8080 and starts the server from the repository root with `server/.venv`: `python -m uvicorn server.main:app --host 127.0.0.1 --port 8000`.
 
 | Command | Effect |
 |---|---|
-| `npm start` | Frontend + server (starts server only if it is not already responding on port 8000) |
-| `npm run client` | Frontend only (server elsewhere: `?api=http://host:port` in URL) |
+| `npm start` | Interface + server (the server is not started again if one already answers on the API port) |
+| `npm run client` | Interface only (server elsewhere: `?api=http://host:port` in the URL) |
 | `npm run api` | Server only |
 
-Ports: `PORT` (frontend, default 8080) and `API_PORT` (server, default 8000). Server data comes from repository-root `pretreatment_data/` (or `ANALOGUES_DONNEES`; see `../server/README.md`).
+Ports: `PORT` (interface, default 8080) and `API_PORT` (server, default 8000). With another API port, open the URL that `npm start` prints: it carries `?api=…`. The server reads the module results from `pretreatment_data/` at the repository root (or `ANALOGUES_DATA`; see `../server/README.md`).
 
 Libraries (MapLibre GL, globe.gl, Leaflet, h3-js, three.js) load from `node_modules/`; if missing (page opened without `npm install`), pages load them from unpkg or jsDelivr. Internet is still required for imagery (NASA Trek, Esri) and fonts.
 
@@ -92,8 +94,8 @@ The **“Reference Region”** panel on the right lets users paint the region to
 
 ```text
 package.json                         npm install, npm start (libraries, scripts)
-scripts/demarrer.mjs                 npm start: serves frontend and starts Python server
-scripts/installer-api.mjs            After npm install: ../server/.venv and requirements.txt
+scripts/demarrer.mjs                 npm start: serves the interface and starts the server
+scripts/installer-api.mjs            After npm install: server/.venv and server/requirements.txt
 index.html                           Home and Earth globe
 css/style.css
 js/accueil.js                        Home: 3D Moon and Mars (three.js), click to open page
@@ -116,11 +118,6 @@ css/selection.css                    “Reference Region” panel
 js/reperes.js                        Known landing sites and terrain landmarks
 css/reperes.css
 textures/                            Moon/Mars imagery encoded in .js
-scripts/construire_textures_lune.py  Regenerates Moon textures from NASA images
-scripts/construire_texture_mars.py   Regenerates embedded Mars texture
-scripts/construire_textures_accueil.py Regenerates textures/accueil.js (small home textures)
-pipeline/                            Data preprocessing (Python modules, Colab notebooks)
-_ancien_prototype/                   Initial interface, set aside
 ```
 
 `js/cle-carto.js` and `js/cle-carto.exemple.js` are no longer used: the “Map” basemap was removed from the Earth page. They can be deleted.

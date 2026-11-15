@@ -1,4 +1,29 @@
-# AstroWrap server: data sources
+# AstroWrap server
+
+FastAPI application, read-only over the preprocessing results in `pretreatment_data/`. The interface (`../ui`) calls it on http://127.0.0.1:8000.
+
+## Running
+
+The simplest way is `npm install` then `npm start` in `../ui` (see `../ui/README.md`): it sets up `server/.venv` and starts the server. By hand, from the repository root:
+
+```bash
+python -m venv server/.venv
+server/.venv/Scripts/python -m pip install -r server/requirements.txt      # Linux, macOS: server/.venv/bin/python
+server/.venv/Scripts/python -m uvicorn server.main:app --host 127.0.0.1 --port 8000
+```
+
+The app must be started as `server.main:app` from the repository root (the package uses relative imports). `GET /api/health` tells when the Earth data is loaded (about 15 s after startup).
+
+Settings are environment variables `ANALOGUES_<NAME>` (see `core/config.py`): `ANALOGUES_DATA` (module results, default `pretreatment_data/`), `ANALOGUES_CACHE` (default `server/cache/`), `ANALOGUES_CORS` (allowed origins, default `*`), `ANALOGUES_DUCKDB_MEMORY`, `ANALOGUES_DUCKDB_THREADS`.
+
+Tests, from the repository root:
+
+```bash
+server/.venv/Scripts/python -m pip install -r server/requirements-dev.txt
+server/.venv/Scripts/python -m pytest server/tests
+```
+
+## Data sources
 
 | Source | Used for | Provider | Terms |
 |---|---|---|---|
