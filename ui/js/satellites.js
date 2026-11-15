@@ -129,6 +129,16 @@
     astuce.textContent = "Click a satellite to see the data it brings and where it comes from.";
     couche.appendChild(astuce);
     let clique = false, zone = null;
+    // the hint stays in one place (top center), fades in once, then leaves: first satellite click, first drag/zoom, or 10 s
+    let astuceVue = false, astuceFinie = false;
+    const finirAstuce = () => { astuceFinie = true; astuce.classList.remove("montre"); };
+    /** Just under the navigation bar when the layer starts under it (Earth page), else 12 px from the top. */
+    const placerAstuce = () => {
+      const nav = document.querySelector(".nav");
+      const dessous = nav ? nav.getBoundingClientRect().bottom - couche.getBoundingClientRect().top : 0;
+      astuce.style.top = `${Math.max(12, dessous + 12)}px`;
+    };
+    window.addEventListener("resize", () => { if (astuceVue && !astuceFinie) placerAstuce(); });
     const sats = mods.map((m, k) => {
       const b = document.createElement("button");
       b.type = "button";
@@ -137,12 +147,13 @@
       b.setAttribute("aria-label", `${m.nom} satellite: what it measures on ${fiche.nom} and its sources`);
       b.title = m.nom;
       b.innerHTML = SVG;
-      b.addEventListener("click", (e) => { e.stopPropagation(); clique = true; ouvrir(m, b); });
+      b.addEventListener("click", (e) => { e.stopPropagation(); clique = true; finirAstuce(); ouvrir(m, b); });
       b.addEventListener("pointerdown", (e) => e.stopPropagation());     // no area painting under a satellite
       couche.appendChild(b);
       return { m, b, a: 1.17 + 0.045 * k, i: rad(ORBITES[k][0]), o: rad(ORBITES[k][1]), th: k * 2.1, sens: k % 2 ? -1 : 1 };
     });
     g.conteneur.appendChild(couche);
+    ["pointerdown", "wheel"].forEach((ev) => g.conteneur.addEventListener(ev, () => { if (astuceVue) finirAstuce(); }, { passive: true }));
 
     function position(s, G) {
       const a = s.a * G.R;
@@ -167,7 +178,7 @@
       const G = g.disque();
       const visible = G && G.R < 0.62 * Math.min(w, h) && G.R > 40;
       couche.classList.toggle("cache", !visible);
-      if (!visible) { astuce.hidden = true; return; }
+      if (!visible) return;
       const cibleV = reduit ? 0 : mode === "repos" ? VITESSE_LENTE : VITESSE_SCAN;
       vitesse += (cibleV - vitesse) * Math.min(1, dt * 1.5);
       const taille = Math.max(14, Math.min(26, G.R * 0.075));
@@ -263,9 +274,8 @@
         etiquette.hidden = true;
       }
 
-      // small text above the globe (the bottom is taken by the "Drag to rotate…" help), until the first click on a satellite
-      astuce.hidden = clique;
-      if (!clique) astuce.style.transform = `translate(${G.x}px, ${Math.max(12, G.y - G.R * 1.05 - 14 - astuce.offsetHeight)}px) translateX(-50%)`;
+      // the first time the satellites show: the hint fades in (fixed place, css/satellites.css)
+      if (!astuceVue && !astuceFinie) { astuceVue = true; placerAstuce(); astuce.classList.add("montre"); setTimeout(finirAstuce, 10000); }
     }
 
     // ---------------------------------------------------------------- scans, one after another
