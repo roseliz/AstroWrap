@@ -1,7 +1,7 @@
 // Animated summary of an analog site: a separate page, opened from a site's details card (js/analogues.js).
 //
 // URL: bilan.html?w=<weights>&s=<score>&n=<rank>/<total>#<body>/<zone id>/<site H3 cell>
-// Everything comes from the server (application/server), nothing is fabricated:
+// Everything comes from the server (../server), nothing is fabricated:
 //   GET /api/zones/<id>        the painted area on Mars or the Moon
 //   POST /api/search/detail    values and similarity, variable by variable (zone and site)
 //   GET /api/site/<cell>       place name and site card (vegetation, mines, clouds...)
@@ -109,7 +109,7 @@
     return r.json();
   };
   const sante = await fetch(`${API}/api/health`).then((r) => r.json()).catch(() => null);
-  if (!sante) return erreur("The server does not respond. Start it (npm start in application/client), then reload the recap.");
+  if (!sante) return erreur("The server does not respond. Start it (npm start in ui), then reload the recap.");
 
   let zone = [];
   if (/^[0-9a-f]{12}$/.test(zoneIdBrut || "")) {

@@ -7,6 +7,7 @@
     "start": "node scripts/demarrer.mjs",
     "client": "node scripts/demarrer.mjs --sans-api",
     "api": "node scripts/demarrer.mjs --api-seule",
+    "site": "node scripts/build-site.mjs",
     "postinstall": "node scripts/installer-api.mjs"
   },
   "dependencies": {

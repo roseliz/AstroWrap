@@ -50,7 +50,7 @@ ENTREES = RACINE / "inputs" / MODULE
 
 # Some servers (astrogeology.usgs.gov) reject the default "Python-urllib" agent with HTTP 403
 _ouvreur = urllib.request.build_opener()
-_ouvreur.addheaders = [("User-Agent", "analogues-pipeline/1.0 (NASA Space Apps Challenge 2026)")]
+_ouvreur.addheaders = [("User-Agent", "astrowrap/1.0 (NASA Space Apps Challenge 2026)")]
 urllib.request.install_opener(_ouvreur)
 
 RAYON = {"earth": 6_371_008.8, "mars": 3_396_190.0, "moon": 1_737_400.0}   # m (spheres used by the DEMs)

@@ -1,0 +1,17 @@
+// npm run site && npx wrangler deploy
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "astrowrap",
+  "compatibility_date": "2026-11-13",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "astrowrap.earth", "custom_domain": true },
+    { "pattern": "www.astrowrap.earth", "custom_domain": true }
+  ]
+}
