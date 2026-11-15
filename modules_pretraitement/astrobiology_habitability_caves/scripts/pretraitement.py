@@ -77,9 +77,9 @@ COUCHES_GVP = ("Smithsonian_VOTW_Holocene_Volcanoes", "Smithsonian_VOTW_Pleistoc
 URL_TUBES_LUNE = "https://zenodo.org/records/20516852/files/{nom}?download=1"       # Losarcos et Dombard 2026, CC BY 4.0
 SERVEURS_OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"]
 URL_WIKIDATA = "https://query.wikidata.org/sparql"
-ENTETES = {"User-Agent": "Mozilla/5.0 (compatible; analogues-pipeline)", "Accept": "*/*"}
+ENTETES = {"User-Agent": "Mozilla/5.0 (compatible; astrowrap)", "Accept": "*/*"}
 # Overpass et Wikidata exigent un User-Agent qui décrit le programme (et refusent celui d'un navigateur)
-ENTETES_API = {"User-Agent": "analogues-pipeline/1.0 (research prototype)", "Accept": "*/*"}
+ENTETES_API = {"User-Agent": "astrowrap/1.0 (research prototype)", "Accept": "*/*"}
 # Classes Wikidata : grotte, tube de lave, source chaude
 WD_GROTTE, WD_TUBE_LAVE, WD_SOURCE_CHAUDE = "Q35509", "Q27919", "Q177380"
 REGEX_TUBE_LAVE = r"lava|lav[ao]s?\b|tubo|volc|basalt"        # noms d'entrées de grottes OpenStreetMap

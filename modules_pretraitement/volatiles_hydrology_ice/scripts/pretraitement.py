@@ -135,7 +135,7 @@ def telecharger(url: str, cible: Path, tentatives: int = 8, silencieux: bool = F
     partiel = cible.with_name(cible.name + ".part")
     for essai in range(tentatives):
         debut = partiel.stat().st_size if partiel.exists() else 0
-        entetes = {"User-Agent": "Mozilla/5.0 (compatible; analogues-pipeline)"}   # SWIM refuse celui de Python
+        entetes = {"User-Agent": "Mozilla/5.0 (compatible; astrowrap)"}   # SWIM refuse celui de Python
         if debut:
             entetes["Range"] = f"bytes={debut}-"
         requete = urllib.request.Request(url, headers=entetes)

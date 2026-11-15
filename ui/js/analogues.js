@@ -1,4 +1,4 @@
-// Earth analogs: sends the painted area on Mars or the Moon to the server (application/server) and shows
+// Earth analogs: sends the painted area on Mars or the Moon to the server (../server) and shows
 // the most similar sites on the terrestrial globe.
 //
 // Opened by selection-zone.js with index.html#mars/<id>: the area is saved on the server
@@ -301,7 +301,7 @@
 
   function messageServeur() {
     return `The server does not respond at ${API}. Start it with <code>npm start</code> in
-      <code>application/client</code> (or <code>uvicorn app.main:app</code> in <code>application/server</code>), then reload the page.`;
+      <code>ui</code> (or <code>uvicorn main:app</code> in <code>server</code>), then reload the page.`;
   }
   /** Message dans le panneau de droite (erreurs surtout) ; vide = masqué. */
   function etat(html, erreur = false) {

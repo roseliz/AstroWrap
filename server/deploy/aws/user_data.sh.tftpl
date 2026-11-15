@@ -1,0 +1,201 @@
+#!/bin/bash
+# Boot of the machine (Amazon Linux 2023). Log: /var/log/api-startup.log
+set -euxo pipefail
+exec > >(tee -a /var/log/api-startup.log) 2>&1
+
+export AWS_DEFAULT_REGION=${region}
+TOKEN=$(curl -sfX PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
+INSTANCE=$(curl -sf -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+
+# ---------------------------------------------------------------- CloudWatch logs (${log_group})
+# api-log <file> <stream>: sends a text file, line by line, to a stream of the group.
+# Used for the startup log (when this script exits, successfully or not) and for the health decisions.
+cat > /usr/local/bin/api-log <<'EOF'
+#!/usr/bin/python3
+import json, os, subprocess, sys, tempfile, time
+
+path, stream = sys.argv[1], sys.argv[2]
+group = "${log_group}"
+subprocess.run(["aws", "logs", "create-log-stream", "--log-group-name", group, "--log-stream-name", stream],
+               capture_output=True)
+ms = int(time.time() * 1000)
+
+
+def send(batch):
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        json.dump({"logGroupName": group, "logStreamName": stream, "logEvents": batch}, f)
+    subprocess.run(["aws", "logs", "put-log-events", "--cli-input-json", "file://" + f.name], capture_output=True)
+    os.unlink(f.name)
+
+
+batch, size = [], 0
+for line in open(path, errors="replace").read().splitlines() or ["(empty)"]:
+    line = line[:8000] or " "
+    n = len(line.encode()) + 26
+    if len(batch) >= 5000 or size + n > 900000:
+        send(batch)
+        batch, size = [], 0
+    batch.append({"timestamp": ms, "message": line})
+    size += n
+if batch:
+    send(batch)
+EOF
+chmod +x /usr/local/bin/api-log
+trap 'sleep 1; /usr/local/bin/api-log /var/log/api-startup.log "$INSTANCE/startup" || true' EXIT
+
+dnf install -y docker
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json <<'EOF'
+{ "log-driver": "json-file", "log-opts": { "max-size": "10m", "max-file": "3" } }
+EOF
+systemctl enable --now docker
+
+# ---------------------------------------------------------------- fixed address
+# Retried: right after a replacement, the address can still point to the network interface of the old machine
+for i in $(seq 1 30); do
+  aws ec2 associate-address --allocation-id ${eip} --instance-id "$INSTANCE" --allow-reassociation && break
+  [ "$i" -eq 30 ] && exit 1
+  sleep 10
+done
+
+# ---------------------------------------------------------------- data disk
+# After a replacement, the old machine can still hold the disk for a few minutes
+for i in $(seq 1 90); do
+  STATE=$(aws ec2 describe-volumes --volume-ids ${volume} --query 'Volumes[0].State' --output text)
+  [ "$STATE" = "available" ] && break
+  sleep 10
+done
+aws ec2 attach-volume --volume-id ${volume} --instance-id "$INSTANCE" --device /dev/sdf
+DISK=/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_$(echo ${volume} | tr -d -)
+for i in $(seq 1 60); do [ -e "$DISK" ] && break; sleep 5; done
+blkid "$DISK" || mkfs.xfs "$DISK"
+mkdir -p /data
+UUID=$(blkid -s UUID -o value "$DISK")
+grep -q "$UUID" /etc/fstab || echo "UUID=$UUID /data xfs defaults,nofail 0 2" >> /etc/fstab
+mount -a
+
+# 2 GB swap on the data disk
+if [ ! -f /data/swapfile ]; then
+  dd if=/dev/zero of=/data/swapfile bs=1M count=2048
+  chmod 600 /data/swapfile
+  mkswap /data/swapfile
+fi
+swapon /data/swapfile || true
+grep -q swapfile /etc/fstab || echo "/data/swapfile none swap defaults,nofail 0 0" >> /etc/fstab
+sysctl -w vm.swappiness=10
+
+# ---------------------------------------------------------------- directories
+# Everything the server writes is in /data/app; whatever else is on the disk (but the swap and Caddy) is removed.
+find /data -mindepth 1 -maxdepth 1 ! -name app ! -name caddy ! -name swapfile ! -name lost+found -exec rm -rf {} +
+mkdir -p /data/app/pretreatment_data /data/app/cache /data/app/duckdb_tmp /data/caddy/data /data/caddy/config
+chown -R 1000:1000 /data/app
+
+# ---------------------------------------------------------------- data (Parquet files, from S3)
+# api-sync-data: copies the module results from the bucket (only what changed). publish.sh uploads them, then
+# writes _READY; it also runs this script then restarts the container when the data changes.
+cat > /usr/local/bin/api-sync-data <<'EOF'
+#!/bin/bash
+set -euo pipefail
+export AWS_DEFAULT_REGION=${region}
+until aws s3 ls s3://${bucket}/pretreatment_data/_READY >/dev/null; do
+  echo "waiting for the data in s3://${bucket}/pretreatment_data"; sleep 30
+done
+aws s3 sync s3://${bucket}/pretreatment_data /data/app/pretreatment_data \
+  --exclude "*" --include "*.parquet" --delete --only-show-errors
+chown -R 1000:1000 /data/app/pretreatment_data
+EOF
+chmod +x /usr/local/bin/api-sync-data
+/usr/local/bin/api-sync-data
+
+# ---------------------------------------------------------------- containers
+until aws ecr get-login-password | docker login --username AWS --password-stdin ${registry} \
+      && docker pull ${image}; do
+  echo "waiting for the image ${image}"; sleep 30
+done
+docker pull caddy:2
+
+cat > /data/caddy/Caddyfile <<'EOF'
+${domains} {
+	encode gzip
+	reverse_proxy server:8000
+}
+
+# Access by IP address (or any other name): plain HTTP
+http:// {
+	encode gzip
+	reverse_proxy server:8000
+}
+EOF
+
+docker network inspect web >/dev/null 2>&1 || docker network create web
+docker rm -f server caddy 2>/dev/null || true
+
+# Container output in CloudWatch (awslogs driver); docker logs still works (Docker's local cache)
+LOGS="--log-driver awslogs --log-opt awslogs-region=${region} --log-opt awslogs-group=${log_group}"
+
+docker run -d --name server --restart unless-stopped --network web \
+  $LOGS --log-opt awslogs-stream=$INSTANCE/server \
+  -v /data/app:/data/app \
+  -e ANALOGUES_CORS='${cors}' \
+  ${image}
+
+docker run -d --name caddy --restart unless-stopped --network web \
+  $LOGS --log-opt awslogs-stream=$INSTANCE/caddy \
+  -p 80:80 -p 443:443 \
+  -v /data/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+  -v /data/caddy/data:/data \
+  -v /data/caddy/config:/config \
+  caddy:2
+
+# ---------------------------------------------------------------- API health (every ${period} s)
+# CloudWatch metric ${namespace}/ApiHealth (1 = ready, 0 = not) for the alarm; after 8 failures in a row (~16 min)
+# the container is restarted, after 15 (~30 min) the machine reports itself unhealthy and the Auto Scaling group
+# replaces it. Every 2 minutes, not every minute: the AWS CLI costs CPU, and an instance without CPU credits only
+# has a fraction of a core.
+cat > /usr/local/bin/api-health <<'EOF'
+#!/bin/bash
+export AWS_DEFAULT_REGION=${region}
+COUNT=/run/api-health-failures
+if curl -sf -m 15 http://127.0.0.1/api/health | grep -q '"ready":true'; then
+  V=1; N=0
+else
+  V=0; N=$(( $(cat $COUNT 2>/dev/null || echo 0) + 1 ))
+fi
+echo $N > $COUNT
+aws cloudwatch put-metric-data --namespace ${namespace} --metric-name ApiHealth --value $V --unit Count || true
+log() {
+  logger -t api-health "$1"
+  echo "$1" > /run/api-health-message
+  /usr/local/bin/api-log /run/api-health-message INSTANCE_ID/health || true
+}
+if [ "$N" -eq 8 ]; then
+  log "API down for $N checks: restarting the container"
+  docker restart server
+elif [ "$N" -ge 15 ]; then
+  log "API down for $N checks: machine reported unhealthy, the group replaces it"
+  aws autoscaling set-instance-health --instance-id INSTANCE_ID --health-status Unhealthy
+fi
+EOF
+sed -i "s/INSTANCE_ID/$INSTANCE/" /usr/local/bin/api-health
+chmod +x /usr/local/bin/api-health
+
+cat > /etc/systemd/system/api-health.service <<'EOF'
+[Unit]
+Description=API health check
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/api-health
+EOF
+cat > /etc/systemd/system/api-health.timer <<'EOF'
+[Unit]
+Description=API health check
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=${period}s
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable --now api-health.timer
+
+echo "startup done"
