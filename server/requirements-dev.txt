@@ -1,5 +1,5 @@
 # Tests: python -m pytest server/tests (from the repository root)
 -r requirements.txt
-pytest>=8
+pytest>=8,<9                # pytest 9.2 crashes while collecting these tests (INTERNALERROR in NodeId)
 httpx>=0.27                 # FastAPI TestClient
 pandas>=2                   # fake module results in the tests
