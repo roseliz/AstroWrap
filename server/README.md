@@ -7,6 +7,7 @@ FastAPI application, read-only over the preprocessing results in `pretreatment_d
 The simplest way is `npm install` then `npm start` in `../ui` (see `../ui/README.md`): it sets up `server/.venv` and starts the server. By hand, from `server/` (PowerShell; Linux, macOS: `source .venv/bin/activate`):
 
 ```bash
+cd server
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
