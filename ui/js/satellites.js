@@ -263,9 +263,9 @@
         etiquette.hidden = true;
       }
 
-      // small text under the globe, until the first click on a satellite
+      // small text above the globe (the bottom is taken by the "Drag to rotate…" help), until the first click on a satellite
       astuce.hidden = clique;
-      if (!clique) astuce.style.transform = `translate(${G.x}px, ${Math.min(G.y + G.R * 1.05 + 14, h - 110)}px) translateX(-50%)`;
+      if (!clique) astuce.style.transform = `translate(${G.x}px, ${Math.max(12, G.y - G.R * 1.05 - 14 - astuce.offsetHeight)}px) translateX(-50%)`;
     }
 
     // ---------------------------------------------------------------- scans, one after another

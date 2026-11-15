@@ -654,7 +654,8 @@
   }
   document.getElementById("b-fermer").addEventListener("click", fermer);
   window.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") { e.preventDefault(); suivant(); }
+    if (e.key === "ArrowRight" && courante === diapos.length - 1) { e.preventDefault(); fermer(); }    // past the last slide: close
+    else if (e.key === "ArrowRight" || e.key === " " || e.key === "Enter") { e.preventDefault(); suivant(); }
     else if (e.key === "ArrowLeft") precedent();
     else if (e.key === "p" || e.key === "P") btnPause.click();
     else if (e.key === "Escape") fermer();
