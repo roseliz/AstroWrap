@@ -1,0 +1,61 @@
+/* Text pages (apropos.html). Same colors as the rest of the application;
+   the page scrolls beneath the navigation bar. */
+:root {
+  --espace: #081120;
+  --panneau: rgba(10, 21, 40, 0.74);
+  --trait: rgba(169, 200, 238, 0.18);
+  --texte: #E9EEF5;
+  --doux: #9DAAC0;
+  --atmosphere: #A9C8EE;
+  --hors: #6B7A90;
+  --police: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--police); font-size: 15px; line-height: 1.5; color: var(--texte);
+  background: radial-gradient(ellipse at 50% -10%, #10264A 0%, var(--espace) 60%) fixed, var(--espace);
+  min-height: 100vh;
+}
+a { color: var(--atmosphere); }
+:focus-visible { outline: 2px solid var(--atmosphere); outline-offset: 2px; }
+code { font-size: 13px; background: rgba(255, 255, 255, 0.08); padding: 1px 4px; border-radius: 3px; }
+
+.v-page { max-width: 980px; margin: 0 auto; padding: 20px 16px 60px; display: grid; gap: 28px; }
+.v-page > * { min-width: 0; }                    /* le tableau défile dans son cadre, pas la page */
+.a-logo { display: block; height: 60px; width: auto; margin-bottom: 14px; }
+.v-sur { margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--atmosphere); }
+h1 { margin: 6px 0 10px; font-size: clamp(26px, 4.4vw, 40px); line-height: 1.12; font-weight: 750; font-stretch: 110%; }
+h2 { margin: 0 0 4px; font-size: 18px; }
+.v-chapo { margin: 0; max-width: 68ch; color: var(--doux); font-size: 16px; }
+.v-doux { color: var(--doux); font-size: 13px; margin: 0; }
+
+/* ------------------------------------------------------------------ tableau */
+.v-defile { overflow-x: auto; border: 1px solid var(--trait); border-radius: 12px; background: var(--panneau); margin-top: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 600; color: var(--doux); font-size: 12px; padding: 10px 12px; border-bottom: 1px solid var(--trait); }
+td { padding: 10px 12px; vertical-align: top; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+td .v-doux { font-size: 12px; }
+.nb { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ------------------------------------------------------------------ à propos */
+h3 { margin: 18px 0 6px; font-size: 15px; }
+.a-etapes { list-style: none; counter-reset: etape; margin: 10px 0 0; padding: 0; display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+.a-etapes li { counter-increment: etape; display: grid; gap: 6px; align-content: start; padding: 14px 16px;
+  background: var(--panneau); border: 1px solid var(--trait); border-radius: 12px; }
+.a-etapes li::before { content: counter(etape); width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+  background: rgba(169, 200, 238, 0.14); color: var(--atmosphere); font-weight: 700; font-size: 13px; }
+.a-etapes b { font-size: 15px; }
+.a-etapes span { color: var(--doux); font-size: 14px; }
+.a-criteres { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px 24px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.a-criteres li { display: grid; color: var(--doux); font-size: 14px; }
+.a-criteres b { color: var(--texte); font-size: 15px; }
+.a-limites { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--doux); max-width: 80ch; }
+.a-limites b { color: var(--texte); }
+.a-sources th[scope="row"] { color: var(--texte); font-size: 13.5px; white-space: nowrap; vertical-align: top; }
+.a-sources td { color: var(--doux); font-size: 13px; min-width: 180px; }
+.a-note { margin: 12px 0 0; max-width: 80ch; font-size: 13.5px; color: var(--doux); padding: 10px 14px;
+  border-left: 3px solid var(--atmosphere); background: rgba(169, 200, 238, 0.06); border-radius: 4px; }
+section > h2 + .v-doux { margin-bottom: 4px; }

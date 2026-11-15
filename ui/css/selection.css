@@ -1,0 +1,138 @@
+/* Reference Region panel (js/selection-zone.js), shared by mars.html and lune.html.
+   It uses the page's color variables (--panneau, --texte...). The light blue selection
+   stands out against both the red Martian surface and the gray lunar surface. */
+
+:root { --selection: #4FD1FF; }
+
+.zone {
+  position: fixed;
+  top: 124px;
+  right: 14px;
+  width: 288px;
+  max-height: calc(100vh - 124px - 96px);
+  overflow: auto;
+  background: var(--panneau);
+  border: 1px solid var(--panneau-trait);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 13px;
+}
+
+.zone summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.zone summary::-webkit-details-marker { display: none; }
+.zone summary::after { content: "▾"; color: var(--texte-doux); margin-left: auto; }
+.zone:not([open]) summary::after { content: "▸"; }
+.zone-titre { font-weight: 700; font-size: 14px; letter-spacing: 0.01em; }
+.zone-resume { color: var(--selection); font-variant-numeric: tabular-nums; }
+
+.zone-corps { display: grid; gap: 12px; padding: 0 14px 14px; }
+
+/* Outils et tailles : mêmes boutons en pilule que la bascule Globe / Carte 2D */
+.zone-outils, .zone-tailles {
+  display: flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.zone-outils button, .zone-tailles button {
+  flex: 1;
+  border: 0;
+  background: none;
+  padding: 5px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--texte-doux);
+  font-weight: 600;
+}
+.zone-outils button[aria-pressed="true"] { background: var(--selection); color: #06202B; }
+.zone-tailles button[aria-pressed="true"] { background: var(--texte); color: var(--espace); }
+.zone-outils button:hover:not([aria-pressed="true"]),
+.zone-tailles button:hover:not([aria-pressed="true"]) { color: var(--texte); }
+
+.zone-ligne { display: flex; align-items: center; gap: 10px; }
+.zone-ligne > span { color: var(--texte-doux); min-width: 6ch; }
+.zone-tailles { flex: 1; }
+.zone-tailles button { padding: 3px 6px; font-size: 12px; }
+
+.zone-stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  margin: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--panneau-trait);
+  font-variant-numeric: tabular-nums;
+}
+.zone-stats dt { color: var(--texte-doux); }
+.zone-stats dd { margin: 0; text-align: right; }
+
+.zone-message { font-size: 12px; color: var(--texte-doux); }
+.zone-message:empty { display: none; }
+.zone-message[data-type="alerte"] {
+  color: var(--texte);
+  padding: 6px 9px;
+  border-radius: 6px;
+  background: rgba(255, 122, 122, 0.14);
+  border: 1px solid rgba(255, 122, 122, 0.35);
+}
+
+.zone-actions { display: flex; gap: 6px; }
+.zone-actions button {
+  flex: 1;
+  border: 1px solid var(--panneau-trait);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 5px 6px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12px;
+}
+.zone-actions button:hover { background: rgba(255, 255, 255, 0.14); }
+
+.zone-astuce { font-size: 11px; color: var(--texte-doux); line-height: 1.5; }
+
+/* Pas de sélection de texte accidentelle pendant qu'on peint */
+.zone, body[data-outil="peindre"], body[data-outil="gommer"] { -webkit-user-select: none; user-select: none; }
+
+/* Curseur : viseur quand on peint ou gomme */
+body[data-outil="peindre"] #globe,
+body[data-outil="gommer"] #globe,
+body[data-outil="peindre"] #carte2d.leaflet-container,
+body[data-outil="gommer"] #carte2d.leaflet-container { cursor: crosshair; }
+
+@media (hover: none) {
+  .zone-astuce { display: none; }
+}
+
+@media (max-width: 720px) {
+  .zone {
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: 136px;
+    width: auto;
+    max-height: 55vh;
+  }
+}
+
+/* Bouton principal : envoie la zone au globe terrestre (js/analogues.js) */
+.zone-comparer {
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--selection);
+  color: #06202B;
+  font-weight: 700;
+  cursor: pointer;
+}
+.zone-comparer:hover { filter: brightness(1.1); }

@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About · AstroWrap</title>
+  <meta name="description" content="AstroWrap (NASA Space Apps Challenge 2026): what the tool does, how it compares an area of Mars or the Moon with Earth, its limits and its data sources.">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/navigation.css">
+</head>
+<body>
+  <script src="js/navigation.js"></script>
+  <main class="v-page">
+    <header class="v-tete">
+      <img class="a-logo" src="images/astrowrap-wordmark.png" alt="AstroWrap" width="204" height="60">
+      <p class="v-sur">About · NASA Space Apps Challenge 2026</p>
+      <h1>Finding test grounds on Earth for the Moon and&nbsp;Mars</h1>
+      <p class="v-chapo">Before sending a rover, a lander or astronauts, we test them on Earth, in places that look like
+        the target site. This tool looks for those places: you paint an area on the Moon or on Mars, and it ranks the
+        whole Earth by how much it resembles that area: terrain, temperatures, wind, ice, rocks.</p>
+    </header>
+
+    <section aria-labelledby="a-parcours">
+      <h2 id="a-parcours">How it works</h2>
+      <ol class="a-etapes">
+        <li><b>Choose a body and paint an area</b>
+          <span>On the globe of the Moon or Mars, you paint the target area with hexagonal tiles (H3): a crater,
+            a plain, a pole.</span></li>
+        <li><b>The area becomes a reference</b>
+          <span>For each criterion, the server averages the data over the area. The data are prepared in advance for
+            the Moon, Mars and Earth on the same grid (H3 cells at resolution 5, ~250 km² on Earth).</span></li>
+        <li><b>The whole Earth is compared</b>
+          <span>The 613,252 land cells are scored criterion by criterion, then each candidate is judged over an area as
+            large as the painted one. Anyone can adjust how much each criterion counts; places at sea or covered by
+            forests and crops are set aside.</span></li>
+        <li><b>Read and check</b>
+          <span>For each site: why it looks alike, criterion by criterion, the terrain side by side, and your AstroWrap,
+            an animated recap card by card, down to what testing there would cost the Earth.
+            Below the list, the analogs already known to scientists are shown at their real rank.</span></li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="a-criteres">
+      <h2 id="a-criteres">What the tool compares</h2>
+      <ul class="a-criteres">
+        <li><b>Terrain</b> slopes, flat ground, elevation range, crater density</li>
+        <li><b>Temperature</b> ground by day and by night, day-night range, sunshine</li>
+        <li><b>Rocks</b> share of each rock type (basalt, sediments, ice…)</li>
+        <li><b>Wind and dust</b> strong winds, bare ground, dunes, dust storms (Mars)</li>
+        <li><b>Ice and water</b> ice in the ground, surface ice, soil water</li>
+        <li><b>Volcanoes and caves</b> volcanoes, caves, lava tubes</li>
+      </ul>
+      <h3>What it does not compare</h3>
+      <ul class="a-limites">
+        <li><b>Minerals.</b> The maps of Mars and the Moon only give pyroxene and olivine, which the Earth instruments
+          do not see. Mineralogy analogs (Rio Tinto for Meridiani, Lake Salda for Jezero) are therefore out of reach.</li>
+        <li><b>Small features.</b> A site is judged over hundreds of km²: a lake, a spring or an isolated cave gets lost
+          in it.</li>
+        <li><b>What no place on Earth reproduces</b>: gravity, air pressure, radiation.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="a-impact">
+      <h2 id="a-impact">Responsible testing</h2>
+      <p class="v-doux">The best analog is not always the right place to test: some are fragile, protected or far away.
+        Below the list of sites, the tool says what a test campaign would cost the Earth.</p>
+      <ul class="a-limites">
+        <li><b>Protected area</b>: at least half of the site in protected areas, or a fifth in strict protection (IUCN
+          categories Ia, Ib and II: strict reserves, wilderness areas, national parks). An option sets these places aside.</li>
+        <li><b>Low impact</b>: less than 10% protected, on land already transformed by mining (at least 0.5% of the
+          surface). Testing in a former mine rather than in an untouched desert.</li>
+        <li><b>The flight</b>: from your departure city, the round trip by plane in tonnes of CO₂e per person, and the
+          best site within 1,000 to 5,000 km that is at least 85% as similar as the first one.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="a-sources">
+      <h2 id="a-sources">Data sources</h2>
+      <p class="v-doux">All data are public or provided for research; the tool only shows average values per cell.</p>
+      <div class="v-defile">
+        <table class="a-sources">
+          <thead><tr><th scope="col">Criterion</th><th scope="col">Earth</th><th scope="col">Mars</th><th scope="col">Moon</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Terrain</th>
+              <td>Copernicus DEM GLO-90 (ESA); Earth Impact Database (PASSC)</td>
+              <td>MOLA MEGDR (Mars Global Surveyor, USGS mosaic); craters from Robbins and Hynek (2012)</td>
+              <td>LOLA LDEM (Lunar Reconnaissance Orbiter, USGS mosaic); craters from Robbins (2018)</td></tr>
+            <tr><th scope="row">Temperature</th>
+              <td>MODIS MOD11C3 and MYD11C3 (NASA); MERRA-2 (NASA GMAO)</td>
+              <td>Mars Climate Database v6.2 (LMD, CNES, ESA)</td>
+              <td>Diviner and LOLA (LRO, NASA)</td></tr>
+            <tr><th scope="row">Rocks</th>
+              <td>GLiM (Hartmann and Moosdorf 2012); vegetation and cities: MODIS MCD12C1</td>
+              <td>Global geologic map SIM 3292 (Tanaka et al. 2014, USGS)</td>
+              <td>Unified Geologic Map of the Moon (USGS 2020)</td></tr>
+            <tr><th scope="row">Wind and dust</th>
+              <td>MERRA-2; VIIRS Deep Blue (NASA); MODIS MCD12C1; global dune map (Gunn 2026)</td>
+              <td>Mars Climate Database v6.2; Montabone dust climatology; MGD3 (USGS)</td>
+              <td>(no atmosphere)</td></tr>
+            <tr><th scope="row">Ice and water</th>
+              <td>ESA CCI Permafrost and Soil Moisture; RGI 7.0; JRC Global Surface Water; Natural Earth</td>
+              <td>SWIM 2.0 (Planetary Science Institute); Mars Odyssey GRS; Mars Climate Database v6.2</td>
+              <td>Diviner Polar Resource Product; Lunar Prospector; Lemelin et al. 2021 (M3); LOLA permanent shadows</td></tr>
+            <tr><th scope="row">Volcanoes and caves</th>
+              <td>Smithsonian Global Volcanism Program; OpenStreetMap; Wikidata; WOKAM (BGR, UNESCO); mines from Maus et al. (2022)</td>
+              <td>Mars Global Cave Candidate Catalog (USGS); hydrated sites from Carter et al. (2013, ESA)</td>
+              <td>Lunar Pit Atlas (LROC); Losarcos and Dombard (2026)</td></tr>
+            <tr><th scope="row">Responsible testing</th>
+              <td>Protected areas: WDPA (UNEP-WCMC and IUCN, Protected Planet); airports: OurAirports; mines from Maus et al.
+                (2022); flights: UK Government greenhouse gas conversion factors 2025</td>
+              <td>(not applicable)</td>
+              <td>(not applicable)</td></tr>
+            <tr><th scope="row">Side-by-side terrain and imagery</th>
+              <td>Copernicus GLO-90; Esri World Imagery</td>
+              <td>MOLA; NASA Mars Trek (Viking)</td>
+              <td>LOLA; NASA Moon Trek (LRO WAC)</td></tr>
+            <tr><th scope="row">Place names</th>
+              <td colspan="3">Natural Earth; © OpenStreetMap contributors (Nominatim); Wikipedia</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="a-note">The <b>World Database on Protected Areas</b> (UNEP-WCMC and IUCN, <a href="https://www.protectedplanet.net">Protected
+        Planet</a>) is used for non-commercial research: the tool only shows a share of protected land per cell, and the
+        database is not redistributed. The version used is cited below the list of sites.</p>
+      <p class="a-note">The <b>Mars Climate Database</b> (Laboratoire de Météorologie Dynamique, with CNES and ESA;
+        Forget et al. 1999, <i>Journal of Geophysical Research</i> 104, E10) is used with the agreement of its team: the
+        tool only shows values derived per cell, and the database itself is not redistributed.</p>
+    </section>
+
+    <section aria-labelledby="a-equipe">
+      <h2 id="a-equipe">Team</h2>
+      <p class="v-doux">The AstroWrap team: Alexis Durand, Thibaut Delahaie and Rose Lize, for the NASA Space Apps Challenge 2026.</p>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,90 @@
+#!/bin/bash
+# Machine start-up: install, run the processing, then stop the group and shut down (= termination).
+# If AWS reclaims the machine (Spot), the group starts another one: it starts again from here and skips the
+# granules already done. Several machines: each goes through the list in its own order and skips what another
+# one has already written.
+# No credentials here: batch.py reads the Earthdata credentials from SSM (prefix ${ssm_prefix}).
+set -uo pipefail
+LOG=/var/log/mineralogie_terre.log
+exec > >(tee -a "$LOG") 2>&1
+REGION=${region}
+BUCKET=${bucket}
+RUN=${run_name}
+GROUP=${group}
+STATE="s3://$BUCKET/state/$RUN"
+export AWS_DEFAULT_REGION=$REGION
+export HOME=/root            # cloud-init does not always set it (DuckDB extensions, earthaccess)
+TOKEN=$(curl -sX PUT http://169.254.169.254/latest/api/token -H "X-aws-ec2-metadata-token-ttl-seconds: 600")
+MACHINE=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
+TYPE=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type)
+echo "$(date -u +%FT%TZ) start $MACHINE ($TYPE), run $RUN, code ${scripts_md5}"
+
+upload_log() { aws s3 cp "$LOG" "s3://$BUCKET/logs/$RUN/$MACHINE.log" --only-show-errors || true; }
+# Stop the whole run: capacity 0, then shut down
+stop_run() {
+  echo "$(date -u +%FT%TZ) stop: $1"
+  aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$GROUP" --min-size 0 --desired-capacity 0 || true
+  upload_log
+  shutdown -h now
+  exit 0
+}
+# This machine has finished its share while others are still working: it leaves the group (capacity - 1)
+# without being replaced
+leave_group() {
+  echo "$(date -u +%FT%TZ) leaving: $1"
+  upload_log
+  aws autoscaling terminate-instance-in-auto-scaling-group --instance-id "$MACHINE" --should-decrement-desired-capacity || true
+  shutdown -h now
+  exit 0
+}
+
+# Already finished? (machine restarted after the end, or terraform apply run again)
+if aws s3 ls "$STATE/done" >/dev/null 2>&1; then stop_run "run already finished"; fi
+# Safeguard: too many machines started for this run (crash loop)
+N=$(aws s3 ls "$STATE/starts/" 2>/dev/null | wc -l)
+if [ "$N" -ge ${max_starts} ]; then stop_run "$N starts, more than the ${max_starts} allowed"; fi
+date -u +%FT%TZ | aws s3 cp - "$STATE/starts/$MACHINE" --only-show-errors
+
+( while true; do sleep 300; upload_log; done ) &
+
+# Live log in CloudWatch Logs (group ${log_group}, one stream per machine): aws logs tail --follow
+dnf install -y -q amazon-cloudwatch-agent && cat > /opt/aws/amazon-cloudwatch-agent/etc/logs.json <<END
+{"logs": {"logs_collected": {"files": {"collect_list": [
+  {"file_path": "$LOG", "log_group_name": "${log_group}", "log_stream_name": "$RUN/$MACHINE"},
+  {"file_path": "/var/log/cloud-init-output.log", "log_group_name": "${log_group}", "log_stream_name": "$RUN/$MACHINE/cloud-init"}
+]}}}}
+END
+/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s \
+  -c file:/opt/aws/amazon-cloudwatch-agent/etc/logs.json || echo "CloudWatch agent unavailable: log in S3 only"
+
+# Installation (same versions as the local tests)
+dnf install -y -q python3.11 python3.11-pip unzip || stop_run "dnf failed"
+python3.11 -m venv /opt/venv || stop_run "venv failed"
+# The pip 22.3 of Amazon Linux loops forever on boto3 / aiobotocore (pilot of 2026-11-13): recent pip, all
+# versions pinned (resolved by pip 26 for Linux x86_64, Python 3.11), prebuilt wheels only.
+/opt/venv/bin/pip install --progress-bar off -U pip || stop_run "pip upgrade failed"
+timeout 20m /opt/venv/bin/pip install --progress-bar off --only-binary=:all: \
+  h3==4.5.0 numpy==2.2.6 pandas==2.3.3 pyarrow==25.0.1 duckdb==1.5.6 earthaccess==0.14.0 h5py==3.16.0 \
+  netCDF4==1.7.4 requests==2.34.2 boto3==1.43.117 botocore==1.43.117 aiobotocore==3.10.0 s3fs==2026.9.0 \
+  s3transfer==0.19.3 || stop_run "pip failed"
+/opt/venv/bin/python -c "import duckdb; duckdb.sql('INSTALL h3 FROM community')" || stop_run "DuckDB h3 extension"
+SCRIPTS=/opt/repo/modules_pretraitement/mineralogie_terre/scripts
+mkdir -p "$SCRIPTS" /opt/tmp
+aws s3 cp "s3://$BUCKET/code/scripts.zip" /opt/scripts.zip --only-show-errors || stop_run "code not found"
+unzip -q -o /opt/scripts.zip -d "$SCRIPTS"
+aws s3 cp "s3://$BUCKET/inputs/$RUN/list.parquet" /opt/list.parquet --only-show-errors || stop_run "list not found"
+
+# Processing (resumable: batch.py skips the granules whose two files are already in the bucket)
+timeout ${max_hours}h /opt/venv/bin/python "$SCRIPTS/batch.py" --list /opt/list.parquet \
+  --output "s3://$BUCKET/results/$RUN" --source s3 --production --ssm "${ssm_prefix}" \
+  --region "$REGION" --parallel ${parallel} --tmp /opt/tmp --shuffle
+RC=$?
+echo "$(date -u +%FT%TZ) batch.py finished, code $RC"
+# 0: everything is done; 3: only failed granules are missing (unreadable: retrying would change nothing)
+# 4: others are missing, still running on another machine: this one leaves, the last one concludes
+if [ "$RC" -eq 4 ]; then leave_group "my list is finished, other machines are still working"; fi
+if [ "$RC" -eq 0 ] || [ "$RC" -eq 3 ]; then
+  echo "code $RC $(date -u +%FT%TZ)" | aws s3 cp - "$STATE/done" --only-show-errors
+  stop_run "processing finished"
+fi
+stop_run "batch.py failed (code $RC): see the log"
