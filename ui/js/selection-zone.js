@@ -658,8 +658,9 @@
   }
 
   // ------------------------------------------------------------------ adresse de la page et export
-  /** La zone est gardée dans le navigateur (localStorage), jamais dans l'adresse : un rechargement la retrouve,
-   *  et la page du globe terrestre la lit au clic sur « Comparer avec la Terre ». */
+  /** The area is kept in the browser (localStorage), never in the address: the Earth page reads it after
+   *  "Compare with Earth". Each visit to Mars or the Moon starts from an empty globe; only the return from
+   *  Earth ("Edit the area", mars.html#<id>) reopens the compared area. */
   const CLE_ZONE = `analogues-zone-${{ lune: "moon" }[v.corps] || v.corps}`;
   // Serveur : local (http://127.0.0.1:8000) sur cette machine ou en file://, https://api.astrowrap.earth en ligne ; ?api=... l'emporte.
   const API = (new URLSearchParams(location.search).get("api") || (/^(localhost|127\.0\.0\.1|\[::1\]|)$/.test(location.hostname) ? "http://127.0.0.1:8000" : "https://api.astrowrap.earth")).replace(/\/$/, "");
@@ -697,10 +698,7 @@
     // Anciennes adresses (#zone=...) : lues une fois, puis retirées de la barre d'adresse.
     const m = location.hash.match(/zone=([0-9a-f,]+)/i);
     if (m) history.replaceState(null, "", location.pathname + location.search);
-    let texte = m ? m[1] : "";
-    if (!texte) {
-      try { texte = localStorage.getItem(CLE_ZONE) || ""; } catch (e) { texte = ""; }
-    }
+    const texte = m ? m[1] : "";          // no area taken back from localStorage: each visit starts from scratch
     const cellules = texte.split(",").filter((c) => H.isValidCell(c) && H.getResolution(c) <= RES_BASE);
     if (!cellules.length) return;
     try {
@@ -789,8 +787,15 @@
   choisirOutil("naviguer");
   choisirMission((() => { try { return localStorage.getItem(CLE_MISSION); } catch (e) { return null; } })(), false);
   lireAdresse();
+  lireZoneServeur();                      // before the first render: the empty area must not forget the compared one
   apresChangement(true);
-  lireZoneServeur();
+  // Back button (page restored from the browser cache): that is a new visit too.
+  window.addEventListener("pageshow", (e) => {
+    if (!e.persisted || !etat.tuiles.size) return;
+    etat.tuiles.clear();
+    etat.historique.length = 0;
+    apresChangement(true);
+  });
 
   window.selectionZone = {
     tuiles: () => [...etat.tuiles],
