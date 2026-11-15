@@ -1,7 +1,7 @@
 // Animated summary of an analog site: a separate page, opened from a site's details card (js/analogues.js).
 //
 // URL: bilan.html?w=<weights>&s=<score>&n=<rank>/<total>#<body>/<zone id>/<site H3 cell>
-// Everything comes from the server (application/server), nothing is fabricated:
+// Everything comes from the server (../server), nothing is fabricated:
 //   GET /api/zones/<id>        the painted area on Mars or the Moon
 //   POST /api/search/detail    values and similarity, variable by variable (zone and site)
 //   GET /api/site/<cell>       place name and site card (vegetation, mines, clouds...)
@@ -37,12 +37,12 @@
   const NOMS_SIMPLES = { thermal: "Temperature", topography: "Terrain", geology: "Rocks", wind: "Wind and dust",
     volatiles: "Ice and water", astro: "Volcanoes and caves" };
   const COURTS = { lst_day_mean: "ground temperature, day", lst_night_mean: "ground temperature, night", amplitude: "day-night range",
-    part_pente_inf_5: "flat ground", pentes: "typical slope", rugosite_rms: "roughness", denivele: "local elevation range",
-    densite_crateres: "craters", lithologie: "rocks", mineraux: "minerals", part_oxyde_fer: "iron oxides",
+    part_pente_inf_5: "flat ground", slopes: "typical slope", rugosite_rms: "roughness", elevation_range: "local elevation range",
+    densite_crateres: "craters", lithology: "rocks", mineraux: "minerals", part_oxyde_fer: "iron oxides",
     part_sol_nu: "bare ground", part_dunes: "dunes", vent_fort_rel: "strong winds", poussiere_rang: "dust", tempetes_rang: "dust storms",
     indice_glace_sol: "ground ice", part_glace_surface: "surface ice", eau_sol_rang: "soil water",
     cold_fraction: "very cold time", hot_fraction: "very hot time", daylight_fraction_min: "daylight, dark season",
-    daylight_fraction_max: "daylight, bright season", volcans: "volcanoes", cavites: "caves and pits" };
+    daylight_fraction_max: "daylight, bright season", volcanoes: "volcanoes", caves: "caves and pits" };
   const CLASSES = { sedimentaire_clastique: "sedimentary", non_consolide: "loose sediments", volcanique_felsique: "felsic volcanic",
     plutonique_basique: "gabbro", plutonique_felsique: "granite", metamorphique: "metamorphic", evaporite: "evaporites",
     argile_al: "Al clays", argile_fe_mg: "Fe-Mg clays", silice_hydratee: "hydrated silica", mafique_autre: "other mafics",
@@ -74,16 +74,27 @@
     return erreur("Incomplete address: open your AstroWrap from a site card (the “Play the AstroWrap” button).");
   }
   document.documentElement.style.setProperty("--corps", COULEUR_CORPS[corps]);
+  if (q.get("g") === "1") document.documentElement.classList.add("mode-vert");    // green mode of the results page
 
-  /** Une valeur lisible : °C, %, centile, roche dominante… (même règle que la fiche du site). */
-  function lisible(v, meta) {
+  /** A readable value: °C, %, level within the body, dominant rock… (same rule as the site card). */
+  // Level of a value within its body: below 20% of the cells "very low", etc.
+  const NIVEAUX_RANG = [[0.2, "very low"], [0.4, "low"], [0.6, "average"], [0.8, "high"], [Infinity, "very high"]];
+  function lisible(v, meta, cote) {
     if (v == null) return "–";
     if (meta.mode === "hellinger") {
       const top = Object.entries(v).filter(([, x]) => x != null && x >= 0.05).sort((a, b) => b[1] - a[1]).slice(0, 2);
       return top.length ? top.map(([k, x]) => `${CLASSES[k] || k.replace(/_/g, " ")} ${pct.format(x)}`).join(", ") : "no dominant type";
     }
     if (meta.mode === "deciles") return `${nb1.format(v[Math.floor(v.length / 2)] ?? 0)}°`;
-    if (meta.mode === "rang" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
+    if (meta.mode === "rank" || /_rang$/.test(meta.key)) {
+      // Rank within the body (0 to 1): a level in words ("high" for Mars), and the real value when the server gives it
+      const mot = NIVEAUX_RANG.find(([s]) => v < s)[1];
+      const reel = cote && meta[`${cote}_value`];
+      if (reel == null) return mot.replace(/^./, (x) => x.toUpperCase());
+      const u = (meta.value_unit || "").replace(/^per /, "/");
+      const t = Math.abs(reel) >= 100 ? nb.format(reel) : Math.abs(reel) >= 10 ? nb1.format(reel) : nb2.format(reel);
+      return `${t}${u.startsWith("×") ? u : " " + u} (${mot})`;
+    }
     if (meta.unit === "K") return meta.key === "amplitude" ? `${nb.format(v)} °C` : `${nb.format(v - 273.15)} °C`;
     if (meta.unit === "°") return `${nb1.format(v)}°`;
     if (!meta.unit && v >= 0 && v <= 1) return pct.format(v);
@@ -98,7 +109,7 @@
     return r.json();
   };
   const sante = await fetch(`${API}/api/health`).then((r) => r.json()).catch(() => null);
-  if (!sante) return erreur("The server does not respond. Start it (npm start in application/client), then reload the recap.");
+  if (!sante) return erreur("The server does not respond. Start it (npm start in ui), then reload the recap.");
 
   let zone = [];
   if (/^[0-9a-f]{12}$/.test(zoneIdBrut || "")) {
@@ -189,10 +200,10 @@
     return `<div class="m-l a" style="--i:${i + 2}">
       <div class="m-titre">${echapper(nomVar(v))}</div>
       <div class="m-corps">
-        <span class="m-val g">${echapper(lisible(v.reference, v))}</span>
+        <span class="m-val g">${echapper(lisible(v.reference, v, "reference"))}</span>
         <span class="m-barre g" style="--i:${i}"><i style="--w:${pa}%"></i></span>
         <span class="m-barre d" style="--i:${i}"><i style="--w:${pb}%"></i></span>
-        <span class="m-val d">${echapper(lisible(v.earth, v))}</span>
+        <span class="m-val d">${echapper(lisible(v.earth, v, "earth"))}</span>
       </div>
       ${sens ? `<div class="m-sens">${sens}</div>` : ""}</div>`;
   }
@@ -215,7 +226,7 @@
           <span class="gros nom">${echapper(lieu)}</span>
           <span class="petit">${echapper(sousTitre)}${fiche ? `${sousTitre ? " · " : ""}${nb2.format(Math.abs(fiche.lat))}° ${fiche.lat >= 0 ? "N" : "S"}, ${nb2.format(Math.abs(fiche.lon))}° ${fiche.lon >= 0 ? "E" : "W"}` : ""}</span></div>
       </div>
-      <p class="note pied a" style="--i:4">Similarity: weighted average of the criteria measured on both bodies. Click or use ‹ › to move on.</p>`,
+`,
   });
 
   // 2. L'entonnoir
@@ -233,7 +244,7 @@
         <div class="corps fun">${lignes}
           ${nFinal != null ? `<div class="fun-l a" style="--i:${etapes.length + 1}"><span class="nom"><b>Ranking</b></span>
             <span class="piste" style="--i:${etapes.length}"><i style="--w:${larg(nFinal)}%"></i></span>${compteur(nFinal, "int", "n")}</div>` : ""}</div>
-        <p class="note pied a" style="--i:${etapes.length + 3}">Each criterion sets aside the regions that look less like your area than the Earth median. The scale is logarithmic.${rangTexte ? ` This site is #${rangTexte[0]} of the ${rangTexte[1]} selected (at least 300 km apart).` : ""}</p>`,
+`,
     });
   }
 
@@ -262,7 +273,7 @@
             <span>${echapper(NOMS_SIMPLES[m.key] || m.name)}<span class="mot">${niveau(m.similarity).nom}${m.variables.some((v) => !v.compared) ? " · partial comparison" : ""}</span></span>
             ${compteur(m.similarity, "pct", "p")}</div>`).join("")}</div>
         </div>
-        <p class="note pied a" style="--i:8">The wider the shape, the more the site looks like your area ${SUR}. A criterion without data is not shown.</p>`,
+`,
     });
   }
 
@@ -280,7 +291,7 @@
       cle: "relief", duree: 18000, trois: true,
       html: `${tete(`Terrain · ${motNiveau(topo.similarity)}`, `Terrain <em>that matches</em>`)}
         <div class="corps trois">${cote(0, corps, `${NOMS[corps]} · your area`)}${cote(1, "earth", `Earth · ${echapper(lieu)}`)}</div>
-        <p class="note pied a" style="--i:4">The same ${nb.format(cadre.taille)} km square on both sides, same scale, same vertical exaggeration. Drag to rotate: the other one follows.${plat && plat.compared ? ` Flat ground (< 5°): ${lisible(plat.reference, plat)} ${SUR}, ${lisible(plat.earth, plat)} here.` : ""}</p>`,
+        <p class="note pied a" style="--i:4" id="b3-sources"></p>`,
     });
   }
 
@@ -303,7 +314,7 @@
           <div class="thermo-cote aD" style="--c:var(--d);--i:2"><span class="qui">Earth · ${echapper(lieu)}</span>
             <div class="thermo-paire">${th(c(jour.earth), "day", 2)}${th(c(nuit.earth), "night", 3)}</div></div>
         </div>
-        <p class="note pied a" style="--i:5">Average ground temperature (°C). Dotted line: 0 °C. ${amp && amp.reference != null ? `Day-night range: ${nb.format(amp.reference)} °C ${SUR}, ${nb.format(amp.earth)} °C here.` : ""}</p>`,
+`,
     });
   }
 
@@ -325,7 +336,7 @@
     ajouter({
       cle: "roches", duree: 9000,
       html: `${tete(`Rocks${geo ? ` · ${partielle ? '<span class="mot" style="--c:#9DAAC0">partial comparison</span>' : motNiveau(geo.similarity)}` : ""}`, `What the <em>ground is made of</em>`)}<div class="corps parts-bloc">${blocs}</div>
-        <p class="note pied a" style="--i:6">Share of each class in the area and in the selected cell. Only the classes present on both sides are compared.</p>`,
+`,
     });
   }
 
@@ -338,21 +349,20 @@
   const proches = choisir(comparables.filter((v) => v.similarity >= 0.8)
     .sort((a, b) => (b.similarity - (absent(b) ? 0.15 : 0)) - (a.similarity - (absent(a) ? 0.15 : 0))), 4);
   const loins = choisir(comparables.filter((v) => v.similarity < 0.4).sort((a, b) => a.similarity - b.similarity), 4);
-  const noteRang = (liste) => (liste.some((v) => v.mode === "rang" || /_rang$/.test(v.key)) ? " “Percentile”: the rank of the value among the cells of each body." : "");
   const legendeMiroir = `<div class="m-corps a" style="--i:1;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">
     <span style="text-align:right;color:var(--g)">${NOMS[corps]}</span><span></span><span></span><span style="color:var(--d)">Earth</span></div>`;
   if (proches.length) {
     ajouter({
       cle: "proches", duree: 9000,
       html: `${tete("Same values", `What <em>matches</em>`)}<div class="corps miroirs">${legendeMiroir}${proches.map((v, i) => ligneMiroir(v, i, false)).join("")}</div>
-        <p class="note pied a" style="--i:7">Two bars of the same length: the same place on the variable's scale.${noteRang(proches)}</p>`,
+`,
     });
   }
   if (loins.length) {
     ajouter({
       cle: "loins", duree: 9000, classe: "rouge",
       html: `${tete("The gaps", `What <em>differs</em>`)}<div class="corps miroirs">${legendeMiroir}${loins.map((v, i) => ligneMiroir(v, i, true)).join("")}</div>
-        <p class="note pied a" style="--i:7">The largest gaps measured between your area and this site.${noteRang(loins)}</p>`,
+`,
     });
   }
 
@@ -365,7 +375,7 @@
         html: `${tete("What it is good for", `Best suited for <em>${echapper(lignes[0].nom)}</em>`)}
           <div class="corps profils">${lignes.map((p, i) => `<div class="profil ${i === 0 ? "top" : ""} a" style="--i:${i + 1}"><span class="nom">${echapper(p.nom)}</span>
             <span class="piste" style="--i:${i}"><i style="--w:${100 * p.s}%"></i></span>${compteur(p.s, "pct", "n")}</div>`).join("")}</div>
-          <p class="note pied a" style="--i:7">Similarity of this site with your area ${SUR}, with the criterion weights of each preset in the app.</p>`,
+`,
       });
     }
   }
@@ -391,11 +401,22 @@
     let dep = null;
     try { dep = JSON.parse(localStorage.getItem("analogues-depart") || "null"); } catch (e) { dep = null; }
     if (dep && fiche && Number.isFinite(dep.lat)) {
-      const r = Math.PI / 180, h = Math.sin((fiche.lat - dep.lat) * r / 2) ** 2 + Math.cos(dep.lat * r) * Math.cos(fiche.lat * r) * Math.sin((fiche.lon - dep.lon) * r / 2) ** 2;
-      const km = 12742 * Math.asin(Math.min(1, Math.sqrt(h))), d = km * 1.08;          // + 8 % de détours (js/analogues.js)
-      const t = (2 * d * (d < 3700 ? 0.126 : 0.117)) / 1000;
+      /** Round-trip flight from the departure city: (km, t CO₂e per person; 0 under 500 km, by road). */
+      const vol = (lat, lon) => {
+        const r = Math.PI / 180, h = Math.sin((lat - dep.lat) * r / 2) ** 2 + Math.cos(dep.lat * r) * Math.cos(lat * r) * Math.sin((lon - dep.lon) * r / 2) ** 2;
+        const km = 12742 * Math.asin(Math.min(1, Math.sqrt(h))), d = km * 1.08;        // + 8% for detours (js/analogues.js)
+        return { km, t: km < 500 ? 0 : (2 * d * (d < 3700 ? 0.126 : 0.117)) / 1000 };
+      };
+      const { km, t } = vol(fiche.lat, fiche.lon);
       cartesI.push(km < 500 ? { t: "corps", etq: "Getting there", g: `${nb.format(km)} km`, p: `from ${echapper(dep.nom)}: reachable by land.` }
         : { t: "site", etq: "Getting there", g: `${t < 0.1 ? "< 0.1" : nb1.format(t)} t CO₂e`, p: `per person, round trip by plane from ${echapper(dep.nom)} (${nb.format(km)} km).` });
+      // green mode: what this site avoids compared with site 1 of the usual ranking (?ref=lat,lon)
+      const ref = (q.get("ref") || "").split(",").map(Number);
+      if (ref.length === 2 && ref.every(Number.isFinite)) {
+        const d = vol(ref[0], ref[1]).t - t;
+        if (d >= 0.05) cartesI.unshift({ t: "corps", etq: "Green choice", g: `−${nb1.format(d)} t CO₂e`,
+          p: `per person, compared with the closest match of the usual ranking (−${nb1.format(5 * d)} t for a team of 5).` });
+      }
     }
     if (cartesI.length) {
       ajouter({
@@ -415,8 +436,10 @@
   if (urb && urb.value >= 1) cartes.push({ t: "site", etq: "On this site", g: `${nb1.format(urb.value)}%`, p: "urban areas in the cell." });
   if (mine && mine.value > 0) cartes.push({ t: "site", etq: "On this site", g: `${nb1.format(mine.value)}%`, p: "of the cell covered by mines." });
   if (nuage && nuage.value >= 50) cartes.push({ t: "site", etq: "On this site", g: `${nb.format(nuage.value)}%`, p: "average cloud cover." });
-  modules.filter((m) => m.reliability != null && m.reliability < 0.9).forEach((m) =>
-    cartes.push({ t: "donnee", etq: "In the data", g: `${nb.format(100 * m.reliability)}%`, p: `data reliability for “${NOMS_SIMPLES[m.key] || m.name}” on this site.` }));
+  // data reliability: a single card, the weakest in large type, the others listed
+  const peuFiables = modules.filter((m) => m.reliability != null && m.reliability < 0.9).sort((a, b) => a.reliability - b.reliability);
+  if (peuFiables.length) cartes.push({ t: "donnee", etq: "Data reliability", g: `${nb.format(100 * peuFiables[0].reliability)}%`,
+    p: peuFiables.map((m) => `${NOMS_SIMPLES[m.key] || m.name} ${nb.format(100 * m.reliability)}%`).join(" · ") });
   compositions.filter((v) => !v.compared).forEach((v) =>
     cartes.push({ t: "donnee", etq: "In the data", g: "Not comparable", p: `${nomVar(v).replace(/^./, (x) => x.toUpperCase())}: not all the classes of ${NOMS[corps] === "Moon" ? "the Moon" : NOMS[corps]} are in the Earth data.` }));
   const sansDonnee = Object.keys(NOMS_SIMPLES).filter((k) => !modules.some((m) => m.key === k));
@@ -430,7 +453,7 @@
     cle: "limites", duree: 11000,
     html: `${tete("Let's be honest", `The <em>limits</em> of this site`)}
       <div class="corps cartes">${cartes.map((k, i) => `<div class="carte ${k.t} a" style="--i:${i + 1}"><span class="etq">${k.etq}</span><b>${k.g}</b><p>${k.p}</p></div>`).join("")}</div>
-      <p class="note pied a" style="--i:${cartes.length + 2}">An analog reproduces what can be measured (terrain, rocks, temperature…); it does not replace ${corps === "moon" ? "the Moon" : "Mars"} for what cannot be moved.</p>`,
+`,
   });
 
   // 10 bis. « Mais dans cette zone… » : l'emballage se déroule, les consignes en sortent (js/wrap-environnement.js,
@@ -676,6 +699,8 @@
       etat.cotes[i] = construire3D(cont, d, exag, i);
         section.querySelector(`#b3s-${i}`).innerHTML = `<b data-n="${d.relief_p5_p95}" data-f="m">${nb.format(d.relief_p5_p95)} m</b><span>typical elevation range · elevations ${nb.format(d.min)} to ${nb.format(d.max)} m · ×${exag}</span>`;
     });
+    const src = section.querySelector("#b3-sources");
+    if (src) src.textContent = `Terrain: ${ok.map((d) => d.source).join(", ")}. Imagery: ${ok.map((d) => d.texture_credit).filter(Boolean).join(", ")}.`;
     boucle();
   }
   function arreter3D() { if (V3) V3.stop = true; }

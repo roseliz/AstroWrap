@@ -14,8 +14,10 @@ class Astro(ModuleScore):
     reliability = ("astrobiology_habitability_caves", "fiabilite")
     variables = [
         Variable("part_karst", "Karst share", "abs", "astrobiology_habitability_caves", ["part_karst"]),
-        Variable("caves", "Caves and pits (rank within the body)", "rank", "astrobiology_habitability_caves", ["n_cavites"]),
+        Variable("caves", "Caves and pits (rank within the body)", "rank", "astrobiology_habitability_caves", ["n_cavites"],
+                 raw_unit="per 1,000 km²", per_1000km2=True),
         Variable("lava_tubes", "Lava tubes (rank within the body)", "rank", "astrobiology_habitability_caves",
-                 ["n_tubes_lave"]),
-        Variable("volcanoes", "Volcanoes (rank within the body)", "rank", "astrobiology_habitability_caves", ["n_volcans"]),
+                 ["n_tubes_lave"], raw_unit="per 1,000 km²", per_1000km2=True),
+        Variable("volcanoes", "Volcanoes (rank within the body)", "rank", "astrobiology_habitability_caves", ["n_volcans"],
+                 raw_unit="per 1,000 km²", per_1000km2=True),
     ]

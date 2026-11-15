@@ -42,6 +42,13 @@ def save_zone(r: ZoneRequest):
     return {"id": _call(zones.save, r.body, r.h3_cells)}
 
 
+@router.post("/zones/terrain")
+def zone_terrain(r: ZoneRequest):
+    """Flat ground share (slope < 5°, 500 m base) of each resolution-5 cell of the area, and its mean: the
+    interface leaves out rough ground when the mission is a landing site."""
+    return _call(zones.terrain, r.body, r.h3_cells)
+
+
 @router.get("/zones/{ident}")
 def get_zone(ident: str):
     z = zones.load(ident) if re.fullmatch(r"[0-9a-f]{12}", ident) else None

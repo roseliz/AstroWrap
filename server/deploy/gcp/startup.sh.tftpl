@@ -1,0 +1,90 @@
+#!/bin/bash
+set -euxo pipefail
+
+META=http://metadata.google.internal/computeMetadata/v1
+
+# Docker
+if ! command -v docker >/dev/null; then
+  apt-get update
+  DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io
+fi
+mkdir -p /etc/docker
+cat > /etc/docker/daemon.json <<'EOF'
+{ "log-driver": "json-file", "log-opts": { "max-size": "10m", "max-file": "3" } }
+EOF
+systemctl enable docker
+systemctl restart docker
+
+# Data disk
+DISK=/dev/disk/by-id/google-${device}
+for i in $(seq 1 60); do [ -e "$DISK" ] && break; sleep 5; done
+blkid "$DISK" || mkfs.ext4 -F -m 0 "$DISK"
+mkdir -p /data
+UUID=$(blkid -s UUID -o value "$DISK")
+grep -q "$UUID" /etc/fstab || echo "UUID=$UUID /data ext4 defaults,nofail 0 2" >> /etc/fstab
+mountpoint -q /data || mount /data
+
+# Directories
+find /data -mindepth 1 -maxdepth 1 ! -name app ! -name caddy ! -name lost+found -exec rm -rf {} +
+mkdir -p /data/app/pretreatment_data /data/app/cache /data/app/duckdb_tmp /data/caddy/data /data/caddy/config
+chown -R 1000:1000 /data/app
+
+# Data sync
+cat > /usr/local/bin/api-sync-data <<'EOF'
+#!/bin/bash
+set -euo pipefail
+until gcloud storage ls gs://${bucket}/pretreatment_data/_READY >/dev/null 2>&1; do
+  echo "waiting for the data in gs://${bucket}/pretreatment_data"; sleep 30
+done
+gcloud storage rsync gs://${bucket}/pretreatment_data /data/app/pretreatment_data --recursive \
+  --delete-unmatched-destination-objects --exclude '^(?!.*\.parquet$).*' --quiet
+chown -R 1000:1000 /data/app/pretreatment_data
+EOF
+chmod +x /usr/local/bin/api-sync-data
+/usr/local/bin/api-sync-data
+
+# Containers
+login() {
+  curl -sf -H "Metadata-Flavor: Google" "$META/instance/service-accounts/default/token" \
+    | python3 -c 'import json, sys; print(json.load(sys.stdin)["access_token"])' \
+    | docker login -u oauth2accesstoken --password-stdin https://${registry}
+}
+until login && docker pull ${image}; do
+  echo "waiting for the image ${image}"; sleep 30
+done
+docker pull caddy:2
+
+cat > /data/caddy/Caddyfile <<'EOF'
+${domains} {
+	encode gzip
+	reverse_proxy server:8000
+}
+
+http:// {
+	encode gzip
+	reverse_proxy server:8000
+}
+EOF
+
+docker network inspect web >/dev/null 2>&1 || docker network create web
+docker rm -f server caddy 2>/dev/null || true
+
+LOGS="--log-driver gcplogs --log-opt gcp-meta-name=$(hostname)"
+
+docker run -d --name server --restart unless-stopped --network web \
+  $LOGS \
+  -v /data/app:/data/app \
+  -e ANALOGUES_CORS='${cors}' \
+  -e ANALOGUES_DUCKDB_MEMORY=3GB \
+  -e ANALOGUES_DUCKDB_THREADS=2 \
+  ${image}
+
+docker run -d --name caddy --restart unless-stopped --network web \
+  $LOGS \
+  -p 80:80 -p 443:443 \
+  -v /data/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+  -v /data/caddy/data:/data \
+  -v /data/caddy/config:/config \
+  caddy:2
+
+echo "startup done"

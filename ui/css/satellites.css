@@ -1,0 +1,48 @@
+/* Satellites around the globes (js/satellites.js): Earth, Mars and the Moon. Fallback colors if the page does
+   not have the variables of style.css. */
+.sats { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; transition: opacity 0.4s ease; }
+.sats.cache { opacity: 0; }
+.sats.cache .sat { pointer-events: none !important; }
+.sats-orbites { position: absolute; inset: 0; width: 100%; height: 100%; }
+.sat {
+  position: absolute; left: 0; top: 0; width: var(--s, 20px); height: var(--s, 20px); margin: calc(var(--s, 20px) / -2) 0 0 calc(var(--s, 20px) / -2);
+  padding: 0; border: 0; background: none; color: var(--c); cursor: pointer; pointer-events: auto;
+  filter: drop-shadow(0 0 4px var(--c)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.8)); transition: opacity 0.25s ease;
+}
+.sat svg { display: block; width: 100%; height: 100%; }
+.sat.actif { filter: drop-shadow(0 0 9px var(--c)) drop-shadow(0 0 2px #FFFFFF); }
+.sat:hover { filter: drop-shadow(0 0 9px var(--c)) drop-shadow(0 0 2px #FFFFFF); }
+.sat:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 3px; border-radius: 50%; }
+.sat-etiquette {
+  position: absolute; left: 0; top: 0; padding: 2px 8px; border-radius: 99px; white-space: nowrap;
+  background: rgba(8, 17, 32, 0.78); border: 1px solid var(--c); color: var(--c);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em; pointer-events: none;
+}
+.sat-modale { position: fixed; inset: 0; z-index: 1000; font-family: "Archivo", "Helvetica Neue", Arial, sans-serif; display: grid; place-items: center; padding: 16px; background: rgba(4, 9, 18, 0.6); }
+.sat-modale[hidden] { display: none; }
+.sat-carte {
+  width: min(520px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; padding: 18px 20px 20px; border-radius: 14px;
+  background: #0B1628; border: 1px solid var(--panneau-trait, rgba(169, 200, 238, 0.18)); border-top: 3px solid var(--c); color: var(--texte, #E9EEF5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); font-size: 14px; line-height: 1.5;
+}
+.sat-tete { display: flex; align-items: center; gap: 10px; }
+.sat-icone { width: 30px; height: 30px; color: var(--c); flex: none; filter: drop-shadow(0 0 5px var(--c)); }
+.sat-icone svg { width: 100%; height: 100%; }
+.sat-tete h2 { flex: 1; margin: 0; font-size: 19px; }
+.sat-fermer { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--panneau-trait, rgba(169, 200, 238, 0.18)); background: rgba(255, 255, 255, 0.06);
+  color: var(--texte, #E9EEF5); font-size: 18px; line-height: 1; cursor: pointer; }
+.sat-fermer:hover { background: rgba(255, 255, 255, 0.14); }
+.sat-carte h3 { margin: 16px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--c); }
+.sat-carte p { margin: 0; }
+.sat-etat { margin-top: 8px !important; font-size: 13px; font-weight: 600; }
+.sat-etat.oui { color: #3DDC97; } .sat-etat.non { color: var(--texte-doux, #9DAAC0); }
+.sat-carte table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sat-carte th { text-align: left; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-doux, #9DAAC0);
+  padding: 4px 8px 4px 0; border-bottom: 1px solid var(--panneau-trait, rgba(169, 200, 238, 0.18)); }
+.sat-carte td { padding: 6px 8px 6px 0; vertical-align: top; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.sat-carte td:first-child { font-weight: 600; width: 58%; }
+.sats-astuce {
+  position: absolute; left: 0; top: 0; margin: 0; max-width: min(440px, 80vw); text-align: center; pointer-events: none;
+  font-size: 12.5px; color: var(--texte-doux, #9DAAC0); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+.sats-astuce[hidden] { display: none; }

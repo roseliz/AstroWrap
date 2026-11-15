@@ -3,3 +3,7 @@ js/cle-carto.js
 
 # npm install
 node_modules/
+
+# npm run site
+dist/
+.wrangler/

@@ -252,10 +252,12 @@
       dessinerCoupe(V);
       dessinerPentes(V);
       dessinerCartes(V);
+      // 3D by default, as soon as both terrains are in (unless a view was already chosen)
+      if (!V.modeChoisi && V.donnees.every(Boolean)) choisirMode(V, "3d");
     });
 
     // Interactions
-    el.querySelectorAll("[data-mode]").forEach((bt) => bt.addEventListener("click", () => choisirMode(V, bt.dataset.mode)));
+    el.querySelectorAll("[data-mode]").forEach((bt) => bt.addEventListener("click", () => { V.modeChoisi = true; choisirMode(V, bt.dataset.mode); }));
     el.querySelectorAll("[data-sens]").forEach((bt) => bt.addEventListener("click", () => {
       V.sens = bt.dataset.sens;
       V.pos = 0;

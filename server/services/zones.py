@@ -66,3 +66,24 @@ def load(ident: str):
             return None
         _ZONES[ident] = json.loads(f.read_text(encoding="utf-8"))
     return _ZONES[ident]
+
+
+# ------------------------------------------------------------------ terrain of an area (landing-site mission)
+FLAT_THRESHOLD = 0.5    # a cell where less than half of the ground is under 5° of slope is too rough to land
+
+
+def terrain(body: str, cells: list) -> dict:
+    """Flat ground share (slope < 5°, 500 m base of the topography_morphometry module) of each resolution-5 cell
+    of the area, and its mean over the area (weighted by the painted tiles). Cells without data: left out of
+    `cells`."""
+    from . import db
+    keys, weights = to_resolution(cells)
+    f = db.parquet_path("topography_morphometry", "topography_morphometry", body, "_b500")
+    if not f.is_file():
+        return {"cells": {}, "flat": None, "threshold": FLAT_THRESHOLD}
+    d = db.read(f, ["part_pente_inf_5"], keys)
+    shares = {str(c): float(v) for c, v in zip(d["h3"], d["part_pente_inf_5"]) if np.isfinite(v)}
+    w = np.array([weights[i] for i, c in enumerate(keys) if c in shares])
+    x = np.array([shares[c] for c in keys if c in shares])
+    return {"cells": {c: round(v, 3) for c, v in shares.items()},
+            "flat": round(float((w * x).sum() / w.sum()), 3) if len(x) else None, "threshold": FLAT_THRESHOLD}
