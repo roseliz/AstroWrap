@@ -10,7 +10,7 @@
 .accueil.accueil-sortie { opacity: 0; transition: opacity 0.25s ease-in; }
 @keyframes accueil-entree { from { opacity: 0; } to { opacity: 1; } }
 
-/* Pendant l'accueil, les panneaux de la page Terre restent cachés */
+/* During the home screen, the Earth page panels remain hidden. */
 body.accueil-ouvert .titre, body.accueil-ouvert .bas, body.accueil-ouvert .analogues { visibility: hidden; }
 
 .accueil-carte {
