@@ -4,8 +4,9 @@
 //
 // - the name links back to home (index.html, the body selection window);
 // - Moon and Mars open the page where the area is painted;
-// - Earth opens the results of the last compared area (stored in localStorage by analogues.js), or otherwise
-//   the globe to explore (index.html#terre, without the welcome window); a colored dot indicates that an area is waiting;
+// - Earth opens the results of the last compared area (stored in localStorage by analogues.js, forgotten as soon as
+//   no area is painted on Mars or the Moon), or otherwise the globe to explore (index.html#terre, without the welcome
+//   window); a colored dot indicates that an area is waiting;
 // - About (apropos.html) on the right; on mobile, a ☰ button unfolds the links.
 // The ?api=… parameter follows from page to page. Loaded early (without defer): the bar is there before the rest.
 
@@ -30,6 +31,16 @@
     const avant = lire();
     const neuf = avant && avant.id === z.id && avant.body === z.body ? { ...avant, ...z } : z;
     try { localStorage.setItem(CLE, JSON.stringify(neuf)); } catch (e) { /* private browsing */ }
+    majTerre();
+  }
+
+  /** No area painted any more on this body (mars or moon): forget the last compared area if it was this body's,
+   *  and "Earth" opens the globe to explore instead of old results. The area of the other body stays. Called by
+   *  selection-zone.js. */
+  function oublier(corps) {
+    const z = lire();
+    if (!z || (corps && z.body !== corps)) return;
+    try { localStorage.removeItem(CLE); } catch (e) { /* private browsing */ }
     majTerre();
   }
 
@@ -82,5 +93,5 @@
   }
   majTerre();
   window.addEventListener("hashchange", majTerre);
-  window.navigation = { memoriser, derniereZone: lire };
+  window.navigation = { memoriser, oublier, derniereZone: lire };
 })();

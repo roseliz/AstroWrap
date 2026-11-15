@@ -8,8 +8,11 @@ confidence = share of the weight of the modules actually measured on the cell; a
 MIN_CONFIDENCE.
 
 Funnel (shown step by step by the interface): start from the land cells, apply the filters (vegetation...), then
-each module, from heaviest to lightest, removes the cells that look less like the area than the Earth's median
-(a cell without data passes). The final ranking is made among the survivors. The response has the shape of the
+each module, from heaviest to lightest, counts a "miss" for the cells that look less like the area than the Earth's
+median (a cell without data counts none). A cell is removed once it has more misses than MAX_BELOW_MEDIAN: one weak
+point is forgiven (Rio Tinto, very close to Meridiani by its rocks, but hilly instead of flat), as long as at least
+MODULES_TO_TOLERATE criteria are active (with one or two criteria, no miss is tolerated). The final ranking is made
+among the survivors. The response has the shape of the
 planned WebSocket events (progress, partial, done): the interface replays them.
 
 Area against area (services/footprint.py): the pool sent to the browser is scored over the footprint of each cell
@@ -29,6 +32,12 @@ from . import footprint, impact, zones
 from .scoring.registry import BY_KEY, for_body
 
 MIN_CONFIDENCE = 0.6
+MAX_BELOW_MEDIAN = 1         # criteria below the Earth's median that a cell may have without being removed
+MODULES_TO_TOLERATE = 3      # below this number of active criteria, no miss is tolerated
+
+
+def tolerated_misses(n_active: int) -> int:
+    return MAX_BELOW_MEDIAN if n_active >= MODULES_TO_TOLERATE else 0
 
 
 def normalized_weights(modules, weights: dict, preset):
@@ -111,9 +120,11 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
     last = np.where(np.isfinite(score) & (confidence > 0), 0, -1).astype(np.int8)   # last step survived
     last[alive] = 1
     partial_s, partial_w = np.zeros(len(T.cells)), np.zeros(len(T.cells))
+    misses, allowed = np.zeros(len(T.cells), dtype=np.int8), tolerated_misses(len(active))
     for i, k in enumerate(active, start=2):
         s = sims[k]
-        alive &= ~(s < medians[k])                      # NaN (no data): passes
+        misses += (s < medians[k]).astype(np.int8)      # NaN (no data): no miss
+        alive &= misses <= allowed
         last[alive] = i
         partial_s += np.where(np.isfinite(s), s, medians[k]) * w[k]
         partial_w += w[k]
@@ -154,6 +165,7 @@ def search(body, cells, weights=None, preset=None, modules=None, filters=None, t
         "filters": filters,
         "medians": {c: round(medians[c], 4) for c in active},
         "confidence_min": MIN_CONFIDENCE,
+        "max_below_median": allowed,
         "reference": {c: public_reference(c, refs[c]) for c in active},
         "funnel": events,
         "funnel_regions": funnel_regions(T, last),
@@ -199,11 +211,17 @@ def detail(body, cells, earth_cell, modules=None) -> dict:
             x = D.values.get(v.key)
             e = m.distance(v, ref, D, slice(0, 1))
             sim = None if e is None or not e[1][0] else round(1 - float(e[0][0]), 3)
-            variables.append({"key": v.key, "label": v.label, "mode": v.mode, "unit": v.unit,
-                              "reference": public_value(v, ref["variables"][v.key]),
-                              "earth": public_value(v, x[0]) if x is not None else None,
-                              "similarity": sim, "compared": e is not None,
-                              "range": [round(b, 3) for b in D0.bounds[v.key]] if v.key in D0.bounds else None})
+            entry = {"key": v.key, "label": v.label, "mode": v.mode, "unit": v.unit,
+                     "reference": public_value(v, ref["variables"][v.key]),
+                     "earth": public_value(v, x[0]) if x is not None else None,
+                     "similarity": sim, "compared": e is not None,
+                     "range": [round(b, 3) for b in D0.bounds[v.key]] if v.key in D0.bounds else None}
+            if v.mode == "rank" and v.raw_unit:             # real values, besides the rank within each body
+                raw_e = footprint._mean(D0.raw[v.key], idx)[0] if v.key in D0.raw else np.nan
+                entry.update(value_unit=v.raw_unit,
+                             reference_value=real_value(v, ref.get("raw", {}).get(v.key, np.nan), body),
+                             earth_value=real_value(v, raw_e, "earth"))
+            variables.append(entry)
         out.append({"key": key, "name": m.name, "similarity": None if not math.isfinite(s) else round(float(s), 3),
                     "reliability": as_float(D.reliability[0], 2), "variables": variables})
     cells_f = footprint.footprint_cells(earth_cell, k)
@@ -277,6 +295,15 @@ def public_value(v, x):
     if v.mode == "deciles":
         return [as_float(a, 2) for a in np.asarray(x, dtype=float)]
     return as_float(x, 4)
+
+
+def real_value(v, x, body):
+    """Real value of a rank variable (m, ...); counts of objects per cell, brought to 1,000 km²."""
+    if x is None or not np.isfinite(x):
+        return None
+    if v.per_1000km2:
+        x = x / (footprint.R5_AREA_KM2 * (footprint.RADIUS_KM[body] / footprint.RADIUS_KM["earth"]) ** 2) * 1000
+    return round(float(x), 3 if abs(x) < 10 else 1)
 
 
 def public_reference(key, ref):

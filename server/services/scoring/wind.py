@@ -10,7 +10,8 @@ class Wind(ModuleScore):
     bodies = ("earth", "mars")
     reliability = ("wind_erosion_atmosphere", "fiabilite")
     variables = [
-        Variable("vent_fort_rel", "Strong winds (rank within the body)", "rank", "wind_erosion_atmosphere", ["vent_fort_rel"]),
+        Variable("vent_fort_rel", "Strong winds (rank within the body)", "rank", "wind_erosion_atmosphere", ["vent_fort_rel"],
+                 raw_unit="× sand threshold"),
         Variable("part_dunes", "Dune share", "abs", "wind_erosion_atmosphere", ["part_dunes"]),
         Variable("part_sol_nu", "Bare ground share", "abs", "wind_erosion_atmosphere", ["part_sol_nu"]),
         Variable("poussiere_rang", "Dust (rank within the body)", "abs", "wind_erosion_atmosphere", ["poussiere_rang"]),

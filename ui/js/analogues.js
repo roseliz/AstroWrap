@@ -44,13 +44,17 @@
     moyen: { cle: "moyen", nom: "Medium impact", texte: "partly protected, or land that nothing has transformed yet" },
     haut: { cle: "protege", nom: "Protected area", texte: "mostly in a protected area: tests would need permits and disturb a preserved environment" },
   };
-  const PROCHE_MIN = 0.85;            // « à portée » : au moins 85 % de la ressemblance du site 1
+  // Green mode ("responsible testing"): the 10 sites become "similar enough, lowest impact". Kept: at least
+  // `plancher` × the similarity of the best site, outside protected areas, and under the CO₂ budget of the flight
+  // from the departure city if there is one; ranked by impact (CO₂ of the flight, otherwise distance to the airport;
+  // ground already transformed by mines comes slightly ahead), similarity breaking the ties.
+  const VERT = { protegeMax: 0.1, strictMax: 0.01, cle: "astrowrap-vert", cleReglages: "astrowrap-vert-reglages",
+    planchers: [0.8, 0.9, 0.95], budgets: [null, 0.5, 1, 2], equipe: 5 };
   const MINES_MIN = 0.005;            // 0,5 % de la surface en mines : le terrain est déjà transformé
   // Avion : facteurs de conversion du gouvernement britannique 2025 (DESNZ, Greenhouse gas reporting: conversion factors),
   // classe économique, effets hors CO₂ compris : 0,126 kg CO₂e par passager-km en court-courrier, 0,117 au-delà de
   // 3 700 km ; distance à vol d'oiseau + 8 % pour les détours (méthode du gouvernement britannique) ; aller-retour.
   const VOL = { court: 0.126, long: 0.117, seuilKm: 3700, detour: 1.08, terreKm: 500 };
-  const RAYONS_KM = [1000, 2000, 5000];
   const CLE_DEPART = "analogues-depart";
   const VILLES = window.VILLES || [];
   const pct = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 });
@@ -70,13 +74,13 @@
   const NOMS_SIMPLES = { thermal: "Temperature", topography: "Terrain", geology: "Rocks", wind: "Wind and dust",
     volatiles: "Ice and water", astro: "Volcanoes and caves" };
   // Variables mises en avant (deux par critère) et leur nom court ; les autres restent dans « En savoir plus ».
-  const VEDETTES = { thermal: ["lst_day_mean", "lst_night_mean"], topography: ["part_pente_inf_5", "pentes"],
-    geology: ["lithologie"], wind: ["part_sol_nu", "part_dunes"], volatiles: ["indice_glace_sol", "part_glace_surface"],
-    astro: ["volcans", "cavites"] };
+  const VEDETTES = { thermal: ["lst_day_mean", "lst_night_mean"], topography: ["part_pente_inf_5", "slopes"],
+    geology: ["lithology"], wind: ["part_sol_nu", "part_dunes"], volatiles: ["indice_glace_sol", "part_glace_surface"],
+    astro: ["volcanoes", "caves"] };
   const COURTS = { lst_day_mean: "ground temperature by day", lst_night_mean: "ground temperature at night",
-    part_pente_inf_5: "flat ground", pentes: "typical slope", lithologie: "rocks", mineraux: "minerals",
+    part_pente_inf_5: "flat ground", slopes: "typical slope", lithology: "rocks", mineraux: "minerals",
     part_sol_nu: "bare ground", part_dunes: "dunes", indice_glace_sol: "ground ice", part_glace_surface: "surface ice",
-    volcans: "volcanoes", cavites: "caves and pits", amplitude: "day-night range", part_oxyde_fer: "iron oxides" };
+    volcanoes: "volcanoes", caves: "caves and pits", amplitude: "day-night range", part_oxyde_fer: "iron oxides" };
   const COULEUR_CORPS = { mars: "#E0794F", moon: "#C9CED6" };
   const COULEUR_TERRE = "#4FD1FF";
   const CLASSES = { sedimentaire_clastique: "sedimentary", non_consolide: "loose sediments", volcanique_felsique: "felsic volcanic",
@@ -91,15 +95,25 @@
     feldspath: "#E5E5E5", mafique_autre: "#52796F", argile_al: "#DDB892", argile_fe_mg: "#B08968", mica: "#CDB4DB",
     sulfate: "#FFD166", silice_hydratee: "#90E0EF", sel: "#F8F9FA", autre_mineral: "#ADB5BD" };
 
-  /** Une valeur lisible : °C, %, centile, roche dominante… */
-  function lisible(v, meta) {
+  /** A readable value: °C, %, level within the body, dominant rock… */
+  // Level of a value within its body: below 20% of the cells "very low", etc.
+  const NIVEAUX_RANG = [[0.2, "very low"], [0.4, "low"], [0.6, "average"], [0.8, "high"], [Infinity, "very high"]];
+  function lisible(v, meta, cote) {
     if (v == null) return "–";
     if (meta.mode === "hellinger") {
       const top = Object.entries(v).filter(([, x]) => x != null && x >= 0.05).sort((a, b) => b[1] - a[1]).slice(0, 2);
       return top.length ? top.map(([k, x]) => `${CLASSES[k] || k.replace(/_/g, " ")} ${pct.format(x)}`).join(", ") : "no dominant type";
     }
     if (meta.mode === "deciles") return `${nb1.format(v[Math.floor(v.length / 2)] ?? 0)}°`;
-    if (meta.mode === "rang" || /_rang$/.test(meta.key)) return `percentile ${nb.format(100 * v)}`;
+    if (meta.mode === "rank" || /_rang$/.test(meta.key)) {
+      // Rank within the body (0 to 1): a level in words ("high" for Mars), and the real value when the server gives it
+      const mot = NIVEAUX_RANG.find(([s]) => v < s)[1];
+      const reel = cote && meta[`${cote}_value`];
+      if (reel == null) return mot.replace(/^./, (x) => x.toUpperCase());
+      const u = (meta.value_unit || "").replace(/^per /, "/");
+      const t = Math.abs(reel) >= 100 ? nb.format(reel) : Math.abs(reel) >= 10 ? nb1.format(reel) : nb2.format(reel);
+      return `${t}${u.startsWith("×") ? u : " " + u} (${mot})`;
+    }
     if (meta.unit === "K") return meta.key === "amplitude" ? `${nb.format(v)} °C` : `${nb.format(v - 273.15)} °C`;
     if (meta.unit === "°") return `${nb1.format(v)}°`;
     if (!meta.unit && v >= 0 && v <= 1) return pct.format(v);
@@ -172,13 +186,16 @@
   const map = window.carteTerre;
   if (window.arreterRotationTerre) window.arreterRotationTerre();
   const sousTitre = document.querySelector(".titre p");
-  if (sousTitre) sousTitre.textContent = `The places on Earth that look most like your area ${SUR}.`;
+  if (sousTitre) sousTitre.hidden = true;               // the title of the right panel says the same
 
   panneau.innerHTML = `
     <div class="analogues-tete">
       <div class="analogues-titre-ligne"><h2 id="an-titre">Searching…</h2>
         <button type="button" class="replier" id="an-replier" aria-expanded="true" aria-label="Collapse the results panel" title="Collapse"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg></button></div>
       <a class="analogues-retour" href="${PAGES[corps] || "index.html"}${location.search}${zoneId ? "#" + zoneId : ""}">← Edit the area ${SUR}</a>
+      <button type="button" class="vert-bascule" id="an-vert" role="switch" aria-checked="false" hidden>
+        <span class="vert-piste" aria-hidden="true"><i></i></span><span>Green mode</span></button>
+      <p class="vert-bilan" id="an-vert-bilan" hidden></p>
     </div>
     <p class="analogues-etat" id="an-etat" hidden></p>
     <div class="analogues-chargement" id="an-chargement" role="status" hidden>
@@ -201,6 +218,7 @@
         </div>
         <datalist id="an-villes"></datalist>
       </div>
+      <div class="vert-reglages" id="an-vert-reglages" hidden></div>
       <div class="impact-cartes" id="an-impact-cartes"></div>
       <p class="impact-sources" id="an-impact-sources"></p>
     </section>
@@ -220,7 +238,6 @@
         <select id="an-preset" aria-label="Weight preset"></select>
       </div>
       <div id="an-poids"></div>
-      <p class="analogues-doux">0 = criterion ignored. The list updates right away.</p>
     </section>
     <details class="analogues-avance">
       <summary>Advanced settings</summary>
@@ -245,7 +262,7 @@
   // Écart entre les sites de la liste : recalcul dans le navigateur, gardé pour les prochaines fois
   panneau.querySelectorAll(".an-ecart button").forEach((b) => b.addEventListener("click", () => {
     ecartKm = +b.dataset.km;
-    try { localStorage.setItem(CLE_ECART, String(ecartKm)); } catch (e) { /* navigation privée */ }
+    try { localStorage.setItem(CLE_ECART, String(ecartKm)); } catch (e) { /* private browsing */ }
     panneau.querySelectorAll(".an-ecart button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     recalculer(true);
   }));
@@ -272,6 +289,10 @@
 
   let modules = [];               // GET /api/modules (ceux qui ont des données pour ce corps)
   let presets = [];
+  // Mission chosen before painting (selection-zone.js): the search starts with its weights (server preset)
+  // (only a preset key the server knows: an unknown one would make the search fail)
+  const mission = (() => { try { return localStorage.getItem(`astrowrap-mission-${corps}`) || ""; } catch (e) { return ""; } })()
+    .replace(/^(?!(balanced|landing|geology|astrobiology|climate)$).*/, "");
   let poids = {};                 // poids bruts
   let R = null;                   // dernière réponse de /api/search
   let classement = null;          // calcul local : { ordre, scores, candidats, connus }
@@ -287,7 +308,7 @@
     $("#an-etat").innerHTML = html;
     $("#an-etat").hidden = !html;
     $("#an-etat").className = erreur ? "analogues-erreur" : "analogues-etat";
-    if (erreur) chargement(false);
+    if (erreur) { chargement(false); if (window.satellites) window.satellites.terminer(); }
   }
   const nomModule = (cle) => NOMS_SIMPLES[cle] || (modules.find((m) => m.key === cle) || { name: cle }).name;
 
@@ -296,6 +317,7 @@
     // La recherche part tout de suite, en même temps que la liste des modules : poids vides = poids par défaut
     // du serveur, les mêmes que les curseurs au départ.
     chargement(true);
+    prechargerRelief(null);            // the terrain of the area (slow on the Moon) starts with the search
     const premiere = requete();
     try {
       const [m, p] = await Promise.all([fetch(`${API}/api/modules`).then((r) => r.json()), fetch(`${API}/api/presets`).then((r) => r.json())]);
@@ -305,8 +327,11 @@
       etat(messageServeur(), true);
       return;
     }
-    modules.forEach((x) => { poids[x.key] = x.default_weight; });
+    const pm = presets.find((p) => p.key === mission);
+    modules.forEach((x) => { poids[x.key] = pm ? pm.weights[x.key] ?? x.default_weight : x.default_weight; });
+    if (window.satellites) window.satellites.contexte({ poids });     // the window of a satellite reads the weights
     $("#an-preset").innerHTML = presets.map((p) => `<option value="${p.key}">${p.name}</option>`).join("") + `<option value="">Custom</option>`;
+    if (pm) $("#an-preset").value = pm.key;
     $("#an-preset").addEventListener("change", () => {
       const p = presets.find((x) => x.key === $("#an-preset").value);
       if (!p) return;
@@ -317,7 +342,7 @@
     $("#an-poids").innerHTML = modules.map((x) => `
       <label class="analogues-curseur">
         <span>${nomModule(x.key)}</span>
-        <input type="range" min="0" max="3" step="0.5" value="${x.default_weight}" data-module="${x.key}">
+        <input type="range" min="0" max="3" step="0.5" value="${poids[x.key]}" data-module="${x.key}">
         <output></output>
       </label>`).join("");
     $("#an-poids").querySelectorAll("input").forEach((i) => i.addEventListener("input", () => {
@@ -328,6 +353,17 @@
     }));
     majCurseurs();
     $("#an-vegetation").addEventListener("change", () => chercher());
+    panneau.querySelectorAll(".vert-bascule").forEach((b) => b.addEventListener("click", () => {
+      modeVert = !modeVert;
+      try { sessionStorage.setItem(cleVert, modeVert ? "1" : "0"); } catch (e) { /* private browsing */ }
+      appliquerModeVert();
+      fermerSite();
+      recalculer();
+      // the responsible testing tab (settings and gains of green mode) opens; without a departure city, the cursor
+      // goes to that field (the CO₂ of the flight ranks the sites)
+      ouvrirOnglet($("#an-onglet-impact"));
+      if (modeVert && !depart) $("#an-depart").focus();
+    }));
     $("#an-protegees").addEventListener("change", () => chercher());
     preparerDepart();
     afficherRecherche(await premiere);
@@ -349,7 +385,11 @@
   }
 
   /** Pendant la recherche : le panneau ne montre que son titre et l'indicateur. */
+  let balayage = false;                  // search or scans running: the sites cannot be browsed yet
   function chargement(oui) {
+    if (oui) { balayage = true; document.body.classList.add("an-balayage"); }
+    else if (balayage && !$("#an-etat").hidden) { balayage = false; document.body.classList.remove("an-balayage"); }
+    if (oui && window.satellites) window.satellites.chercher();      // they finish their turn in afficherRecherche
     panneau.classList.toggle("en-chargement", oui);
     $("#an-chargement").hidden = !oui;
     if (oui) $("#an-titre").textContent = "Searching for analogs…";
@@ -371,6 +411,7 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: corps, h3_cells: zone, weights: poids, top_k: 2000,
+          ...(mission && !Object.keys(poids).length ? { preset: mission } : {}),
           filters: filtres(),
         }),
       });
@@ -428,36 +469,53 @@
 
   // Relief de la diapositive 3D du bilan (zone + site), demandé dès que les résultats arrivent et à chaque fiche
   // ouverte : le serveur le calcule et le garde pendant qu'on regarde la page, le bilan l'a aussitôt.
-  const reliefsDemandes = new Set();
+  const reliefsDemandes = new Map();     // path -> promise (resolved when the server is done, error included)
   let cadreBilan = null;
   function prechargerRelief(c) {
     const RB = window.reliefBilan;
-    if (!RB || !zone.length) return;
-    if (!cadreBilan) { try { cadreBilan = RB.cadre(RB.cellules6(zone), corps); } catch (e) { return; } }
+    if (!RB || !zone.length) return Promise.resolve();
+    if (!cadreBilan) { try { cadreBilan = RB.cadre(RB.cellules6(zone), corps); } catch (e) { return Promise.resolve(); } }
     const demandes = [[corps, cadreBilan.lat, cadreBilan.lon]];
     // le bilan ne montre le relief que s'il se ressemble (topographie ≥ 60 %)
     if (c && (c.modules && c.modules.topography != null ? c.modules.topography : 1) >= 0.55) demandes.push(["earth", c.lat, c.lon]);
-    demandes.forEach(([b, la, lo]) => {
+    return Promise.all(demandes.map(([b, la, lo]) => {
       const ch = RB.chemin(b, la, lo, cadreBilan.taille);
-      if (reliefsDemandes.has(ch)) return;
-      reliefsDemandes.add(ch);
-      fetch(`${API}${ch}`).then((r) => { if (!r.ok) reliefsDemandes.delete(ch); return r.blob(); })
-        .catch(() => reliefsDemandes.delete(ch));
-    });
+      if (!reliefsDemandes.has(ch)) {
+        reliefsDemandes.set(ch, fetch(`${API}${ch}`).then((r) => { if (!r.ok) reliefsDemandes.delete(ch); return r.blob(); })
+          .catch(() => { reliefsDemandes.delete(ch); }));
+      }
+      return reliefsDemandes.get(ch);
+    }));
   }
 
   function afficherRecherche(d) {
     if (!d) return;
     R = d;
+    if (window.satellites) window.satellites.contexte({ actifs: R.active_modules });
     $("#an-protegees-case").hidden = !(R.pool.impact && R.pool.impact.protected);
+    $("#an-vert").hidden = !(R.pool.impact && R.pool.impact.protected);
+    if ($("#an-vert").hidden && modeVert) { modeVert = false; }
+    appliquerModeVert();
     if (zoneId && R.footprint && window.navigation) window.navigation.memoriser({ body: corps, id: zoneId, km2: R.footprint.zone_area_km2 });
     etat("");
-    chargement(false);
     majCurseurs();
     afficherReference();
     recalculer(true);
-    wrapPret();
+    // The results stay hidden while the satellites scan; "Your AstroWrap is ready" opens right after the last scan,
+    // before the sites can be browsed. The 3D terrain of the wrap (area and site 1) keeps being computed behind: the
+    // wrap waits for it itself if it is not ready yet.
     prechargerRelief(classement && classement.candidats[0]);
+    const titre = $("#an-titre").textContent;
+    $("#an-titre").textContent = "Scanning your area with each module…";
+    const fini = window.satellites ? window.satellites.terminer() : Promise.resolve();
+    Promise.race([fini, new Promise((r) => setTimeout(r, 15000))]).then(() => {
+      if (!balayage) return;
+      balayage = false;
+      document.body.classList.remove("an-balayage");
+      chargement(false);
+      $("#an-titre").textContent = titre;
+      wrapPret();
+    });
   }
 
   /** Ce que la zone de référence est, critère par critère, en clair. */
@@ -493,17 +551,33 @@
       if (!r.ecarte) scores[i] = r.score;
     }
     const ordre = [...scores.keys()].filter((i) => scores[i] >= 0).sort((a, b) => scores[b] - scores[a]);
-    const coords = (i) => H.cellToLatLng(P.h3[i]);
-    const candidats = [];
-    for (const i of ordre) {
-      const [la, lo] = coords(i);
-      if (candidats.every((c) => distanceKm(la, lo, c.lat, c.lon) >= ecartKm)) {
-        candidats.push({ i, h3: P.h3[i], lat: la, lon: lo, score: scores[i], impact: impactSite(P.impact, i),
-          modules: Object.fromEntries(actifs.map((m) => [m, P.score_per_module[m][i]])) });
-        if (candidats.length >= N_CANDIDATS) break;
+    const choisirSites = (liste) => {
+      const out = [];
+      for (const i of liste) {
+        const [la, lo] = H.cellToLatLng(P.h3[i]);
+        if (out.every((c) => distanceKm(la, lo, c.lat, c.lon) >= ecartKm)) {
+          out.push({ i, h3: P.h3[i], lat: la, lon: lo, score: scores[i], impact: impactSite(P.impact, i),
+            modules: Object.fromEntries(actifs.map((m) => [m, P.score_per_module[m][i]])) });
+          if (out.length >= N_CANDIDATS) break;
+        }
       }
+      return out;
+    };
+    let candidats = choisirSites(ordre), standard = null;
+    if (modeVert && P.impact) {
+      const I = P.impact, plancher = (ordre.length ? scores[ordre[0]] : 0) * reglagesVert.plancher, gardes = [];
+      for (const i of ordre) {
+        if (scores[i] < plancher) break;                       // ordre is sorted: the rest is under the floor
+        if (exclueProtegee(I, i)) continue;
+        const c = coutVert(I, i);
+        if (reglagesVert.budget != null && c.co2 != null && c.co2 > reglagesVert.budget) continue;
+        gardes.push({ i, cout: c.cout });
+      }
+      gardes.sort((a, b) => a.cout - b.cout || scores[b.i] - scores[a.i]);
+      standard = candidats;
+      candidats = choisirSites(gardes.map((x) => x.i));
     }
-    classement = { ordre, scores, candidats,
+    classement = { ordre, scores, candidats, standard,
       connus: situerConnus(scores, libres, actifs, w, eauMax) };
     if (afficherAussi) afficher(true);
   }
@@ -557,7 +631,7 @@
       return k;
     }).sort((x, y) => ordreConnu(x) - ordreConnu(y));
   }
-  const ordreConnu = (k) => (k.scope === "mineralogie" ? 2 : 0) + (k.cause ? 1 : 0) + (k.part ?? 1) * 0.99;
+  const ordreConnu = (k) => (k.scope === "mineralogy" ? 2 : 0) + (k.cause ? 1 : 0) + (k.part ?? 1) * 0.99;
 
   /** Sur le globe, MapLibre grossit les hautes latitudes à zoom égal : on compense pour garder la même échelle. */
   const zoomA = (z, lat, min) => Math.max(min, z - Math.log2(1 / Math.max(0.05, Math.cos(lat * Math.PI / 180))));
@@ -600,11 +674,15 @@
       paint: { "fill-color": "#FFFFFF", "fill-opacity": 0.14 } });
     map.addLayer({ id: "an-choix", type: "line", source: "an-choix", paint: { "line-color": "#FFFFFF", "line-width": 2.5 } });
   }
-  // « load » ne se déclenche qu'une fois : isStyleLoaded() redevient faux pendant qu'une source se charge,
-  // et attendre « load » à ce moment-là attendrait pour toujours.
-  let carteChargee = map.loaded() || map.isStyleLoaded();
-  if (!carteChargee) map.once("load", () => { carteChargee = true; });
-  function quandPret(f) { if (carteChargee) f(); else map.once("load", f); }
+  // "load" fires only once: isStyleLoaded() turns false again while a source loads, and waiting for "load" at
+  // that moment would wait forever.
+  // So try right away, then at each map event until it works.
+  function quandPret(f) {
+    const essai = () => { try { f(); return true; } catch (e) { return false; } };
+    if (essai()) return;
+    const g = () => { if (essai()) { ["load", "styledata", "idle"].forEach((ev) => map.off(ev, g)); } };
+    ["load", "styledata", "idle"].forEach((ev) => map.on(ev, g));
+  }
 
   function effacerResultats() {
     marqueurs.forEach((m) => m.remove());
@@ -625,12 +703,13 @@
 
   function afficher(premier) {
     const C = classement;
+    bilanVert();
     const n = C.candidats.length;
     $("#an-titre").textContent = n ? `${n} site${n > 1 ? "s" : ""} that look${n > 1 ? "" : "s"} like your area ${SUR}` : "No site found";
     $("#an-liste").innerHTML = C.candidats.map((c, i) => `
       <li><button type="button" data-i="${i}" title="Similarity: ${pct.format(c.score)}">
         <span class="analogues-rang">${i + 1}</span>
-        <span class="analogues-lieu-bloc"><span class="analogues-lieu">${noms[c.h3] || lireCoords(c)}</span>${etiquetteImpact(c.impact)}</span>
+        <span class="analogues-lieu-bloc"><span class="analogues-lieu">${noms[c.h3] || lireCoords(c)}</span>${etiquetteImpact(c.impact)}${modeVert ? `<span class="analogues-vert">${resumeVert(c)}</span>` : ""}</span>
         ${pastille(c.score)}
       </button></li>`).join("") || `<li class="analogues-doux">No place passes every criterion: try other weights.</li>`;
     $("#an-liste").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => choisir(+b.dataset.i)));
@@ -656,7 +735,7 @@
         if (k.lat == null) return null;
         const el = document.createElement("button");
         el.type = "button";
-        el.className = `connu-marqueur ${k.scope === "mineralogie" ? "hors" : ""}`;
+        el.className = `connu-marqueur ${k.scope === "mineralogy" ? "hors" : ""}`;
         el.innerHTML = "<i></i>";                     // le losange : MapLibre place l'élément avec transform
         el.setAttribute("aria-label", `Known analog: ${k.name}`);
         el.title = `${k.name}: ${texteRang(k)}`;
@@ -687,7 +766,7 @@
     const K = classement.connus;
     $("#an-connus").hidden = !K.length;
     $("#an-connus-liste").innerHTML = K.map((k, j) => {
-      const hors = k.scope === "mineralogie";
+      const hors = k.scope === "mineralogy";
       const etiquette = hors ? "minerals" : k.part != null ? `Top ${fmtPart(k.part)}` : "set aside";
       return `<li><button type="button" data-k="${j}" class="connu${hors ? " hors" : ""}" ${k.lat == null ? "disabled" : ""}
           title="${echapper(`${k.name} (${k.country}): ${k.analog_of}. ${hors ? "Mineral analog: the tool does not compare minerals." : texteRang(k)}`)}">
@@ -700,6 +779,7 @@
 
   /** Fiche d'un analogue connu : la même que pour un site, avec son rang réel au lieu de « Site n sur 10 ». */
   function choisirConnu(j) {
+    if (balayage) return;
     const k = classement && classement.connus[j];
     if (!k || k.lat == null) return;
     choisir(CONNU + j, { h3: k.cellule, lat: k.lat, lon: k.lon, score: k.score, modules: k.modules,
@@ -744,6 +824,68 @@
    *  aire protégée — au moins 20 % en protection stricte (UICN Ia à II) ou au moins la moitié protégée ;
    *  faible — moins de 10 % protégé, sur un terrain déjà transformé par des mines (au moins 0,5 % de la surface) ;
    *  moyen — le reste. Les parts sont des moyennes sur l'empreinte du site ; l'aéroport ne joue que sur l'avion. */
+  // ------------------------------------------------------------------ green mode
+  // Off by default, and for each new area: it only stays on for the same area, in this tab (when coming back from
+  // the wrap, for example).
+  const cleVert = `${VERT.cle}-${corps}-${zoneId || zone.join(",").length + ":" + zone.length}`;
+  let modeVert = (() => { try { return sessionStorage.getItem(cleVert) === "1"; } catch (e) { return false; } })();
+  const reglagesVert = Object.assign({ plancher: 0.9, budget: null, protege: "tout" },
+    (() => { try { return JSON.parse(localStorage.getItem(VERT.cleReglages) || "{}") || {}; } catch (e) { return {}; } })());
+  const garderReglages = () => { try { localStorage.setItem(VERT.cleReglages, JSON.stringify(reglagesVert)); } catch (e) { /* private browsing */ } };
+  /** Protected area to set aside: "tout" (10% of the footprint, or of strict protection), or only "strict". */
+  function exclueProtegee(I, i) {
+    const st = I.strict ? I.strict[i] ?? 0 : 0, pr = I.protected ? I.protected[i] ?? 0 : 0;
+    return st >= VERT.strictMax || (reglagesVert.protege === "tout" && pr >= VERT.protegeMax);
+  }
+  /** Impact of a campaign on row i: CO₂ of the flight from the departure city (t per person, round trip), otherwise
+   *  distance to the airport (in thousands of km); ground already transformed by mines counts a little less. */
+  function coutVert(I, i) {
+    const mines = I.mines && (I.mines[i] ?? 0) >= MINES_MIN ? 0.05 : 0;
+    if (depart) {
+      const [la, lo] = H.cellToLatLng(R.pool.h3[i]), v = texteVol(la, lo);
+      return { co2: v.t, cout: v.t - mines };
+    }
+    const a = I.airport_km ? I.airport_km[i] : null;
+    return { co2: null, cout: (a == null ? 9 : a / 1000) - mines };
+  }
+  /** What ranks a site in green mode, in a few words (in the list). */
+  function resumeVert(c) {
+    if (depart) { const v = texteVol(c.lat, c.lon); return v.t ? `${fmtCo2(v.t)} CO₂e` : "by land"; }
+    return c.impact && c.impact.aeroport != null ? `airport ${nb.format(c.impact.aeroport)} km` : "";
+  }
+  function appliquerModeVert() {
+    document.body.classList.toggle("mode-vert", modeVert);
+    panneau.querySelectorAll(".vert-bascule").forEach((b) => b.setAttribute("aria-checked", String(modeVert)));
+    $("#an-protegees-case").classList.toggle("inactif", modeVert);   // protected areas are already set aside
+  }
+  /** What green mode changes compared with the usual ranking (the 10 sites, on average). */
+  function gainsVert() {
+    const C = classement;
+    if (!modeVert || !C || !C.standard || !C.candidats.length) return null;
+    const moy = (l, f) => { const v = l.map(f).filter((x) => x != null); return v.length ? v.reduce((a, x) => a + x, 0) / v.length : null; };
+    const g = {
+      proteges: C.standard.filter((c) => R.pool.impact && exclueProtegee(R.pool.impact, c.i)).length,
+      aeroport: [moy(C.standard, (c) => c.impact && c.impact.aeroport), moy(C.candidats, (c) => c.impact && c.impact.aeroport)],
+      score: [moy(C.standard, (c) => c.score), moy(C.candidats, (c) => c.score)],
+      co2: depart ? [moy(C.standard, (c) => texteVol(c.lat, c.lon).t), moy(C.candidats, (c) => texteVol(c.lat, c.lon).t)] : null,
+    };
+    g.perte = Math.round(100 * (g.score[0] - g.score[1]));
+    return g;
+  }
+  /** The line under the switch of the header. */
+  function bilanVert() {
+    const el = $("#an-vert-bilan"), g = gainsVert();
+    if (!el) return;
+    if (!g) { el.hidden = true; return; }
+    const morceaux = [];
+    if (g.co2 && g.co2[0] - g.co2[1] >= 0.05) morceaux.push(`${fmtCo2(g.co2[0] - g.co2[1])} CO₂e less per person`);
+    else if (g.aeroport[0] != null && g.aeroport[1] != null && g.aeroport[0] - g.aeroport[1] >= 5) morceaux.push(`airports ${nb.format(g.aeroport[0] - g.aeroport[1])} km closer`);
+    morceaux.push(g.proteges ? `${g.proteges} protected site${g.proteges > 1 ? "s" : ""} set aside` : "no protected site");
+    morceaux.push(g.perte > 0 ? `similarity −${g.perte} pt${g.perte > 1 ? "s" : ""}` : "similarity unchanged");
+    el.textContent = morceaux.join(" · ");
+    el.hidden = false;
+  }
+
   function impactSite(I, i) {
     if (!I) return null;
     const val = (x) => (x && x[i] != null ? x[i] : null);
@@ -792,8 +934,9 @@
   const libelleVille = (v) => [v[0], v[1] && v[1] !== v[0] ? v[1] : null, v[2]].filter(Boolean).join(", ");
   function choisirDepart(d, libelle) {
     depart = d;
-    try { if (d) localStorage.setItem(CLE_DEPART, JSON.stringify(d)); else localStorage.removeItem(CLE_DEPART); } catch (e) { /* navigation privée */ }
+    try { if (d) localStorage.setItem(CLE_DEPART, JSON.stringify(d)); else localStorage.removeItem(CLE_DEPART); } catch (e) { /* private browsing */ }
     $("#an-depart").value = d ? libelle || d.nom : "";
+    if (modeVert && R) recalculer();               // the flight from the city counts in the green ranking
     afficherImpact();
   }
   /** Branche le champ de ville de départ (et son bouton de position) du panneau de droite. */
@@ -832,54 +975,64 @@
     });
   }
 
-  let rayonKm = 2000;
-  /** L'encart « Tester de façon responsable » : le n° 1, la meilleure alternative à faible impact, le meilleur site à portée. */
+    /** The "Responsible testing" panel: the settings of green mode and what it changes in the list of 10 sites. */
   function afficherImpact() {
     const C = classement, bloc = $("#an-impact-cartes");
     if (!C || !R) return;
     const I = R.pool.impact, P = R.pool;
-    const avecNiveau = !!(I && I.protected);
-    const cartes = [];
     const premier = C.candidats[0];
-    const ligne = (i) => { const [lat, lon] = H.cellToLatLng(P.h3[i]); return { i, lat, lon, score: C.scores[i], impact: impactSite(I, i) }; };
-    const carte = (titre, x, texte, cle) => `<button type="button" class="impact-carte" data-i="${x.i}" data-entete="${echapper(titre)}">
+    const carte = (titre, x, texte) => `<button type="button" class="impact-carte" data-i="${x.i}" data-entete="${echapper(titre)}">
         <span class="impact-carte-titre">${titre}</span>
         <span class="impact-carte-nom" data-h3="${P.h3[x.i]}">${echapper(noms[P.h3[x.i]] || lireCoords(x))}</span>
         ${etiquetteImpact(x.impact)}
         <span class="impact-carte-texte">${texte}</span></button>`;
-    if (premier) {
-      const im = premier.impact, v = texteVol(premier.lat, premier.lon);
-      const faits = [...(im ? im.faits : []), v ? v.court : null].filter(Boolean);
-      cartes.push(carte("Your site 1", { ...premier }, faits.length ? faits.join(" · ") : "No impact data on the server.", "premier"));
-    }
-    if (avecNiveau && premier) {
-      const alt = C.ordre.map(ligne).find((x) => x.impact && x.impact.niveau === IMPACT.bas);
-      if (!alt) cartes.push(`<p class="analogues-doux">No low-impact site in the ranking.</p>`);
-      else if (alt.i !== premier.i) {
-        const v = texteVol(alt.lat, alt.lon);
-        cartes.push(carte("Low-impact alternative", alt, [`${pct.format(alt.score)} similar`, ...alt.impact.faits, v ? v.court : null]
-          .filter(Boolean).join(" · "), "alt"));
+    const faitsSite = (c) => [...(c.impact ? c.impact.faits : []), depart ? texteVol(c.lat, c.lon).court : null, `${pct.format(c.score)} similar`].filter(Boolean).join(" · ");
+
+    // green mode settings: they change the 10 sites directly
+    const reg = $("#an-vert-reglages");
+    const choix = (cle, valeurs, nom, actif, inactif = () => false) => `<div class="an-ecart">${valeurs.map((v) =>
+      `<button type="button" data-${cle}="${v ?? ""}" aria-pressed="${actif(v)}" ${inactif(v) ? "disabled" : ""}>${nom(v)}</button>`).join("")}</div>`;
+    reg.hidden = !modeVert;
+    reg.innerHTML = modeVert ? `
+      <div class="vert-reglage"><span>Similarity floor <em>vs the best site</em></span>
+        ${choix("plancher", VERT.planchers, (v) => pct.format(v), (v) => reglagesVert.plancher === v)}</div>
+      <div class="vert-reglage"><span>CO₂ budget <em>per person, round trip</em></span>
+        ${choix("budget", VERT.budgets, (v) => (v == null ? "None" : `${nb1.format(v)} t`), (v) => reglagesVert.budget === v, (v) => v != null && !depart)}</div>
+      <div class="vert-reglage"><span>Protected areas</span>
+        ${choix("protege", ["tout", "strict"], (v) => (v === "tout" ? "All excluded" : "Strict only"), (v) => reglagesVert.protege === v)}</div>` : "";
+    reg.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      if (b.dataset.plancher) reglagesVert.plancher = +b.dataset.plancher;
+      if ("budget" in b.dataset) reglagesVert.budget = b.dataset.budget ? +b.dataset.budget : null;
+      if (b.dataset.protege) reglagesVert.protege = b.dataset.protege;
+      garderReglages();
+      fermerSite();
+      recalculer();
+    }));
+
+    const cartes = [];
+    if (!modeVert) {
+      if (premier) cartes.push(carte("Your site 1", premier, faitsSite(premier)));
+      cartes.push(`<p class="vert-invite">Turn on <b>Green mode</b> above: the 10 sites become the lowest-impact ones among those that look enough like your area.</p>`);
+    } else if (!premier) {
+      cartes.push(`<p class="vert-invite">No site passes these limits: raise the CO₂ budget or lower the similarity floor.</p>`);
+    } else {
+      const g = gainsVert(), chiffres = [];
+      if (g && g.co2) {
+        const d = g.co2[0] - g.co2[1];
+        chiffres.push([d >= 0.05 ? `−${fmtCo2(d)}` : "≈ 0 t", `CO₂e per person on average${d >= 0.05 ? `, −${fmtCo2(d * VERT.equipe)} for a team of ${VERT.equipe}` : ""}`]);
+      } else if (g && g.aeroport[0] != null && g.aeroport[1] != null) {
+        const d = g.aeroport[0] - g.aeroport[1];
+        chiffres.push([d >= 5 ? `−${nb.format(d)} km` : "≈ 0 km", "to the nearest airport, on average. Add a departure city to count the flights."]);
       }
-    }
-    if (depart && premier) {
-      const proche = C.ordre.map(ligne).find((x) => x.score >= PROCHE_MIN * premier.score &&
-        distanceKm(depart.lat, depart.lon, x.lat, x.lon) <= rayonKm);
-      const choix = `<label class="impact-rayon">Within <select id="an-rayon">${RAYONS_KM.map((r) => `<option value="${r}" ${r === rayonKm ? "selected" : ""}>${nb.format(r)} km</option>`).join("")}</select> of ${echapper(depart.nom)}</label>`;
-      if (!proche) cartes.push(`<div class="impact-portee">${choix}<p class="analogues-doux">Nothing that close: widen the radius.</p></div>`);
-      else {
-        const v = texteVol(proche.lat, proche.lon), v1 = texteVol(premier.lat, premier.lon);
-        const gain = v1.t - v.t;
-        cartes.push(`<div class="impact-portee">${choix}${carte("Closest good site", proche, [`${pct.format(proche.score)} similar`,
-          `${nb.format(v.km)} km`, v.court, proche.i !== premier.i && gain >= 0.05 ? `−${fmtCo2(gain)} vs site 1` : null]
-          .filter(Boolean).join(" · "), "portee")}</div>`);
+      if (g) {
+        chiffres.push([nb.format(g.proteges), `protected site${g.proteges === 1 ? "" : "s"} of the usual list set aside`]);
+        chiffres.push([g.perte > 0 ? `−${g.perte} pt${g.perte > 1 ? "s" : ""}` : "0 pt", "of similarity on average: the price of the greener list"]);
       }
-    } else if (premier) {
-      cartes.push(`<p class="analogues-doux">Add a departure city to compare the flights.</p>`);
+      cartes.push(`<div class="vert-gains">${chiffres.map(([n, t]) => `<p><b>${n}</b> ${t}</p>`).join("")}</div>`);
+      cartes.push(carte("Your greenest good site", premier, faitsSite(premier)));
     }
     bloc.innerHTML = cartes.join("");
     bloc.querySelectorAll(".impact-carte").forEach((b) => b.addEventListener("click", () => ouvrirLigne(+b.dataset.i, b.dataset.entete)));
-    const r = bloc.querySelector("#an-rayon");
-    if (r) r.addEventListener("change", () => { rayonKm = +r.value; afficherImpact(); });
     const wdpa = I && I.source ? (I.source.match(/\(([^)]*)\), Protected Planet: [^,]*, ([^,]+),/) || []) : [];
     $("#an-impact-sources").innerHTML = [I && I.source ? `Protected areas: UNEP-WCMC and IUCN (${wdpa[1] || ""}), Protected Planet,
         WDPA ${wdpa[2] || ""}, <a href="https://www.protectedplanet.net" target="_blank" rel="noopener">protectedplanet.net</a>` : null,
@@ -921,7 +1074,7 @@
   function phrase(v) {
     const nom = COURTS[v.key] || v.label.replace(/ \(.*\)$/, "").toLowerCase();
     if (absent(v)) return `no ${nom}, as ${SUR}`;
-    return `${nom}: <b style="color:${COULEUR_TERRE}">${lisible(v.earth, v)}</b> here, <b style="color:${COULEUR_CORPS[corps]}">${lisible(v.reference, v)}</b> ${SUR}`;
+    return `${nom}: <b style="color:${COULEUR_TERRE}">${lisible(v.earth, v, "earth")}</b> here, <b style="color:${COULEUR_CORPS[corps]}">${lisible(v.reference, v, "reference")}</b> ${SUR}`;
   }
 
   function sensDifference(v) {
@@ -968,7 +1121,7 @@
       return `<div class="duel-ligne duel-parts" style="--c:${n.couleur}">
         <span class="duel-label">${titre}${v.compared ? "" : ' <em title="The Earth data do not contain these classes">not comparable</em>'}</span>
         ${barreParts(v.reference, COULEUR_CORPS[corps])}${barreParts(v.earth, COULEUR_TERRE)}
-        <span class="duel-valeurs"><span>${lisible(v.reference, v)}</span><span>${lisible(v.earth, v)}</span></span>
+        <span class="duel-valeurs"><span>${lisible(v.reference, v, "reference")}</span><span>${lisible(v.earth, v, "earth")}</span></span>
       </div>`;
     }
     const a = v.mode === "deciles" ? (v.reference || [])[4] : v.reference;
@@ -980,11 +1133,11 @@
     const segment = pa != null && pb != null ? `<i class="duel-ecart" style="left:${Math.min(pa, pb)}%;width:${Math.abs(pa - pb)}%"></i>` : "";
     return `<div class="duel-ligne" style="--c:${n.couleur}">
       <span class="duel-label">${titre}</span>
-      <span class="duel-gauche">${lisible(v.reference, v)}</span>
+      <span class="duel-gauche">${lisible(v.reference, v, "reference")}</span>
       <span class="duel-piste" aria-hidden="true">${segment}
         ${pa != null ? `<i class="duel-point" style="left:${pa}%;--p:${COULEUR_CORPS[corps]}"></i>` : ""}
         ${pb != null ? `<i class="duel-point" style="left:${pb}%;--p:${COULEUR_TERRE}"></i>` : ""}</span>
-      <span class="duel-droite">${lisible(v.earth, v)}</span>
+      <span class="duel-droite">${lisible(v.earth, v, "earth")}</span>
     </div>`;
   }
 
@@ -1043,14 +1196,12 @@
     const groupes = d.modules.map((m) => `<tbody>
         <tr class="cg"><th scope="rowgroup" colspan="3">${nomModule(m.key)}</th><td class="cm">${m.similarity != null ? pastille(m.similarity) : ""}</td></tr>
         ${m.variables.map((v) => `<tr><th scope="row">${echapper((COURTS[v.key] || v.label.replace(/ \(.*\)$/, "")).replace(/^./, (x) => x.toUpperCase()))}</th>
-          <td class="cz">${echapper(lisible(v.reference, v))}</td><td class="ct">${echapper(lisible(v.earth, v))}</td>
+          <td class="cz">${echapper(lisible(v.reference, v, "reference"))}</td><td class="ct">${echapper(lisible(v.earth, v, "earth"))}</td>
           <td class="cm">${v.compared && v.similarity != null ? `<span class="mot" style="--c:${niveau(v.similarity).couleur}">${pct.format(v.similarity)}</span>`
             : `<span class="analogues-doux">–</span>`}</td></tr>`).join("")}</tbody>`).join("");
     el.innerHTML = `<div class="comparaison" style="--zone:${COULEUR_CORPS[corps]}">
         <table><thead><tr><th scope="col">Variable</th><th scope="col" class="cz">${NOMS[corps].replace(/^the /, "The ")}</th>
-          <th scope="col" class="ct">Earth</th><th scope="col" class="cm">Match</th></tr></thead>${groupes}</table></div>
-      <p class="analogues-doux">Averages over your area and over the ${nb.format(d.footprint ? d.footprint.area_km2 : 0)} km² around the site.
-        Percentile: the rank of the value among the cells of each body. –: not compared.</p>`;
+          <th scope="col" class="ct">Earth</th><th scope="col" class="cm">Match</th></tr></thead>${groupes}</table></div>`;
   }
 
   // Onglets de la fiche : Overview (pourquoi, critères), Data (tableau) ; le dernier choisi est gardé.
@@ -1074,6 +1225,7 @@
   let siteOuvert = null;
   let siteReplie = false;
   function choisir(i, connu = null) {
+    if (balayage) return;
     const C = classement;
     const c = connu || (C && C.candidats[i]);
     if (!c) return;
@@ -1083,7 +1235,7 @@
     $("#an-liste").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
     marqueurs.forEach((m, j) => m.getElement().classList.toggle("actif", j === i));
     const empreinte = R.footprint && R.footprint.rings ? H.gridDisk(c.h3, R.footprint.rings) : [c.h3];
-    map.getSource("an-choix").setData({ type: "FeatureCollection", features: contourEmpreinte(empreinte) });
+    quandPret(() => { couches(); map.getSource("an-choix").setData({ type: "FeatureCollection", features: contourEmpreinte(empreinte) }); });
     map.flyTo({ center: [c.lon, c.lat], zoom: zoomA(7.8, c.lat, 5), duration: 1600, essential: true });
 
     const n = niveau(c.score);
@@ -1100,11 +1252,11 @@
       <h2 id="site-titre">${echapper(connu && connu.connu ? connu.connu.name : noms[c.h3] || lireCoords(c))}</h2>
       <p class="site-sous-titre" id="site-sous-titre"></p>
       ${connu && connu.connu ? `<p class="site-connu">Known analog for ${echapper(connu.connu.analog_of)} (${echapper(connu.connu.source)}).
-        ${echapper(texteRang(connu.connu))}${connu.connu.scope === "mineralogie" ? ". The tool does not compare minerals: this rank says nothing about the analogy." : "."}</p>` : ""}
+        ${echapper(texteRang(connu.connu))}${connu.connu.scope === "mineralogy" ? ". The tool does not compare minerals: this rank says nothing about the analogy." : "."}</p>` : ""}
       <p class="site-verdict" style="--c:${n.couleur}"><b>${n.nom}</b> to your area ${SUR} · <b>${pct.format(c.score)}</b> similar</p>
       <div class="site-actions">
         <button type="button" class="site-bilan" id="site-bilan" title="Your AstroWrap: an animated recap of the comparison, in a separate page">
-          <span class="site-bilan-titre">▶ Play the AstroWrap</span><span class="site-bilan-sous">Your area and this site, card by card</span></button>
+          <span class="site-bilan-titre">▶ Play the AstroWrap</span></button>
         ${window.vue3D ? `<button type="button" class="site-3d" id="site-3d">Compare the terrain</button>` : ""}
       </div>
       <div class="site-onglets" role="tablist" aria-label="Site card">
@@ -1115,7 +1267,6 @@
         <div id="site-data"><p class="analogues-doux">Loading…</p></div>
       </div>
       <div class="site-vue" id="site-vue-apercu" data-onglet="apercu" role="tabpanel" aria-labelledby="site-onglet-apercu" ${ongletSite === "apercu" ? "" : "hidden"}>
-      ${R.footprint ? `<p class="site-empreinte">Judged over ${nb.format(R.footprint.area_km2)} km² around the site (white outline on the globe), like your area (${nb.format(R.footprint.zone_area_km2)} km²).</p>` : ""}
       <section class="pourquoi" id="site-pourquoi"><h3>Why this site?</h3><p class="analogues-doux">…</p></section>
       <section class="criteres">
         <div class="criteres-tete"><span style="color:${COULEUR_CORPS[corps]}">● ${NOMS[corps].replace(/^the /, "The ")}</span>
@@ -1125,10 +1276,7 @@
       <details class="site-plus"><summary>More about this site</summary>
         <div id="site-fiche"><p class="analogues-doux">Loading…</p></div>
         <section class="site-wiki" id="site-wiki" hidden><h3>Nearby (Wikipedia)</h3><ul></ul></section>
-        <p class="site-coords">${lireCoords(c)} ·
-          <a href="https://www.openstreetmap.org/?mlat=${c.lat.toFixed(4)}&mlon=${c.lon.toFixed(4)}#map=10/${c.lat.toFixed(4)}/${c.lon.toFixed(4)}" target="_blank" rel="noopener">OpenStreetMap</a> ·
-          <a href="https://www.google.com/maps/@${c.lat.toFixed(5)},${c.lon.toFixed(5)},12z/data=!3m1!1e3" target="_blank" rel="noopener">Satellite view</a></p>
-        <p class="site-credits" id="site-credits">Similarity: ${pct.format(c.score)}.</p>
+        <p class="site-credits" id="site-credits"></p>
       </details>
       </div>`;
     fiche.hidden = false;
@@ -1154,7 +1302,7 @@
     const bouton3D = fiche.querySelector("#site-3d");
     if (bouton3D) bouton3D.addEventListener("click", () => {
       const topo = c.detail && (c.detail.modules || []).find((m) => m.key === "topography");
-      const v = topo && topo.variables.find((x) => x.key === "pentes");
+      const v = topo && topo.variables.find((x) => x.key === "slopes");
       window.vue3D.ouvrir({
         api: API, corps, zone, pentes: v ? { zone: v.reference, site: v.earth } : null,
         site: { lat: c.lat, lon: c.lon, h3: c.h3, empreinte, nom: noms[c.h3] || lireCoords(c) },
@@ -1177,8 +1325,7 @@
           ${s.items.map((x) => `<dt>${x.label}</dt><dd>${typeof x.value === "number" ? nb1.format(x.value) : echapper(x.value)}${x.unit === "%" ? "%" : x.unit ? " " + x.unit : ""}</dd>`).join("")}
         </dl></section>`).join("");
       const sources = (d.place.sources || []).map((s) => (s === "OpenStreetMap" ? "© OpenStreetMap contributors" : s));
-      fiche.querySelector("#site-credits").textContent = `Similarity: ${pct.format(c.score)}. H3 cell ${c.h3} (${nb.format(d.area_km2)} km²).` +
-        (sources.length ? ` Names: ${sources.join(", ")}.` : "");
+      fiche.querySelector("#site-credits").textContent = sources.length ? `Place names: ${sources.join(", ")}.` : "";
     }).catch(() => {
       if (ouverte !== i) return;
       fiche.querySelector("#site-fiche").innerHTML = `<p class="analogues-erreur">Site card unavailable: ${messageServeur()}</p>`;
@@ -1226,7 +1373,12 @@
     q.set("w", Object.entries(poids).map(([k, v]) => `${k}:${v}`).join(","));
     q.set("s", String(c.score));
     if (!$("#an-vegetation").checked) q.set("v", "0");
-    if ($("#an-protegees").checked) q.set("p", "1");
+    if ($("#an-protegees").checked || modeVert) q.set("p", "1");
+    if (modeVert) {
+      q.set("g", "1");
+      const s1 = classement && classement.standard && classement.standard[0];
+      if (s1 && s1.i !== c.i) q.set("ref", `${s1.lat.toFixed(3)},${s1.lon.toFixed(3)}`);
+    }
     if (rang) q.set("n", `${rang}/${classement ? classement.candidats.length : N_CANDIDATS}`);
     const url = `bilan.html?${q}#${corps}/${zoneId || "-"}/${c.h3}`;
     if (fenetre) fenetre.location.href = url; else location.href = url;
