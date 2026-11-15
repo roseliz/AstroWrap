@@ -15,8 +15,7 @@ output "url_fallback" {
 }
 
 output "registry" {
-  description = "Artifact Registry repository of the image (docker push <registry>/server:latest)"
-  value       = local.registry
+  value = local.registry
 }
 
 output "image" {

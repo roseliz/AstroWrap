@@ -1,6 +1,4 @@
-// Online interface: static files of dist/ (npm run site) served by Cloudflare (Workers static assets, free,
-// unlimited static requests), on astrowrap.earth and www.astrowrap.earth.
-//   npm run site && npx wrangler deploy
+// npm run site && npx wrangler deploy
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "astrowrap",
@@ -10,7 +8,6 @@
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
   },
-  // No *.workers.dev address: the site only exists under its domain (the API only accepts it, CORS)
   "workers_dev": false,
   "preview_urls": false,
   "routes": [

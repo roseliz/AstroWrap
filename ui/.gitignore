@@ -4,6 +4,6 @@ js/cle-carto.js
 # npm install
 node_modules/
 
-# npm run site (online version, Cloudflare)
+# npm run site
 dist/
 .wrangler/

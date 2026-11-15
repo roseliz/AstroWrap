@@ -1,3 +1,2 @@
-# Copy to backend.hcl (ignored by git), then: terraform -chdir=gcp init -backend-config=backend.hcl
 bucket = "<state-bucket>"
 prefix = "<prefix>"

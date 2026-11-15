@@ -1,9 +1,3 @@
-# Monitoring, same as ../aws/monitoring.tf:
-# - logs: output of the startup script ("google_metadata_script_runner" log) and of the containers (Docker gcplogs
-#   driver, "gcplogs-docker-driver" log) in Cloud Logging (50 GiB free per month);
-# - uptime check of the API every 5 minutes from 3 regions, email alert if it fails for ~10 minutes;
-# - monthly budget: one email at each step of var.budget_step (50 CAD), up to var.budget_max.
-
 resource "google_monitoring_notification_channel" "email" {
   count        = var.alert_email != "" ? 1 : 0
   display_name = "${var.name}: alerts"
@@ -12,7 +6,7 @@ resource "google_monitoring_notification_channel" "email" {
   depends_on   = [google_project_service.api]
 }
 
-# Target: the sslip.io address (same machine, same Caddy), which does not depend on the domain's DNS
+# Uptime check
 resource "google_monitoring_uptime_check_config" "api" {
   display_name     = "${var.name}: /api/health"
   timeout          = "15s"
@@ -43,7 +37,7 @@ resource "google_monitoring_alert_policy" "api_down" {
     condition_threshold {
       filter          = "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND resource.type=\"uptime_url\" AND metric.label.check_id=\"${google_monitoring_uptime_check_config.api.uptime_check_id}\""
       comparison      = "COMPARISON_GT"
-      threshold_value = 1 # more than one region failing
+      threshold_value = 1
       duration        = "600s"
       aggregations {
         alignment_period     = "1200s"
@@ -56,9 +50,7 @@ resource "google_monitoring_alert_policy" "api_down" {
   notification_channels = google_monitoring_notification_channel.email[*].id
 }
 
-# Costs counted BEFORE the trial credits (EXCLUDE_ALL_CREDITS): shows what the machine uses of the credits, not only
-# what would be billed. The budget is set on the billing account: it needs the "Billing Account Costs Manager" role
-# (or administrator). The administrators of the account receive the emails as well.
+# Budget, before credits
 resource "google_billing_budget" "monthly" {
   count           = var.billing_account != "" ? 1 : 0
   billing_account = var.billing_account

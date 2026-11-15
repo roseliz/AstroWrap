@@ -1,20 +1,12 @@
-# FastAPI server (server/) on Google Cloud, same design as ../aws: an on-demand e2-standard-2 VM in a managed
-# instance group (1 machine), in Montreal. The data disk is stateful: kept when the machine is replaced (update,
-# auto-healing). At boot, the machine mounts this disk on /data, syncs the Parquet files from GCS, then starts the
-# image (Artifact Registry) and Caddy (HTTP 80 + HTTPS 443, Let's Encrypt). Fixed address: static external IP.
-# No open SSH: console or `gcloud compute ssh --tunnel-through-iap` when needed.
-
 data "google_project" "project" {}
 
 locals {
-  sslip    = "${replace(google_compute_address.server.address, ".", "-")}.sslip.io"
-  registry = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.server.repository_id}"
-  image    = "${local.registry}/server:${var.image_tag}"
-  # Addresses served over HTTPS by Caddy: the domain, and sslip.io as a fallback (works without DNS)
+  sslip         = "${replace(google_compute_address.server.address, ".", "-")}.sslip.io"
+  registry      = "${var.region}-docker.pkg.dev/${var.project}/${google_artifact_registry_repository.server.repository_id}"
+  image         = "${local.registry}/server:${var.image_tag}"
   caddy_domains = join(", ", distinct([var.domain, local.sslip]))
 }
 
-# ------------------------------------------------------------------ project APIs
 resource "google_project_service" "api" {
   for_each = toset([
     "compute.googleapis.com", "artifactregistry.googleapis.com", "storage.googleapis.com",
@@ -22,17 +14,16 @@ resource "google_project_service" "api" {
     "iam.googleapis.com", "cloudresourcemanager.googleapis.com", "iap.googleapis.com",
   ])
   service            = each.value
-  disable_on_destroy = false # the project may be shared: never turn an API off for someone else
+  disable_on_destroy = false
 }
 
-# ------------------------------------------------------------------ image (Artifact Registry) and data (GCS)
+# Image and data
 resource "google_artifact_registry_repository" "server" {
   repository_id          = var.name
   location               = var.region
   format                 = "DOCKER"
   cleanup_policy_dry_run = false
 
-  # Keep the last 2 images (0.5 GB free per month, ~0.10 USD/GB beyond)
   cleanup_policies {
     id     = "keep-2"
     action = "KEEP"
@@ -59,7 +50,7 @@ resource "google_storage_bucket" "data" {
   depends_on                  = [google_project_service.api]
 }
 
-# ------------------------------------------------------------------ fixed address and network (default VPC)
+# IP and firewall
 resource "google_compute_address" "server" {
   name       = var.name
   region     = var.region
@@ -80,8 +71,7 @@ resource "google_compute_firewall" "web" {
   depends_on = [google_project_service.api]
 }
 
-# SSH only through Google's IAP tunnel (gcloud compute ssh --tunnel-through-iap), never from the Internet:
-# publish.sh uses it to resync the data, like SSM on AWS.
+# SSH via IAP
 resource "google_compute_firewall" "ssh_iap" {
   name          = "${var.name}-ssh-iap"
   network       = "default"
@@ -95,7 +85,7 @@ resource "google_compute_firewall" "ssh_iap" {
   depends_on = [google_project_service.api]
 }
 
-# ------------------------------------------------------------------ machine permissions
+# Machine permissions
 resource "google_service_account" "machine" {
   account_id   = var.name
   display_name = "API server (VM)"
@@ -122,7 +112,7 @@ resource "google_project_iam_member" "machine" {
   member   = google_service_account.machine.member
 }
 
-# ------------------------------------------------------------------ machine
+# Machine
 resource "google_compute_instance_template" "server" {
   name_prefix  = "${var.name}-"
   machine_type = var.machine_type
@@ -136,7 +126,7 @@ resource "google_compute_instance_template" "server" {
     auto_delete  = true
   }
 
-  # Data disk: created empty with the first machine, then kept (stateful_disk of the group, below)
+  # Data disk, kept
   disk {
     device_name  = var.data_device_name
     disk_type    = "pd-balanced"
@@ -154,7 +144,7 @@ resource "google_compute_instance_template" "server" {
 
   service_account {
     email  = google_service_account.machine.email
-    scopes = ["cloud-platform"] # the actual permissions are those of the roles above
+    scopes = ["cloud-platform"]
   }
 
   shielded_instance_config {
@@ -173,17 +163,17 @@ resource "google_compute_instance_template" "server" {
   }
 
   lifecycle {
-    create_before_destroy = true # a template cannot be modified: new template, then update of the group
+    create_before_destroy = true
   }
 }
 
-# Auto-healing: the machine is recreated if /api/health stops answering "ready" (after the boot)
+# Auto-healing
 resource "google_compute_health_check" "api" {
   name                = "${var.name}-api"
   check_interval_sec  = 90
   timeout_sec         = 15
   healthy_threshold   = 1
-  unhealthy_threshold = 10 # 10 × 90 s = 15 min (maximum 10): longer than a data sync
+  unhealthy_threshold = 10
   http_health_check {
     port         = 80
     request_path = "/api/health"
@@ -204,15 +194,15 @@ resource "google_compute_instance_group_manager" "server" {
 
   stateful_disk {
     device_name = var.data_device_name
-    delete_rule = "NEVER" # kept even if the machine or the group goes away
+    delete_rule = "NEVER"
   }
 
   auto_healing_policies {
     health_check      = google_compute_health_check.api.id
-    initial_delay_sec = 1200 # first boot: data sync from GCS
+    initial_delay_sec = 1200
   }
 
-  # A single data disk and a single address: the old machine leaves before the new one arrives
+  # Single data disk
   update_policy {
     type                  = "PROACTIVE"
     minimal_action        = "REPLACE"

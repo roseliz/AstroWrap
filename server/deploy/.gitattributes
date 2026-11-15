@@ -1,3 +1,2 @@
-# Scripts run on Linux (cloud machine, container): always LF, even with core.autocrlf=true on Windows
 *.sh      text eol=lf
 *.tftpl   text eol=lf

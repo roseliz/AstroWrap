@@ -1,4 +1,3 @@
-# Terraform (aws/, gcp/): state (in S3 / GCS), plans, private settings (email, billing account, backend)
 **/.terraform/
 *.tfstate
 *.tfstate.*
