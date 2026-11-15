@@ -1,0 +1,101 @@
+/* Accueil : choix de l'astre (js/accueil.js), par-dessus la Terre qui tourne. */
+
+.accueil:focus { outline: none; }
+.accueil {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center; padding: 16px;
+  background: radial-gradient(ellipse at 50% 45%, rgba(8, 17, 32, 0.55) 0%, rgba(8, 17, 32, 0.88) 70%);
+  backdrop-filter: blur(3px);
+  animation: accueil-entree 0.45s ease-out;
+}
+.accueil.accueil-sortie { opacity: 0; transition: opacity 0.25s ease-in; }
+@keyframes accueil-entree { from { opacity: 0; } to { opacity: 1; } }
+
+/* Pendant l'accueil, les panneaux de la page Terre restent cachés */
+body.accueil-ouvert .titre, body.accueil-ouvert .bas, body.accueil-ouvert .analogues { visibility: hidden; }
+
+.accueil-carte {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 32px); overflow: auto;
+  padding: 28px 28px 20px;
+  background: rgba(10, 21, 40, 0.82);
+  border: 1px solid var(--panneau-trait);
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  color: var(--texte);
+  font-family: var(--police);
+}
+.accueil-logo { display: block; height: 44px; width: auto; margin: 0 auto 6px; }
+.accueil-sur { margin: 0; font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--atmosphere); }
+.accueil-carte h2 { margin: 8px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 700; font-stretch: 112%; }
+.accueil-texte { margin: 0 auto 22px; max-width: 46ch; color: var(--texte-doux); font-size: 15px; line-height: 1.45; }
+
+.accueil-astres { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+
+.astre {
+  display: grid; justify-items: center; gap: 4px;
+  padding: 14px 12px 16px;
+  color: var(--texte); text-decoration: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--panneau-trait);
+  border-radius: 14px;
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+.astre:hover, .astre:focus-visible {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--accent, var(--atmosphere));
+  box-shadow: 0 0 0 1px var(--accent, var(--atmosphere)), 0 18px 40px rgba(0, 0, 0, 0.4);
+  outline: none;
+}
+.astre-lune { --accent: #C9CED6; }
+.astre-mars { --accent: #E0794F; }
+
+.astre-cadre {
+  position: relative; display: block;
+  width: min(240px, 100%, 34vh); aspect-ratio: 1;        /* tient aussi dans une fenêtre basse */
+  border-radius: 12px;
+  background: radial-gradient(circle at 50% 50%, rgba(169, 200, 238, 0.07), transparent 70%), #050b16;
+  overflow: hidden;
+}
+.astre-cadre canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.astre:hover .astre-cadre, .astre:focus-visible .astre-cadre { background-color: #07101e; }
+
+/* Sans WebGL : un disque où l'image défile, comme un astre qui tourne */
+.astre-plat {
+  background-size: 200% 100% !important; background-repeat: repeat-x !important;
+  border-radius: 50%; width: min(190px, 28vw); margin: 25px;
+  box-shadow: inset -28px -10px 50px rgba(0, 0, 0, 0.85);
+  animation: astre-plat 40s linear infinite;
+}
+@keyframes astre-plat { from { background-position: 0 0; } to { background-position: -200% 0; } }
+
+.astre-nom { margin-top: 6px; font-size: 20px; font-weight: 700; }
+.astre-info { font-size: 12.5px; color: var(--texte-doux); }
+
+.accueil-terre {
+  margin-top: 18px; padding: 6px 10px;
+  font: inherit; font-size: 13px; color: var(--texte-doux);
+  background: none; border: 0; cursor: pointer;
+}
+.accueil-terre:hover, .accueil-terre:focus-visible { color: var(--texte); text-decoration: underline; }
+
+@media (max-width: 520px) {
+  .accueil-carte { padding: 20px 14px 14px; }
+  .accueil-astres { gap: 10px; }
+  .astre-nom { font-size: 17px; }
+  .astre-info { font-size: 11px; }
+}
+@media (max-height: 620px) {
+  .accueil-carte { padding: 16px 20px 10px; }
+  .accueil-carte h2 { margin: 4px 0; font-size: 24px; }
+  .accueil-texte { margin-bottom: 12px; font-size: 13.5px; }
+  .astre { padding: 10px 10px 12px; }
+  .astre-nom { margin-top: 2px; font-size: 17px; }
+  .accueil-terre { margin-top: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .accueil, .astre { animation: none; transition: none; }
+  .astre-plat { animation-duration: 160s; }
+}
