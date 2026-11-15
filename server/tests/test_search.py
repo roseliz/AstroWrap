@@ -43,3 +43,22 @@ def test_funnel_tolerance():
     """One criterion below the Earth's median is forgiven from three active criteria, none below."""
     from server.services import combine
     assert [combine.tolerated_misses(n) for n in (1, 2, 3, 6)] == [0, 0, 1, 1]
+
+
+def test_terrain(app, tmp_path):
+    """Flat ground share per resolution-5 cell of the area, mean weighted by the painted tiles."""
+    import h3
+    import pandas as pd
+    application, zone, _, _ = app
+    parents = sorted({h3.cell_to_parent(c, 5) for c in zone})
+    d = tmp_path / "topography_morphometry"
+    d.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame({"h3": parents[1:], "part_pente_inf_5": [0.2] + [1.0] * (len(parents) - 2)}) \
+        .assign(resolution=5, body="mars").to_parquet(d / "topography_morphometry_mars_h3_5_b500.parquet")
+    with TestClient(application) as client:
+        r = client.post("/api/zones/terrain", json={"body": "mars", "h3_cells": zone})
+        assert r.status_code == 200, r.text
+        t = r.json()
+        assert parents[0] not in t["cells"] and t["cells"][parents[1]] == 0.2 and t["threshold"] == 0.5
+        assert abs(t["flat"] - (0.2 + len(parents) - 2) / (len(parents) - 1)) < 1e-3
+        assert client.post("/api/zones/terrain", json={"body": "moon", "h3_cells": zone}).json()["flat"] is None
