@@ -1,5 +1,21 @@
 # 🌍 NASA Space Apps Challenge 2026 🚀
 
+<p align="center">
+  <img src="images/screenshot_app.png" alt="NASA Space Apps Challenge 2026 - Terrestrial Analogs" width="100%">
+</p>
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://duckdb.org/"><img src="https://img.shields.io/badge/DuckDB-FFF000?style=for-the-badge&logo=duckdb&logoColor=black" alt="DuckDB"></a>
+  <a href="https://www.uvicorn.org/"><img src="https://img.shields.io/badge/Uvicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white" alt="Uvicorn"></a>
+</p>
+
+<p align="center">
+  <a href="https://www.spaceappschallenge.org/"><img src="https://img.shields.io/badge/NASA-Space%20Apps%202026-0B3D91?style=flat-square&logo=nasa&logoColor=white" alt="NASA Space Apps 2026"></a>
+  <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License MIT">
+</p>
+
 ### Exploring Earth to Prepare for the Moon and Mars
 
 **Challenge:** Terrestrial Analogs for Future Lunar and Martian Exploration
