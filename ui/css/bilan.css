@@ -253,26 +253,30 @@ button { font: inherit; color: inherit; }
 .ingredient ~ .deballe { display: none; }
 .deballe span { animation: clignote 1.2s infinite both; } .deballe span:nth-child(2) { animation-delay: 0.2s; } .deballe span:nth-child(3) { animation-delay: 0.4s; }
 @keyframes clignote { 0%, 100% { opacity: 0.15; } 50% { opacity: 1; } }
-.ingredient { --k: #F7C948; --encre: #2A2108; opacity: 0; }
+.ingredient { --k: #F7C948; --encre: #2A2108; opacity: 0; container-type: inline-size; }
 .ingredient.respect { --k: #3DDC97; --encre: #08291A; } .ingredient.attention { --k: #FF5A4E; --encre: #FFFFFF; } .ingredient.calme { --k: #F7C948; --encre: #2A2108; }
 .on .ingredient { animation: jaillit 0.85s cubic-bezier(0.2, 1.3, 0.4, 1) calc(var(--t, 2.5s) + var(--i) * 170ms) both; }
 @keyframes jaillit {
   0% { opacity: 0; transform: translate(var(--dx, 0), var(--dy, 0)) scale(0.1) rotate(-120deg); }
   25% { opacity: 1; }
   100% { opacity: 1; transform: rotate(var(--rot, 0deg)); } }
-.pastille { aspect-ratio: 1; display: grid; place-content: center; justify-items: center; gap: 2px; padding: 12%; text-align: center; color: var(--encre);
+/* the text follows the chip's own width (cqi), so it stays inside the round shape on small laptops */
+.pastille { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2cqi; padding: 15%; text-align: center; color: var(--encre);
   background: var(--k); border-radius: 46% 54% 52% 48% / 52% 46% 54% 48%;
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35), inset 0 -8px 0 rgba(0, 0, 0, 0.12), inset 0 6px 0 rgba(255, 255, 255, 0.25); }
 .ingredient:nth-child(3n + 2) .pastille { border-radius: 58% 42% 46% 54% / 44% 56% 44% 56%; }
 .ingredient:nth-child(3n) .pastille { border-radius: 40% 60% 55% 45% / 55% 40% 60% 45%; }
 .on .pastille { animation: flotte 3.4s ease-in-out calc(var(--t, 2.5s) + 1s + var(--i) * 0.3s) infinite alternate; }
 @keyframes flotte { to { transform: translateY(-8px) rotate(2deg); } }
-.ingredient .ico { display: grid; place-items: center; width: clamp(34px, 3.4vw, 46px); aspect-ratio: 1; border-radius: 50%; background: rgba(0, 0, 0, 0.14); margin-bottom: 4px; }
+.ingredient .ico { display: grid; place-items: center; flex: none; width: clamp(22px, 24cqi, 44px); aspect-ratio: 1; border-radius: 50%; background: rgba(0, 0, 0, 0.14); margin-bottom: 1cqi; }
 .ingredient.attention .ico { background: rgba(255, 255, 255, 0.2); }
 .ingredient svg { width: 62%; height: 62%; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.ingredient .val { font-size: clamp(18px, 2.1vw, 30px); font-weight: 900; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ingredient .tit { font-size: clamp(10px, 0.95vw, 12px); font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
-.ingredient .sous { max-width: 100%; font-size: 11px; font-weight: 600; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ingredient .val { max-width: 100%; font-size: clamp(14px, 15cqi, 30px); font-weight: 900; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ingredient .tit { max-width: 100%; font-size: clamp(8px, 6.6cqi, 12px); font-weight: 900; line-height: 1.1; letter-spacing: 0.06em; text-transform: uppercase;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.ingredient .sous { max-width: 100%; font-size: clamp(9px, 6.2cqi, 11px); font-weight: 600; line-height: 1.15; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* small chip: the tiny tag goes (the full sentence stays in the hover tooltip) */
+@container (max-width: 150px) { .ingredient .sous { display: none; } }
 
 .env-pied { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 16px; text-align: center; }
 .env-pied .note { flex-basis: 100%; max-width: none; font-size: 11px; opacity: 0.8; }

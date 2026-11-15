@@ -41,8 +41,12 @@
   padding: 4px 8px 4px 0; border-bottom: 1px solid var(--panneau-trait, rgba(169, 200, 238, 0.18)); }
 .sat-carte td { padding: 6px 8px 6px 0; vertical-align: top; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 .sat-carte td:first-child { font-weight: 600; width: 58%; }
+/* instruction, not a label: one fixed place (top center), fades in once and out after the first interaction or 10 s */
 .sats-astuce {
-  position: absolute; left: 0; top: 0; margin: 0; max-width: min(440px, 80vw); text-align: center; pointer-events: none;
+  position: absolute; left: 50%; top: 12px; transform: translateX(-50%); margin: 0; max-width: min(440px, 80vw); text-align: center; pointer-events: none;
   font-size: 12.5px; color: var(--texte-doux, #9DAAC0); text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+  opacity: 0; transition: opacity 0.6s ease;
 }
+.sats-astuce.montre { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .sats-astuce { transition: none; } }
 .sats-astuce[hidden] { display: none; }

@@ -210,7 +210,7 @@
   let plane = null;
   const aide = $(".aide");
   const AIDE_GLOBE = aide.textContent;
-  const AIDE_CARTE = "Drag to move the map, use the scroll wheel or two fingers to zoom, Escape to see everything. Near the poles, a flat map stretches the terrain: its true shape shows on the globe.";
+  const AIDE_CARTE = "Esc shows everything. Near the poles the flat map stretches the terrain.";
   /** 3D camera horizontal half-field-of-view angle. */
   const demiH = () => Math.atan(Math.tan(((globe ? globe.camera().fov : 50) / 2) * (Math.PI / 180)) * (window.innerWidth / window.innerHeight));
   /** Approximate correspondence between 3D altitude and visible 2D terrain width (degrees). */
