@@ -1,15 +1,15 @@
-// Bilan animé d'un site analogue : une page à part, ouverte depuis la fiche d'un site (js/analogues.js).
+// Animated summary of an analog site: a separate page, opened from a site's details card (js/analogues.js).
 //
-// Adresse : bilan.html?w=<poids>&s=<score>&n=<rang>/<total>#<corps>/<identifiant de la zone>/<cellule H3 du site>
-// Tout vient du serveur (application/server), rien n'est inventé :
-//   GET /api/zones/<id>        la zone peinte sur Mars ou la Lune
-//   POST /api/search/detail    valeurs et ressemblance, variable par variable (zone et site)
-//   GET /api/site/<cellule>    nom du lieu et fiche du site (végétation, mines, nuages...)
-//   POST /api/search           les étapes de l'entonnoir (nombre de régions restantes)
-//   GET /api/presets           les préréglages de poids (« Pour qui ? »)
-//   GET /api/relief            relief et image des deux côtés (diapositive 3D)
-// Une diapositive est ignorée quand la donnée qui la nourrit manque. three.js (r147, unpkg) est chargé à la première
-// diapositive 3D seulement.
+// URL: bilan.html?w=<weights>&s=<score>&n=<rank>/<total>#<body>/<zone id>/<site H3 cell>
+// Everything comes from the server (application/server), nothing is fabricated:
+//   GET /api/zones/<id>        the painted area on Mars or the Moon
+//   POST /api/search/detail    values and similarity, variable by variable (zone and site)
+//   GET /api/site/<cell>       place name and site card (vegetation, mines, clouds...)
+//   POST /api/search           funnel steps (number of remaining regions)
+//   GET /api/presets           weight presets ("For whom?")
+//   GET /api/relief            relief and image on both sides (3D slide)
+// A slide is skipped when the data feeding it is missing. three.js (r147, unpkg) is loaded on the first
+// 3D slide only.
 
 (async function () {
   const q = new URLSearchParams(location.search);

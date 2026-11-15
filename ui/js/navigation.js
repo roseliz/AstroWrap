@@ -1,13 +1,13 @@
-// Barre de navigation, en haut de toutes les pages sauf le bilan animé (plein écran, il a sa propre fermeture).
+// Navigation bar, at the top of all pages except the animated summary (fullscreen, it has its own close button).
 //
-//   [logo AstroWrap]          Lune   Mars   Terre •                               À propos
+//   [logo AstroWrap]          Moon   Mars   Earth •                               About
 //
-// - le nom ramène à l'accueil (index.html, la fenêtre de choix de l'astre) ;
-// - Lune et Mars ouvrent la page où l'on peint la zone ;
-// - Terre ouvre les résultats de la dernière zone comparée (gardée dans localStorage par analogues.js), et sinon
-//   le globe à explorer (index.html#terre, sans la fenêtre d'accueil) ; un point de couleur dit qu'une zone attend ;
-// - À propos (apropos.html) à droite ; sur téléphone, un bouton ☰ déroule les liens.
-// Le paramètre ?api=… suit d'une page à l'autre. Chargé tôt (sans defer) : la barre est là avant le reste.
+// - the name links back to home (index.html, the body selection window);
+// - Moon and Mars open the page where the area is painted;
+// - Earth opens the results of the last compared area (stored in localStorage by analogues.js), or otherwise
+//   the globe to explore (index.html#terre, without the welcome window); a colored dot indicates that an area is waiting;
+// - About (apropos.html) on the right; on mobile, a ☰ button unfolds the links.
+// The ?api=… parameter follows from page to page. Loaded early (without defer): the bar is there before the rest.
 
 (function () {
   const CLE = "analogues-derniere-zone";
@@ -25,11 +25,11 @@
     }
   }
 
-  /** Mémorise la dernière zone comparée ({ body, id, km2 }) ; appelé par analogues.js. */
+  /** Memorizes the last compared area ({ body, id, km2 }); called by analogues.js. */
   function memoriser(z) {
     const avant = lire();
     const neuf = avant && avant.id === z.id && avant.body === z.body ? { ...avant, ...z } : z;
-    try { localStorage.setItem(CLE, JSON.stringify(neuf)); } catch (e) { /* navigation privée */ }
+    try { localStorage.setItem(CLE, JSON.stringify(neuf)); } catch (e) { /* private browsing */ }
     majTerre();
   }
 
@@ -69,7 +69,7 @@
     if (e.key === "Escape" && nav.classList.contains("ouvert")) { nav.classList.remove("ouvert"); bouton.setAttribute("aria-expanded", "false"); bouton.focus(); }
   });
 
-  /** Le lien « Terre » : résultats de la dernière zone, ou le globe à explorer. */
+  /** The "Earth" link: results of the last area, or the globe to explore. */
   function majTerre() {
     const t = nav.querySelector('[data-cle="terre"]');
     const zone = lire();
