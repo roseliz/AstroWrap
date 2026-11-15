@@ -177,8 +177,25 @@
       if (change) apresChangement();
       return;
     }
-    const nouvelles = [...touchees].filter((c) => !etat.tuiles.has(c));
+    let nouvelles = [...touchees].filter((c) => !etat.tuiles.has(c));
     if (!nouvelles.length) return;
+    // One area at a time: with an area already painted, only the tiles that extend it are kept (neighbors of a tile
+    // of the area, or linked to it by other tiles of this brush stroke).
+    if (etat.tuiles.size) {
+      const candidates = new Set(nouvelles), gardees = new Set(), file = [];
+      candidates.forEach((c) => {
+        if (H.gridDisk(c, 1).some((n) => n !== c && etat.tuiles.has(n))) { gardees.add(c); file.push(c); }
+      });
+      while (file.length) {
+        for (const n of H.gridDisk(file.pop(), 1)) if (candidates.has(n) && !gardees.has(n)) { gardees.add(n); file.push(n); }
+      }
+      if (gardees.size < candidates.size) {
+        etat.message = { type: "alerte", texte: `One area at a time: paint next to your area, or clear it to start somewhere else on ${NOM_CORPS}.` };
+        majMessage();
+      }
+      nouvelles = [...gardees];
+      if (!nouvelles.length) return;
+    }
     if (etat.tuiles.size + nouvelles.length > MAX_TUILES) {
       etat.message = { type: "alerte", texte: `Area too large: at most ${nb.format(MAX_TUILES)} tiles (~${nb.format(MAX_TUILES * surfaceMoyenne())} km²). Zoom in or use a finer brush.` };
       majMessage();
@@ -555,14 +572,19 @@
       if (liste.length) localStorage.setItem(CLE_ZONE, liste.join(","));
       else localStorage.removeItem(CLE_ZONE);
     } catch (e) { /* navigation privée ou stockage plein : la zone reste seulement dans la page */ }
+    // no area: no more cached results behind the "Earth" link (except while an area is read back from the server)
+    if (!liste.length && !relectureServeur && window.navigation && window.navigation.oublier) window.navigation.oublier();
   }
+  let relectureServeur = false;
 
   /** Retour depuis la Terre (mars.html#<id>) : la zone comparée, relue sur le serveur. */
   function lireZoneServeur() {
     const m = location.hash.match(/^#([0-9a-f]{12})$/);
     if (!m) return;
     history.replaceState(null, "", location.pathname + location.search);
+    relectureServeur = true;
     fetch(`${API}/api/zones/${m[1]}`).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      relectureServeur = false;
       if (!d || !d.h3_cells) return;
       const tuiles = new Set();
       H.uncompactCells(d.h3_cells.filter((c) => H.isValidCell(c) && H.getResolution(c) <= RES_BASE), RES_BASE)
@@ -571,7 +593,7 @@
       etat.tuiles.clear();
       tuiles.forEach((c) => etat.tuiles.add(c));
       apresChangement(true);
-    }).catch(() => {});
+    }).catch(() => { relectureServeur = false; });
   }
 
   function lireAdresse() {
