@@ -1,6 +1,7 @@
-# Earth Analogues
+# AstroWrap web interface
 
-NASA Space Apps Challenge 2026: Find locations on Earth that resemble a selected region of the Moon or Mars.
+NASA Space Apps Challenge 2026: find locations on Earth that resemble a selected region of the Moon or Mars.
+Static pages in plain HTML, CSS and JavaScript (no framework, no bundler), served at [astrowrap.earth](https://astrowrap.earth).
 
 ## User Journey
 
@@ -21,17 +22,18 @@ NASA Space Apps Challenge 2026: Find locations on Earth that resemble a selected
    **A red-to-green gradient is always shown inside the region:** Each point has a terrain type, slope and roughness (elevation standard deviation over ~1.5 km), grouped into a 2D histogram. Its color equals the proportion of this terrain type in the opposite region divided by its proportion in its own region (capped at 1), smoothed. Green means that terrain also occurs on the other side; red means it is rare or absent. Identical regions are green throughout. This is **not a point-by-point comparison**: one corner of Mars need not resemble the corresponding corner of the Earth site.
 
    Everything fits on one screen (maps, cross-section, slopes; scrolling only on phones). Tooltips explain the cross-section, slopes, percentages, gradient scale and data credits. Terrain and imagery come from `GET /api/relief`. Escape closes the view.
-7. **“✦ View the recap”** (small button in site details): Opens `bilan.html` in a new tab, an animated “Wrapped”-style recap: eleven full-screen slides, progress bar, little text, split “Mars | Earth” where suitable. In order: score; funnel (from 613,252 regions to one site); criteria radar; side-by-side 3D terrain (only when terrain is similar); day/night temperatures; rock composition; similarities; differences; best-matching use profile (weight presets); site limitations (vegetation, missing/partial data, gravity and pressure that no Earth site reproduces); summary. Everything comes from the server; slides with missing data are skipped. ‹ › or arrows navigate, P pauses, Escape closes. URL carries region ID, weights and score: `bilan.html?w=…&s=…&n=…#mars/<zone>/<cellule>`.
+7. **“Play the AstroWrap”** (button in site details): Opens `bilan.html` in a new tab, an animated “Wrapped”-style recap: full-screen slides, progress bar, little text, split “Mars | Earth” where suitable. In order: score; funnel (from 613,252 regions to one site); criteria radar; side-by-side 3D terrain (only when terrain is similar); day/night temperatures; rock composition; similarities; differences; best-matching use profile (weight presets); site limitations (vegetation, missing/partial data, gravity and pressure that no Earth site reproduces); impact of a test campaign; summary; and last, “But in this area…”, live warnings around the site (protected areas, earthquakes, natural events, weather of the past year) fetched from public APIs by `js/wrap-environnement.js`. Everything comes from the server; slides with missing data are skipped. ‹ › or arrows navigate, P pauses, Escape closes. URL carries region ID, weights and score: `bilan.html?w=…&s=…&n=…#mars/<zone>/<cellule>`.
 8. **Known analogues** (below the site list): Sites scientists already compare with Mars or the Moon (Devon Island, Atacama, Dry Valleys, etc.), each at its **actual rank** for the painted region (“Top 1%”, 263rd of 20,326 candidates), showing whether it passes the funnel or where it is excluded. They are never added artificially to the ranking; diamonds mark them on the globe and open their details. Mineral analogues (Rio Tinto, Lake Salda) are marked out of scope. Global validation of these pairs remains in the API (`GET /api/validation`; see `../server/README.md`).
 
 The server must be running (see `../server/README.md`); otherwise the page indicates this.
 
 ## Pages
 
-A **navigation bar** (`js/navigation.js`, `css/navigation.css`) appears on every page except the recap. The site name returns home; **Moon** and **Mars** open region painting; **Earth** reopens the latest comparison (saved in the browser and indicated by a colored dot), otherwise the explorable globe (`index.html#terre`, without welcome screen); **About** is on the right. On phones, ☰ expands links. The `?api=…` parameter follows navigation.
+A **navigation bar** (`js/navigation.js`, `css/navigation.css`) appears on every page except the recap. The site name returns home; **Moon** and **Mars** open region painting; **Earth** reopens the latest comparison (saved in the browser and indicated by a colored dot), otherwise the explorable globe (`index.html#terre`, without welcome screen); **How it works** and **About** are on the right. On phones, ☰ expands links. The `?api=…` parameter follows navigation.
 
 - `index.html`: Home (Moon/Mars selection), then 3D Earth (MapLibre GL), switchable to 2D, and comparison results.
 - `bilan.html`: A site's AstroWrap, animated card-by-card recap (`js/bilan.js`, `css/bilan.css`), opened from “Play the AstroWrap” or the “Your AstroWrap is ready” screen after the first search. Logo and favicon in `images/` (transparent background).
+- `fonctionnement.html`: How it works, two animated panels (pre-processing, then the live search) drawn on a canvas, with step-by-step narration (`js/fonctionnement.js`, `css/fonctionnement.css`).
 - `apropos.html`: What the tool does, methodology, limitations, data sources and credits, team.
 - `lune.html`: 3D Moon (globe.gl), 2D switch and region selection. Displays poles, unlike MapLibre beyond 85° latitude.
 - `mars.html`: 3D Mars (globe.gl), same functions as the Moon, with a halo for its thin atmosphere.
@@ -103,7 +105,19 @@ css/accueil.css
 js/globe-terre.js                    MapLibre globe, 2D map, grid, coordinates
 js/analogues.js                      Mars/Moon comparison (server, layers, panel, known analogues)
 css/analogues.css
-apropos.html                         About: methodology, limitations, sources (css/pages.css)
+apropos.html                         About: methodology, limitations, sources, GitHub link (css/pages.css)
+fonctionnement.html                  How it works: two animated panels
+js/fonctionnement.js                 Canvas animations and narration of How it works
+css/fonctionnement.css
+bilan.html                           AstroWrap recap
+js/bilan.js                          Recap slides
+css/bilan.css
+js/relief-bilan.js                   Terrain square of the recap's 3D slide (shared with analogues.js)
+js/wrap-environnement.js             Recap's last slide: live warnings from public APIs
+js/vue-3d.js                         “Compare the terrain”: 2D, cross-section, slopes, 3D
+js/villes.js                         Departure cities for the flight CO₂ (Natural Earth)
+js/satellites.js                     Satellites around the globes: one per module, with its sources
+css/satellites.css
 js/navigation.js                     Navigation on every page (except recap)
 css/navigation.css
 lune.html                            Moon globe
@@ -120,7 +134,7 @@ css/reperes.css
 textures/                            Moon/Mars imagery encoded in .js
 ```
 
-`js/cle-carto.js` and `js/cle-carto.exemple.js` are no longer used: the “Map” basemap was removed from the Earth page. They can be deleted.
+`js/cle-carto.exemple.js` is no longer used: the “Map” basemap was removed from the Earth page. It can be deleted.
 
 ## Moon Textures
 

@@ -65,7 +65,7 @@ The work happens in two stages.
 | [`ui/`](ui) | Web interface: globes, area selection, results, AstroWrap recap, About and How it works pages | [ui/README.md](ui/README.md) |
 | [`server/`](server) | FastAPI application: search, site cards, 3D terrain, impact | [server/README.md](server/README.md) |
 | [`server/deploy/`](server/deploy) | Terraform for AWS and Google Cloud, publishing scripts | [server/deploy/DEPLOY.md](server/deploy/DEPLOY.md) |
-| [`modules_pretraitement/`](modules_pretraitement) | The pre-processing modules, one folder each | see below |
+| [`modules_pretraitement/`](modules_pretraitement) | The pre-processing modules, one folder each | [modules_pretraitement/README.md](modules_pretraitement/README.md) |
 | `pretreatment_data/` | Module results (Parquet), not versioned: shared as GitHub releases | [scripts/releases.py](scripts/releases.py) |
 | [`scripts/`](scripts) | Environment check, data audit, release publishing | |
 
