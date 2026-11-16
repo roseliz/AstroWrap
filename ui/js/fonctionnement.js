@@ -619,7 +619,8 @@
       panneau.hidden = !oui;
     });
     if (focus) onglet.focus();
-    lecteurs[onglet.getAttribute("aria-controls")].aller(0);
+    const lecteur = lecteurs[onglet.getAttribute("aria-controls")];   // the validation tab has no animation
+    if (lecteur) lecteur.aller(0);
     history.replaceState(null, "", "#" + onglet.getAttribute("aria-controls"));
   }
   onglets.forEach((o, j) => {

@@ -1,0 +1,4603 @@
+{
+ "areas": [
+  {
+   "id": "jezero",
+   "body": "mars",
+   "name": "Jezero crater",
+   "lat": 18.44,
+   "lon": 77.45,
+   "radius_km": 20,
+   "rings": 6,
+   "cells": 127,
+   "area_km2": 1299,
+   "footprint": {
+    "rings": 1,
+    "cells": 7,
+    "area_km2": 1770,
+    "zone_area_km2": 1299,
+    "max_water": 0.15
+   },
+   "active": [
+    "topography",
+    "geology",
+    "thermal",
+    "wind",
+    "volatiles"
+   ],
+   "inactive": [
+    {
+     "key": "astro",
+     "reason": "no data on the area"
+    }
+   ],
+   "weights": {
+    "topography": 0.2,
+    "geology": 0.2,
+    "thermal": 0.2,
+    "wind": 0.2,
+    "volatiles": 0.2
+   },
+   "medians": {
+    "topography": 0.5771,
+    "geology": 0.0,
+    "thermal": 0.5804,
+    "wind": 0.5678,
+    "volatiles": 0.8698
+   },
+   "funnel": [
+    {
+     "stage": "start",
+     "module": null,
+     "cells_remaining": 613252,
+     "message": "Land cells"
+    },
+    {
+     "stage": "filters",
+     "module": null,
+     "cells_remaining": 158402,
+     "message": "Filters: vegetation ≤ 30%"
+    },
+    {
+     "stage": "module",
+     "module": "topography",
+     "cells_remaining": 158402,
+     "message": "Terrain: 1/5"
+    },
+    {
+     "stage": "module",
+     "module": "geology",
+     "cells_remaining": 158402,
+     "message": "Rocks: 2/5"
+    },
+    {
+     "stage": "module",
+     "module": "thermal",
+     "cells_remaining": 80818,
+     "message": "Temperature and light: 3/5"
+    },
+    {
+     "stage": "module",
+     "module": "wind",
+     "cells_remaining": 59665,
+     "message": "Wind and dust: 4/5"
+    },
+    {
+     "stage": "module",
+     "module": "volatiles",
+     "cells_remaining": 45477,
+     "message": "Water and ice: 5/5"
+    }
+   ],
+   "n_eligible": 589677,
+   "n_gated": 51508,
+   "n_land": 613252,
+   "top10": [
+    {
+     "h3": "854261cbfffffff",
+     "lat": 32.52152954145226,
+     "lon": 69.03920591802455,
+     "score": 0.7388,
+     "vegetation": 0.059,
+     "urban": 0.0,
+     "cloud": 0.22
+    },
+    {
+     "h3": "852482abfffffff",
+     "lat": 36.98982030585659,
+     "lon": 97.3148246197985,
+     "score": 0.7306,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.398
+    },
+    {
+     "h3": "853d0aaffffffff",
+     "lat": 32.57684519050435,
+     "lon": 82.86293832364642,
+     "score": 0.7234,
+     "vegetation": 0.001,
+     "urban": 0.0,
+     "cloud": 0.44
+    },
+    {
+     "h3": "853992cffffffff",
+     "lat": 28.14069111137879,
+     "lon": -11.856444352845998,
+     "score": 0.717,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.281
+    },
+    {
+     "h3": "85b30d0bfffffff",
+     "lat": -20.965404272713684,
+     "lon": -67.47913761012806,
+     "score": 0.7162,
+     "vegetation": 0.282,
+     "urban": 0.0,
+     "cloud": 0.409
+    },
+    {
+     "h3": "852ced33fffffff",
+     "lat": 41.40825842642307,
+     "lon": 54.14526737393321,
+     "score": 0.7114,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.396
+    },
+    {
+     "h3": "85632477fffffff",
+     "lat": 19.012269277299186,
+     "lon": 57.77872814628683,
+     "score": 0.7088,
+     "vegetation": 0.002,
+     "urban": 0.0,
+     "cloud": 0.4
+    },
+    {
+     "h3": "85521827fffffff",
+     "lat": 16.045149883974766,
+     "lon": 44.07202021564885,
+     "score": 0.7052,
+     "vegetation": 0.029,
+     "urban": 0.0,
+     "cloud": 0.487
+    },
+    {
+     "h3": "852581cffffffff",
+     "lat": 43.80614003531063,
+     "lon": 92.15263574461764,
+     "score": 0.7044,
+     "vegetation": 0.019,
+     "urban": 0.0,
+     "cloud": 0.405
+    },
+    {
+     "h3": "8524e10bfffffff",
+     "lat": 41.52070749114293,
+     "lon": 107.10640688565701,
+     "score": 0.7024,
+     "vegetation": 0.01,
+     "urban": 0.0,
+     "cloud": 0.338
+    }
+   ],
+   "analogs": [
+    {
+     "id": "atacama",
+     "name": "Atacama Desert",
+     "source": "Navarro-González et al. 2003",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 74686,
+     "n": 589677,
+     "pct": 0.12665577935039013,
+     "passes_gates": true,
+     "below_median": [
+      "thermal"
+     ],
+     "per_module": {
+      "topography": 0.708,
+      "geology": 0.489,
+      "thermal": 0.491,
+      "wind": 0.628,
+      "volatiles": 0.964
+     },
+     "in_top10": false,
+     "rank_slope": 116637,
+     "n_slope": 603853,
+     "pct_slope": 0.1931546253806804,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "mdrs",
+     "name": "Mars Desert Research Station",
+     "source": "Mars Society (MDRS station)",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 395,
+     "n": 589677,
+     "pct": 0.0006698582444287296,
+     "passes_gates": false,
+     "below_median": [
+      "thermal"
+     ],
+     "per_module": {
+      "topography": 0.754,
+      "geology": 0.658,
+      "thermal": 0.542,
+      "wind": 0.782,
+      "volatiles": 0.901
+     },
+     "in_top10": false,
+     "rank_slope": 27136,
+     "n_slope": 603853,
+     "pct_slope": 0.04493808923695005,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "salda",
+     "name": "Lake Salda",
+     "source": "Horgan et al. 2020",
+     "expected": false,
+     "minerals": true,
+     "cells": 7,
+     "rank": 32371,
+     "n": 589677,
+     "pct": 0.05489615501367698,
+     "passes_gates": true,
+     "below_median": [],
+     "per_module": {
+      "topography": 0.661,
+      "geology": 0.503,
+      "thermal": 0.603,
+      "wind": 0.685,
+      "volatiles": 0.902
+     },
+     "in_top10": false,
+     "rank_slope": 248628,
+     "n_slope": 603853,
+     "pct_slope": 0.41173596885334673,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "qaidam",
+     "name": "Qaidam Basin (Dalangtan)",
+     "source": "Xiao et al. 2017",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 15480,
+     "n": 589677,
+     "pct": 0.026251659806979074,
+     "passes_gates": false,
+     "below_median": [
+      "topography",
+      "thermal"
+     ],
+     "per_module": {
+      "topography": 0.558,
+      "geology": 0.607,
+      "thermal": 0.556,
+      "wind": 0.783,
+      "volatiles": 0.964
+     },
+     "in_top10": false,
+     "rank_slope": 33603,
+     "n_slope": 603853,
+     "pct_slope": 0.05564764934512208,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    }
+   ],
+   "example": [
+    {
+     "key": "topography",
+     "name": "Terrain",
+     "similarity": 0.698,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "slopes",
+       "label": "Slope distribution (deciles)",
+       "mode": "deciles",
+       "unit": "°",
+       "reference": [
+        0.79,
+        1.1,
+        1.39,
+        1.68,
+        2.04,
+        2.47,
+        3.12,
+        4.04,
+        5.28
+       ],
+       "earth": [
+        1.19,
+        1.66,
+        2.1,
+        2.55,
+        3.07,
+        3.7,
+        4.53,
+        5.65,
+        7.48
+       ],
+       "similarity": 0.901,
+       "compared": true,
+       "range": [
+        0.0,
+        25.443
+       ]
+      },
+      {
+       "key": "part_pente_inf_5",
+       "label": "Flat ground share (< 5°)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.856,
+       "earth": 0.741,
+       "similarity": 0.859,
+       "compared": true,
+       "range": [
+        0.068,
+        1.0
+       ]
+      },
+      {
+       "key": "rugosite_rms",
+       "label": "Roughness (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.687,
+       "earth": 0.7805,
+       "similarity": 0.892,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 5.285,
+       "earth_value": 17.7
+      },
+      {
+       "key": "elevation_range",
+       "label": "Local elevation range (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.6892,
+       "earth": 0.8312,
+       "similarity": 0.836,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 250.1,
+       "earth_value": 449.9
+      },
+      {
+       "key": "densite_crateres",
+       "label": "Crater density (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.5217,
+       "earth": 0.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 2.253,
+       "earth_value": 0.0
+      }
+     ]
+    },
+    {
+     "key": "geology",
+     "name": "Rocks",
+     "similarity": 0.643,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lithology",
+       "label": "Rock types",
+       "mode": "hellinger",
+       "unit": "",
+       "reference": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.78,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.22
+       },
+       "earth": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.976,
+        "non_consolide": 0.024,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.0
+       },
+       "similarity": 0.643,
+       "compared": true,
+       "range": null
+      }
+     ]
+    },
+    {
+     "key": "thermal",
+     "name": "Temperature and light",
+     "similarity": 0.593,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lst_day_mean",
+       "label": "Ground temperature, day",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 263.8193,
+       "earth": 301.9512,
+       "similarity": 0.443,
+       "compared": true,
+       "range": [
+        224.561,
+        317.656
+       ]
+      },
+      {
+       "key": "lst_night_mean",
+       "label": "Ground temperature, night",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 199.2604,
+       "earth": 281.7642,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        222.344,
+        297.125
+       ]
+      },
+      {
+       "key": "amplitude",
+       "label": "Day-night range",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 64.5589,
+       "earth": 20.187,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.861,
+        25.818
+       ]
+      },
+      {
+       "key": "cold_fraction",
+       "label": "Share of very cold time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "hot_fraction",
+       "label": "Share of very hot time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.071,
+       "similarity": 0.87,
+       "compared": true,
+       "range": [
+        0.0,
+        0.643
+       ]
+      },
+      {
+       "key": "daylight_fraction_min",
+       "label": "Daylight share, darkest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4499,
+       "earth": 0.4109,
+       "similarity": 0.919,
+       "compared": true,
+       "range": [
+        0.0,
+        0.496
+       ]
+      },
+      {
+       "key": "daylight_fraction_max",
+       "label": "Daylight share, brightest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5501,
+       "earth": 0.5891,
+       "similarity": 0.919,
+       "compared": true,
+       "range": [
+        0.504,
+        1.0
+       ]
+      }
+     ]
+    },
+    {
+     "key": "wind",
+     "name": "Wind and dust",
+     "similarity": 0.798,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "vent_fort_rel",
+       "label": "Strong winds (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.1455,
+       "earth": 0.5331,
+       "similarity": 0.553,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "× sand threshold",
+       "reference_value": 0.346,
+       "earth_value": 1.073
+      },
+      {
+       "key": "part_dunes",
+       "label": "Dune share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "part_sol_nu",
+       "label": "Bare ground share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 1.0,
+       "earth": 0.7987,
+       "similarity": 0.793,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "poussiere_rang",
+       "label": "Dust (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.8084,
+       "earth": 0.814,
+       "similarity": 0.994,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      },
+      {
+       "key": "tempetes_rang",
+       "label": "Dust storms (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4921,
+       "earth": 0.8632,
+       "similarity": 0.65,
+       "compared": true,
+       "range": [
+        0.0,
+        0.98
+       ]
+      }
+     ]
+    },
+    {
+     "key": "volatiles",
+     "name": "Water and ice",
+     "similarity": 0.962,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "part_glace_surface",
+       "label": "Surface ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "indice_glace_sol",
+       "label": "Ground ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0616,
+       "earth": 0.0,
+       "similarity": 0.927,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "eau_sol_rang",
+       "label": "Soil water (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.3674,
+       "earth": 0.3311,
+       "similarity": 0.958,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      }
+     ]
+    }
+   ],
+   "duration_s": 3.18
+  },
+  {
+   "id": "gale",
+   "body": "mars",
+   "name": "Gale crater (Curiosity)",
+   "lat": -4.59,
+   "lon": 137.44,
+   "radius_km": 30,
+   "rings": 9,
+   "cells": 271,
+   "area_km2": 2771,
+   "footprint": {
+    "rings": 1,
+    "cells": 7,
+    "area_km2": 1770,
+    "zone_area_km2": 2771,
+    "max_water": 0.15
+   },
+   "active": [
+    "topography",
+    "geology",
+    "thermal",
+    "wind",
+    "volatiles"
+   ],
+   "inactive": [
+    {
+     "key": "astro",
+     "reason": "no data on the area"
+    }
+   ],
+   "weights": {
+    "topography": 0.2,
+    "geology": 0.2,
+    "thermal": 0.2,
+    "wind": 0.2,
+    "volatiles": 0.2
+   },
+   "medians": {
+    "topography": 0.4246,
+    "geology": 0.0,
+    "thermal": 0.5692,
+    "wind": 0.5661,
+    "volatiles": 0.8022
+   },
+   "funnel": [
+    {
+     "stage": "start",
+     "module": null,
+     "cells_remaining": 613252,
+     "message": "Land cells"
+    },
+    {
+     "stage": "filters",
+     "module": null,
+     "cells_remaining": 158402,
+     "message": "Filters: vegetation ≤ 30%"
+    },
+    {
+     "stage": "module",
+     "module": "topography",
+     "cells_remaining": 158402,
+     "message": "Terrain: 1/5"
+    },
+    {
+     "stage": "module",
+     "module": "geology",
+     "cells_remaining": 158402,
+     "message": "Rocks: 2/5"
+    },
+    {
+     "stage": "module",
+     "module": "thermal",
+     "cells_remaining": 68726,
+     "message": "Temperature and light: 3/5"
+    },
+    {
+     "stage": "module",
+     "module": "wind",
+     "cells_remaining": 56456,
+     "message": "Wind and dust: 4/5"
+    },
+    {
+     "stage": "module",
+     "module": "volatiles",
+     "cells_remaining": 31299,
+     "message": "Water and ice: 5/5"
+    }
+   ],
+   "n_eligible": 589677,
+   "n_gated": 68677,
+   "n_land": 613252,
+   "top10": [
+    {
+     "h3": "853d016bfffffff",
+     "lat": 33.17620920344935,
+     "lon": 80.63681270552733,
+     "score": 0.6961,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.435
+    },
+    {
+     "h3": "85208daffffffff",
+     "lat": 39.67749448732776,
+     "lon": 75.46079436329892,
+     "score": 0.664,
+     "vegetation": 0.035,
+     "urban": 0.0,
+     "cloud": 0.459
+    },
+    {
+     "h3": "8530c193fffffff",
+     "lat": 35.884997206950516,
+     "lon": 128.59622597174985,
+     "score": 0.6542,
+     "vegetation": 0.299,
+     "urban": 0.701,
+     "cloud": 0.444
+    },
+    {
+     "h3": "853d69affffffff",
+     "lat": 38.95594922550554,
+     "lon": 92.19810539749449,
+     "score": 0.6479,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.366
+    },
+    {
+     "h3": "853f76d3fffffff",
+     "lat": 36.60389475703036,
+     "lon": 22.79731061911711,
+     "score": 0.6462,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.291
+    },
+    {
+     "h3": "8524338ffffffff",
+     "lat": 44.97459499767617,
+     "lon": 98.51413107198887,
+     "score": 0.645,
+     "vegetation": 0.055,
+     "urban": 0.0,
+     "cloud": 0.359
+    },
+    {
+     "h3": "85b22cb7fffffff",
+     "lat": -25.05781493970086,
+     "lon": -67.04673496634162,
+     "score": 0.6438,
+     "vegetation": 0.003,
+     "urban": 0.0,
+     "cloud": 0.251
+    },
+    {
+     "h3": "85401963fffffff",
+     "lat": 29.620458269269594,
+     "lon": 106.48839586756522,
+     "score": 0.6432,
+     "vegetation": 0.259,
+     "urban": 0.739,
+     "cloud": 0.51
+    },
+    {
+     "h3": "850cd893fffffff",
+     "lat": 55.36246456150075,
+     "lon": -161.8550705809145,
+     "score": 0.6336,
+     "vegetation": 0.273,
+     "urban": 0.0,
+     "cloud": 0.716
+    },
+    {
+     "h3": "85480ddbfffffff",
+     "lat": 25.95898017833594,
+     "lon": -111.05708793035383,
+     "score": 0.63,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.385
+    }
+   ],
+   "analogs": [
+    {
+     "id": "atacama",
+     "name": "Atacama Desert",
+     "source": "Navarro-González et al. 2003",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 16224,
+     "n": 589677,
+     "pct": 0.02751336748762458,
+     "passes_gates": true,
+     "below_median": [
+      "thermal"
+     ],
+     "per_module": {
+      "topography": 0.75,
+      "geology": 0.273,
+      "thermal": 0.529,
+      "wind": 0.66,
+      "volatiles": 0.946
+     },
+     "in_top10": false,
+     "rank_slope": 2203,
+     "n_slope": 603853,
+     "pct_slope": 0.0036482388925781605,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "mdrs",
+     "name": "Mars Desert Research Station",
+     "source": "Mars Society (MDRS station)",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 33814,
+     "n": 589677,
+     "pct": 0.057343257410412816,
+     "passes_gates": false,
+     "below_median": [
+      "thermal",
+      "volatiles"
+     ],
+     "per_module": {
+      "topography": 0.64,
+      "geology": 0.396,
+      "thermal": 0.546,
+      "wind": 0.752,
+      "volatiles": 0.696
+     },
+     "in_top10": false,
+     "rank_slope": 48097,
+     "n_slope": 603853,
+     "pct_slope": 0.07965017976229315,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "qaidam",
+     "name": "Qaidam Basin (Dalangtan)",
+     "source": "Xiao et al. 2017",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 37660,
+     "n": 589677,
+     "pct": 0.06386547211439483,
+     "passes_gates": false,
+     "below_median": [
+      "topography",
+      "thermal"
+     ],
+     "per_module": {
+      "topography": 0.345,
+      "geology": 0.398,
+      "thermal": 0.543,
+      "wind": 0.826,
+      "volatiles": 0.946
+     },
+     "in_top10": true,
+     "rank_slope": 152729,
+     "n_slope": 603853,
+     "pct_slope": 0.2529241388218656,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    }
+   ],
+   "example": [
+    {
+     "key": "topography",
+     "name": "Terrain",
+     "similarity": 0.735,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "slopes",
+       "label": "Slope distribution (deciles)",
+       "mode": "deciles",
+       "unit": "°",
+       "reference": [
+        2.76,
+        3.57,
+        4.33,
+        5.19,
+        6.0,
+        6.79,
+        7.76,
+        8.91,
+        10.33
+       ],
+       "earth": [
+        0.7,
+        1.35,
+        2.13,
+        3.07,
+        4.32,
+        5.82,
+        7.68,
+        9.84,
+        12.96
+       ],
+       "similarity": 0.853,
+       "compared": true,
+       "range": [
+        0.0,
+        25.443
+       ]
+      },
+      {
+       "key": "part_pente_inf_5",
+       "label": "Flat ground share (< 5°)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5071,
+       "earth": 0.5549,
+       "similarity": 0.942,
+       "compared": true,
+       "range": [
+        0.068,
+        1.0
+       ]
+      },
+      {
+       "key": "rugosite_rms",
+       "label": "Roughness (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.7593,
+       "earth": 0.8472,
+       "similarity": 0.899,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 6.899,
+       "earth_value": 25.1
+      },
+      {
+       "key": "elevation_range",
+       "label": "Local elevation range (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.8813,
+       "earth": 0.8668,
+       "similarity": 0.983,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 889.7,
+       "earth_value": 542.0
+      },
+      {
+       "key": "densite_crateres",
+       "label": "Crater density (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.5828,
+       "earth": 0.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 2.639,
+       "earth_value": 0.0
+      }
+     ]
+    },
+    {
+     "key": "geology",
+     "name": "Rocks",
+     "similarity": 0.409,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lithology",
+       "label": "Rock types",
+       "mode": "hellinger",
+       "unit": "",
+       "reference": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.444,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.556
+       },
+       "earth": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.044,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.956,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.0
+       },
+       "similarity": 0.409,
+       "compared": true,
+       "range": null
+      }
+     ]
+    },
+    {
+     "key": "thermal",
+     "name": "Temperature and light",
+     "similarity": 0.611,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lst_day_mean",
+       "label": "Ground temperature, day",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 267.3983,
+       "earth": 293.8221,
+       "similarity": 0.614,
+       "compared": true,
+       "range": [
+        224.561,
+        317.656
+       ]
+      },
+      {
+       "key": "lst_night_mean",
+       "label": "Ground temperature, night",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 197.5376,
+       "earth": 265.922,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        222.344,
+        297.125
+       ]
+      },
+      {
+       "key": "amplitude",
+       "label": "Day-night range",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 69.8606,
+       "earth": 27.9001,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.861,
+        25.818
+       ]
+      },
+      {
+       "key": "cold_fraction",
+       "label": "Share of very cold time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "hot_fraction",
+       "label": "Share of very hot time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0083,
+       "earth": 0.0039,
+       "similarity": 0.992,
+       "compared": true,
+       "range": [
+        0.0,
+        0.643
+       ]
+      },
+      {
+       "key": "daylight_fraction_min",
+       "label": "Daylight share, darkest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4879,
+       "earth": 0.4085,
+       "similarity": 0.835,
+       "compared": true,
+       "range": [
+        0.0,
+        0.496
+       ]
+      },
+      {
+       "key": "daylight_fraction_max",
+       "label": "Daylight share, brightest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5121,
+       "earth": 0.5915,
+       "similarity": 0.835,
+       "compared": true,
+       "range": [
+        0.504,
+        1.0
+       ]
+      }
+     ]
+    },
+    {
+     "key": "wind",
+     "name": "Wind and dust",
+     "similarity": 0.767,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "vent_fort_rel",
+       "label": "Strong winds (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.3538,
+       "earth": 0.6776,
+       "similarity": 0.626,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "× sand threshold",
+       "reference_value": 0.436,
+       "earth_value": 1.241
+      },
+      {
+       "key": "part_dunes",
+       "label": "Dune share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0368,
+       "earth": 0.0,
+       "similarity": 0.947,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "part_sol_nu",
+       "label": "Bare ground share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 1.0,
+       "earth": 0.9869,
+       "similarity": 0.987,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "poussiere_rang",
+       "label": "Dust (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.7953,
+       "earth": 0.6043,
+       "similarity": 0.779,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      },
+      {
+       "key": "tempetes_rang",
+       "label": "Dust storms (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5361,
+       "earth": 0.0,
+       "similarity": 0.494,
+       "compared": true,
+       "range": [
+        0.0,
+        0.98
+       ]
+      }
+     ]
+    },
+    {
+     "key": "volatiles",
+     "name": "Water and ice",
+     "similarity": 0.996,
+     "reliability": 0.75,
+     "variables": [
+      {
+       "key": "part_glace_surface",
+       "label": "Surface ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "indice_glace_sol",
+       "label": "Ground ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0912,
+       "earth": 0.0852,
+       "similarity": 0.993,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "eau_sol_rang",
+       "label": "Soil water (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.8875,
+       "earth": null,
+       "similarity": null,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      }
+     ]
+    }
+   ],
+   "duration_s": 1.75
+  },
+  {
+   "id": "meridiani",
+   "body": "mars",
+   "name": "Meridiani Planum (Opportunity)",
+   "lat": -1.95,
+   "lon": -5.53,
+   "radius_km": 40,
+   "rings": 12,
+   "cells": 469,
+   "area_km2": 4796,
+   "footprint": {
+    "rings": 2,
+    "cells": 19,
+    "area_km2": 4805,
+    "zone_area_km2": 4796,
+    "max_water": 0.15
+   },
+   "active": [
+    "topography",
+    "geology",
+    "thermal",
+    "wind",
+    "volatiles"
+   ],
+   "inactive": [
+    {
+     "key": "astro",
+     "reason": "no data on the area"
+    }
+   ],
+   "weights": {
+    "topography": 0.2,
+    "geology": 0.2,
+    "thermal": 0.2,
+    "wind": 0.2,
+    "volatiles": 0.2
+   },
+   "medians": {
+    "topography": 0.6775,
+    "geology": 0.5,
+    "thermal": 0.5593,
+    "wind": 0.5002,
+    "volatiles": 0.8033
+   },
+   "funnel": [
+    {
+     "stage": "start",
+     "module": null,
+     "cells_remaining": 613252,
+     "message": "Land cells"
+    },
+    {
+     "stage": "filters",
+     "module": null,
+     "cells_remaining": 158402,
+     "message": "Filters: vegetation ≤ 30%"
+    },
+    {
+     "stage": "module",
+     "module": "topography",
+     "cells_remaining": 158402,
+     "message": "Terrain: 1/5"
+    },
+    {
+     "stage": "module",
+     "module": "geology",
+     "cells_remaining": 158402,
+     "message": "Rocks: 2/5"
+    },
+    {
+     "stage": "module",
+     "module": "thermal",
+     "cells_remaining": 125691,
+     "message": "Temperature and light: 3/5"
+    },
+    {
+     "stage": "module",
+     "module": "wind",
+     "cells_remaining": 80468,
+     "message": "Wind and dust: 4/5"
+    },
+    {
+     "stage": "module",
+     "module": "volatiles",
+     "cells_remaining": 36422,
+     "message": "Water and ice: 5/5"
+    }
+   ],
+   "n_eligible": 589677,
+   "n_gated": 33788,
+   "n_land": 613252,
+   "top10": [
+    {
+     "h3": "8552ae97fffffff",
+     "lat": 15.342382685180684,
+     "lon": 40.08233572925045,
+     "score": 0.7306,
+     "vegetation": 0.067,
+     "urban": 0.0,
+     "cloud": 0.519
+    },
+    {
+     "h3": "8521126ffffffff",
+     "lat": 45.47710290307838,
+     "lon": 60.493435634033304,
+     "score": 0.7265,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.462
+    },
+    {
+     "h3": "85439847fffffff",
+     "lat": 20.43183427927238,
+     "lon": 58.520783153651124,
+     "score": 0.7209,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.366
+    },
+    {
+     "h3": "852cc1d3fffffff",
+     "lat": 37.7594093423721,
+     "lon": 53.868804917090095,
+     "score": 0.7143,
+     "vegetation": 0.018,
+     "urban": 0.0,
+     "cloud": 0.282
+    },
+    {
+     "h3": "85299a77fffffff",
+     "lat": 40.48688714248749,
+     "lon": -113.48202352467817,
+     "score": 0.7117,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.433
+    },
+    {
+     "h3": "85588267fffffff",
+     "lat": 6.6241592823278035,
+     "lon": 3.3099750183144256,
+     "score": 0.7078,
+     "vegetation": 0.0,
+     "urban": 1.0,
+     "cloud": 0.713
+    },
+    {
+     "h3": "8530165bfffffff",
+     "lat": 37.4662589217984,
+     "lon": 118.94036242141951,
+     "score": 0.7077,
+     "vegetation": 0.151,
+     "urban": 0.0,
+     "cloud": 0.359
+    },
+    {
+     "h3": "8524953bfffffff",
+     "lat": 36.50230621583888,
+     "lon": 96.0605699763724,
+     "score": 0.701,
+     "vegetation": 0.078,
+     "urban": 0.0,
+     "cloud": 0.402
+    },
+    {
+     "h3": "8575198ffffffff",
+     "lat": 5.4154795002818865,
+     "lon": -3.987108395870828,
+     "score": 0.6991,
+     "vegetation": 0.227,
+     "urban": 0.773,
+     "cloud": 0.655
+    },
+    {
+     "h3": "852ecb0ffffffff",
+     "lat": 45.27507754339443,
+     "lon": 132.35349933613145,
+     "score": 0.6956,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.48
+    }
+   ],
+   "analogs": [
+    {
+     "id": "atacama",
+     "name": "Atacama Desert",
+     "source": "Navarro-González et al. 2003",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 115129,
+     "n": 589677,
+     "pct": 0.19524078436160813,
+     "passes_gates": false,
+     "below_median": [
+      "topography"
+     ],
+     "per_module": {
+      "topography": 0.666,
+      "geology": null,
+      "thermal": 0.589,
+      "wind": 0.525,
+      "volatiles": 0.943
+     },
+     "in_top10": false,
+     "rank_slope": 352031,
+     "n_slope": 603853,
+     "pct_slope": 0.582974664363678,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "rio_tinto",
+     "name": "Rio Tinto",
+     "source": "Fernández-Remolar et al. 2005",
+     "expected": false,
+     "minerals": true,
+     "cells": 7,
+     "rank": 140652,
+     "n": 589677,
+     "pct": 0.23852380201364476,
+     "passes_gates": false,
+     "below_median": [
+      "topography",
+      "volatiles"
+     ],
+     "per_module": {
+      "topography": 0.564,
+      "geology": null,
+      "thermal": 0.579,
+      "wind": 0.725,
+      "volatiles": 0.787
+     },
+     "in_top10": false,
+     "rank_slope": 430967,
+     "n_slope": 603853,
+     "pct_slope": 0.7136952205255253,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "qaidam",
+     "name": "Qaidam Basin (Dalangtan)",
+     "source": "Xiao et al. 2017",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 31,
+     "n": 589677,
+     "pct": 5.257115336022941e-05,
+     "passes_gates": true,
+     "below_median": [],
+     "per_module": {
+      "topography": 0.767,
+      "geology": null,
+      "thermal": 0.594,
+      "wind": 0.9,
+      "volatiles": 0.943
+     },
+     "in_top10": false,
+     "rank_slope": 50002,
+     "n_slope": 603853,
+     "pct_slope": 0.08280492106522613,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    }
+   ],
+   "example": [
+    {
+     "key": "topography",
+     "name": "Terrain",
+     "similarity": 0.772,
+     "reliability": 0.41,
+     "variables": [
+      {
+       "key": "slopes",
+       "label": "Slope distribution (deciles)",
+       "mode": "deciles",
+       "unit": "°",
+       "reference": [
+        0.2,
+        0.27,
+        0.33,
+        0.4,
+        0.48,
+        0.57,
+        0.68,
+        0.88,
+        1.27
+       ],
+       "earth": [
+        0.14,
+        0.24,
+        0.33,
+        0.42,
+        0.51,
+        0.63,
+        0.82,
+        1.09,
+        1.56
+       ],
+       "similarity": 0.992,
+       "compared": true,
+       "range": [
+        0.0,
+        25.443
+       ]
+      },
+      {
+       "key": "part_pente_inf_5",
+       "label": "Flat ground share (< 5°)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.9868,
+       "earth": 0.9792,
+       "similarity": 0.991,
+       "compared": true,
+       "range": [
+        0.068,
+        1.0
+       ]
+      },
+      {
+       "key": "rugosite_rms",
+       "label": "Roughness (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.2518,
+       "earth": 0.3585,
+       "similarity": 0.877,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 1.373,
+       "earth_value": 3.846
+      },
+      {
+       "key": "elevation_range",
+       "label": "Local elevation range (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.2624,
+       "earth": 0.2636,
+       "similarity": 0.999,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 57.2,
+       "earth_value": 60.6
+      },
+      {
+       "key": "densite_crateres",
+       "label": "Crater density (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.9789,
+       "earth": 0.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 11.7,
+       "earth_value": 0.0
+      }
+     ]
+    },
+    {
+     "key": "geology",
+     "name": "Rocks",
+     "similarity": null,
+     "reliability": 0.89,
+     "variables": [
+      {
+       "key": "lithology",
+       "label": "Rock types",
+       "mode": "hellinger",
+       "unit": "",
+       "reference": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.0,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 1.0
+       },
+       "earth": {
+        "basalte": 0.346,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.048,
+        "non_consolide": 0.581,
+        "carbonate": 0.026,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.0
+       },
+       "similarity": null,
+       "compared": false,
+       "range": null
+      }
+     ]
+    },
+    {
+     "key": "thermal",
+     "name": "Temperature and light",
+     "similarity": 0.615,
+     "reliability": 0.99,
+     "variables": [
+      {
+       "key": "lst_day_mean",
+       "label": "Ground temperature, day",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 277.0922,
+       "earth": 311.986,
+       "similarity": 0.49,
+       "compared": true,
+       "range": [
+        224.561,
+        317.656
+       ]
+      },
+      {
+       "key": "lst_night_mean",
+       "label": "Ground temperature, night",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 197.9109,
+       "earth": 300.0669,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        222.344,
+        297.125
+       ]
+      },
+      {
+       "key": "amplitude",
+       "label": "Day-night range",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 79.1813,
+       "earth": 11.9191,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.861,
+        25.818
+       ]
+      },
+      {
+       "key": "cold_fraction",
+       "label": "Share of very cold time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "hot_fraction",
+       "label": "Share of very hot time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.2209,
+       "earth": 0.2457,
+       "similarity": 0.955,
+       "compared": true,
+       "range": [
+        0.0,
+        0.643
+       ]
+      },
+      {
+       "key": "daylight_fraction_min",
+       "label": "Daylight share, darkest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4949,
+       "earth": 0.4621,
+       "similarity": 0.932,
+       "compared": true,
+       "range": [
+        0.0,
+        0.496
+       ]
+      },
+      {
+       "key": "daylight_fraction_max",
+       "label": "Daylight share, brightest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5051,
+       "earth": 0.5379,
+       "similarity": 0.932,
+       "compared": true,
+       "range": [
+        0.504,
+        1.0
+       ]
+      }
+     ]
+    },
+    {
+     "key": "wind",
+     "name": "Wind and dust",
+     "similarity": 0.861,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "vent_fort_rel",
+       "label": "Strong winds (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.2801,
+       "earth": 0.7057,
+       "similarity": 0.509,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "× sand threshold",
+       "reference_value": 0.402,
+       "earth_value": 1.277
+      },
+      {
+       "key": "part_dunes",
+       "label": "Dune share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "part_sol_nu",
+       "label": "Bare ground share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 1.0,
+       "earth": 0.8763,
+       "similarity": 0.873,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "poussiere_rang",
+       "label": "Dust (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.8482,
+       "earth": 0.9062,
+       "similarity": 0.933,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      },
+      {
+       "key": "tempetes_rang",
+       "label": "Dust storms (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.8965,
+       "earth": 0.9069,
+       "similarity": 0.99,
+       "compared": true,
+       "range": [
+        0.0,
+        0.98
+       ]
+      }
+     ]
+    },
+    {
+     "key": "volatiles",
+     "name": "Water and ice",
+     "similarity": 0.943,
+     "reliability": 0.75,
+     "variables": [
+      {
+       "key": "part_glace_surface",
+       "label": "Surface ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "indice_glace_sol",
+       "label": "Ground ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0955,
+       "earth": 0.0,
+       "similarity": 0.887,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "eau_sol_rang",
+       "label": "Soil water (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.8811,
+       "earth": null,
+       "similarity": null,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      }
+     ]
+    }
+   ],
+   "duration_s": 1.79
+  },
+  {
+   "id": "shackleton",
+   "body": "moon",
+   "name": "Shackleton crater (south pole)",
+   "lat": -89.67,
+   "lon": 129.8,
+   "radius_km": 10,
+   "rings": 6,
+   "cells": 127,
+   "area_km2": 341,
+   "footprint": {
+    "rings": 0,
+    "cells": 1,
+    "area_km2": 253,
+    "zone_area_km2": 341,
+    "max_water": 0.15
+   },
+   "active": [
+    "topography",
+    "geology",
+    "thermal",
+    "volatiles",
+    "astro"
+   ],
+   "inactive": [
+    {
+     "key": "wind",
+     "reason": "no data for moon"
+    }
+   ],
+   "weights": {
+    "topography": 0.2,
+    "geology": 0.2,
+    "thermal": 0.2,
+    "volatiles": 0.2,
+    "astro": 0.2
+   },
+   "medians": {
+    "topography": 0.2182,
+    "geology": 0.5,
+    "thermal": 0.185,
+    "volatiles": 0.5193,
+    "astro": 1.0
+   },
+   "funnel": [
+    {
+     "stage": "start",
+     "module": null,
+     "cells_remaining": 613252,
+     "message": "Land cells"
+    },
+    {
+     "stage": "filters",
+     "module": null,
+     "cells_remaining": 158402,
+     "message": "Filters: vegetation ≤ 30%"
+    },
+    {
+     "stage": "module",
+     "module": "topography",
+     "cells_remaining": 158402,
+     "message": "Terrain: 1/5"
+    },
+    {
+     "stage": "module",
+     "module": "geology",
+     "cells_remaining": 158402,
+     "message": "Rocks: 2/5"
+    },
+    {
+     "stage": "module",
+     "module": "thermal",
+     "cells_remaining": 115005,
+     "message": "Temperature and light: 3/5"
+    },
+    {
+     "stage": "module",
+     "module": "volatiles",
+     "cells_remaining": 47888,
+     "message": "Water and ice: 4/5"
+    },
+    {
+     "stage": "module",
+     "module": "astro",
+     "cells_remaining": 46294,
+     "message": "Caves and habitability: 5/5"
+    }
+   ],
+   "n_eligible": 588749,
+   "n_gated": 132296,
+   "n_land": 613252,
+   "top10": [
+    {
+     "h3": "85062203fffffff",
+     "lat": 70.38432578689893,
+     "lon": -25.34468495088908,
+     "score": 0.6823,
+     "vegetation": 0.074,
+     "urban": 0.0,
+     "cloud": 0.477
+    },
+    {
+     "h3": "8506d1abfffffff",
+     "lat": 66.26869412919821,
+     "lon": -52.86033991562323,
+     "score": 0.6741,
+     "vegetation": 0.229,
+     "urban": 0.0,
+     "cloud": 0.686
+    },
+    {
+     "h3": "85ed7087fffffff",
+     "lat": -71.36187229049023,
+     "lon": 170.37596283955554,
+     "score": 0.6687,
+     "vegetation": 0.007,
+     "urban": 0.0,
+     "cloud": 0.652
+    },
+    {
+     "h3": "853d2207fffffff",
+     "lat": 34.66775780156668,
+     "lon": 77.11634704731004,
+     "score": 0.6659,
+     "vegetation": 0.004,
+     "urban": 0.0,
+     "cloud": 0.498
+    },
+    {
+     "h3": "8520a30ffffffff",
+     "lat": 39.528598726438766,
+     "lon": 69.97148303312106,
+     "score": 0.6632,
+     "vegetation": 0.095,
+     "urban": 0.0,
+     "cloud": 0.45
+    },
+    {
+     "h3": "8507b297fffffff",
+     "lat": 79.99862836395624,
+     "lon": -19.920327598558462,
+     "score": 0.6626,
+     "vegetation": 0.07,
+     "urban": 0.0,
+     "cloud": 0.56
+    },
+    {
+     "h3": "85b2c593fffffff",
+     "lat": -32.93170745610662,
+     "lon": -70.17480811442076,
+     "score": 0.6596,
+     "vegetation": 0.05,
+     "urban": 0.0,
+     "cloud": 0.387
+    },
+    {
+     "h3": "85026403fffffff",
+     "lat": 77.390932034646,
+     "lon": -70.14205367701783,
+     "score": 0.6593,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.528
+    },
+    {
+     "h3": "850025d7fffffff",
+     "lat": 76.5737127601,
+     "lon": 25.40310303498777,
+     "score": 0.6589,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.821
+    },
+    {
+     "h3": "8513b20ffffffff",
+     "lat": 61.003883094882745,
+     "lon": -138.82218859643626,
+     "score": 0.6545,
+     "vegetation": 0.295,
+     "urban": 0.0,
+     "cloud": 0.635
+    }
+   ],
+   "analogs": [
+    {
+     "id": "dry_valleys",
+     "name": "McMurdo Dry Valleys",
+     "source": "Doran et al. 2010; polar analog of the Moon and Mars",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 511,
+     "n": 588749,
+     "pct": 0.0008679420262284947,
+     "passes_gates": true,
+     "below_median": [],
+     "per_module": {
+      "topography": 0.551,
+      "geology": null,
+      "thermal": 0.362,
+      "volatiles": 0.881,
+      "astro": 1.0
+     },
+     "in_top10": false,
+     "rank_slope": 17103,
+     "n_slope": 603853,
+     "pct_slope": 0.02832311837483626,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "meteor_crater",
+     "name": "Meteor Crater",
+     "source": "Apollo astronaut training",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 501708,
+     "n": 588749,
+     "pct": 0.8521594091879562,
+     "passes_gates": false,
+     "below_median": [
+      "thermal",
+      "volatiles",
+      "astro"
+     ],
+     "per_module": {
+      "topography": 0.322,
+      "geology": null,
+      "thermal": 0.161,
+      "volatiles": 0.386,
+      "astro": 0.718
+     },
+     "in_top10": false,
+     "rank_slope": 19850,
+     "n_slope": 603853,
+     "pct_slope": 0.032872238773343845,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    }
+   ],
+   "example": [
+    {
+     "key": "topography",
+     "name": "Terrain",
+     "similarity": 0.695,
+     "reliability": 0.34,
+     "variables": [
+      {
+       "key": "slopes",
+       "label": "Slope distribution (deciles)",
+       "mode": "deciles",
+       "unit": "°",
+       "reference": [
+        13.82,
+        18.17,
+        20.92,
+        23.83,
+        25.7,
+        27.24,
+        28.15,
+        29.12,
+        29.84
+       ],
+       "earth": [
+        9.7,
+        14.19,
+        17.16,
+        20.51,
+        23.14,
+        24.96,
+        27.15,
+        30.54,
+        34.29
+       ],
+       "similarity": 0.734,
+       "compared": true,
+       "range": [
+        0.0,
+        25.443
+       ]
+      },
+      {
+       "key": "part_pente_inf_5",
+       "label": "Flat ground share (< 5°)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0618,
+       "earth": 0.0378,
+       "similarity": 0.971,
+       "compared": true,
+       "range": [
+        0.068,
+        1.0
+       ]
+      },
+      {
+       "key": "rugosite_rms",
+       "label": "Roughness (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.8153,
+       "earth": 0.9983,
+       "similarity": 0.789,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 20.0,
+       "earth_value": 84.5
+      },
+      {
+       "key": "elevation_range",
+       "label": "Local elevation range (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.942,
+       "earth": 0.9584,
+       "similarity": 0.981,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 1719.0,
+       "earth_value": 997.7
+      },
+      {
+       "key": "densite_crateres",
+       "label": "Crater density (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.3189,
+       "earth": 0.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 21.6,
+       "earth_value": 0.0
+      }
+     ]
+    },
+    {
+     "key": "geology",
+     "name": "Rocks",
+     "similarity": null,
+     "reliability": null,
+     "variables": [
+      {
+       "key": "lithology",
+       "label": "Rock types",
+       "mode": "hellinger",
+       "unit": "",
+       "reference": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.0,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 1.0
+       },
+       "earth": {},
+       "similarity": null,
+       "compared": false,
+       "range": null
+      }
+     ]
+    },
+    {
+     "key": "thermal",
+     "name": "Temperature and light",
+     "similarity": 0.286,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lst_day_mean",
+       "label": "Ground temperature, day",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 128.4517,
+       "earth": 264.923,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        224.561,
+        317.656
+       ]
+      },
+      {
+       "key": "lst_night_mean",
+       "label": "Ground temperature, night",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 71.5599,
+       "earth": 260.5427,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        222.344,
+        297.125
+       ]
+      },
+      {
+       "key": "amplitude",
+       "label": "Day-night range",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 56.8919,
+       "earth": 4.3803,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.861,
+        25.818
+       ]
+      },
+      {
+       "key": "cold_fraction",
+       "label": "Share of very cold time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 1.0,
+       "earth": 0.1194,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "hot_fraction",
+       "label": "Share of very hot time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        0.643
+       ]
+      },
+      {
+       "key": "daylight_fraction_min",
+       "label": "Daylight share, darkest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        0.496
+       ]
+      },
+      {
+       "key": "daylight_fraction_max",
+       "label": "Daylight share, brightest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.1798,
+       "earth": 1.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.504,
+        1.0
+       ]
+      }
+     ]
+    },
+    {
+     "key": "volatiles",
+     "name": "Water and ice",
+     "similarity": 0.971,
+     "reliability": 0.75,
+     "variables": [
+      {
+       "key": "part_glace_surface",
+       "label": "Surface ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0069,
+       "earth": 0.0,
+       "similarity": 0.992,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "indice_glace_sol",
+       "label": "Ground ice",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.8055,
+       "earth": 0.763,
+       "similarity": 0.95,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "eau_sol_rang",
+       "label": "Soil water (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.9983,
+       "earth": null,
+       "similarity": null,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      }
+     ]
+    },
+    {
+     "key": "astro",
+     "name": "Caves and habitability",
+     "similarity": 1.0,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "part_karst",
+       "label": "Karst share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "caves",
+       "label": "Caves and pits (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 0.0,
+       "earth_value": 0.0
+      },
+      {
+       "key": "lava_tubes",
+       "label": "Lava tubes (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 0.0,
+       "earth_value": 0.0
+      }
+     ]
+    }
+   ],
+   "duration_s": 2.54
+  },
+  {
+   "id": "mare",
+   "body": "moon",
+   "name": "Mare Tranquillitatis (Apollo 11)",
+   "lat": 0.674,
+   "lon": 23.473,
+   "radius_km": 25,
+   "rings": 15,
+   "cells": 721,
+   "area_km2": 1937,
+   "footprint": {
+    "rings": 1,
+    "cells": 7,
+    "area_km2": 1770,
+    "zone_area_km2": 1937,
+    "max_water": 0.15
+   },
+   "active": [
+    "topography",
+    "geology",
+    "thermal",
+    "volatiles",
+    "astro"
+   ],
+   "inactive": [
+    {
+     "key": "wind",
+     "reason": "no data for moon"
+    }
+   ],
+   "weights": {
+    "topography": 0.2,
+    "geology": 0.2,
+    "thermal": 0.2,
+    "volatiles": 0.2,
+    "astro": 0.2
+   },
+   "medians": {
+    "topography": 0.6273,
+    "geology": 0.0,
+    "thermal": 0.3747,
+    "volatiles": 0.6052,
+    "astro": 1.0
+   },
+   "funnel": [
+    {
+     "stage": "start",
+     "module": null,
+     "cells_remaining": 613252,
+     "message": "Land cells"
+    },
+    {
+     "stage": "filters",
+     "module": null,
+     "cells_remaining": 158402,
+     "message": "Filters: vegetation ≤ 30%"
+    },
+    {
+     "stage": "module",
+     "module": "topography",
+     "cells_remaining": 158402,
+     "message": "Terrain: 1/5"
+    },
+    {
+     "stage": "module",
+     "module": "geology",
+     "cells_remaining": 158402,
+     "message": "Rocks: 2/5"
+    },
+    {
+     "stage": "module",
+     "module": "thermal",
+     "cells_remaining": 135707,
+     "message": "Temperature and light: 3/5"
+    },
+    {
+     "stage": "module",
+     "module": "volatiles",
+     "cells_remaining": 135129,
+     "message": "Water and ice: 4/5"
+    },
+    {
+     "stage": "module",
+     "module": "astro",
+     "cells_remaining": 127951,
+     "message": "Caves and habitability: 5/5"
+    }
+   ],
+   "n_eligible": 589198,
+   "n_gated": 104885,
+   "n_land": 613252,
+   "top10": [
+    {
+     "h3": "85528d37fffffff",
+     "lat": 12.7040547836489,
+     "lon": 42.213796895908814,
+     "score": 0.8292,
+     "vegetation": 0.124,
+     "urban": 0.0,
+     "cloud": 0.546
+    },
+    {
+     "h3": "853f8d73fffffff",
+     "lat": 27.953199872646834,
+     "lon": 17.683040470702892,
+     "score": 0.8076,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.146
+    },
+    {
+     "h3": "85523577fffffff",
+     "lat": 21.01858049058195,
+     "lon": 41.925765718514235,
+     "score": 0.804,
+     "vegetation": 0.296,
+     "urban": 0.0,
+     "cloud": 0.36
+    },
+    {
+     "h3": "852d95a7fffffff",
+     "lat": 32.52318847498744,
+     "lon": 37.7426069583141,
+     "score": 0.7918,
+     "vegetation": 0.109,
+     "urban": 0.0,
+     "cloud": 0.202
+    },
+    {
+     "h3": "85ad815bfffffff",
+     "lat": -26.164622696773783,
+     "lon": 18.626509007766572,
+     "score": 0.7174,
+     "vegetation": 0.122,
+     "urban": 0.0,
+     "cloud": 0.188
+    },
+    {
+     "h3": "856b296bfffffff",
+     "lat": 15.379509245714699,
+     "lon": 26.128688310434104,
+     "score": 0.7166,
+     "vegetation": 0.15,
+     "urban": 0.0,
+     "cloud": 0.433
+    },
+    {
+     "h3": "85437423fffffff",
+     "lat": 33.715708172893095,
+     "lon": 58.20106699701411,
+     "score": 0.7014,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.209
+    },
+    {
+     "h3": "85555813fffffff",
+     "lat": 16.915519891418988,
+     "lon": -7.456138736354964,
+     "score": 0.69,
+     "vegetation": 0.233,
+     "urban": 0.0,
+     "cloud": 0.455
+    },
+    {
+     "h3": "857a5997fffffff",
+     "lat": 2.7684392646612705,
+     "lon": 36.066935685261775,
+     "score": 0.6898,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.552
+    },
+    {
+     "h3": "855840cffffffff",
+     "lat": 14.271280392023664,
+     "lon": 13.94406839815812,
+     "score": 0.6885,
+     "vegetation": 0.07,
+     "urban": 0.0,
+     "cloud": 0.514
+    }
+   ],
+   "analogs": [
+    {
+     "id": "kilauea",
+     "name": "Kilauea (Hawaii)",
+     "source": "lander and rover tests in Hawaii (PISCES)",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 2283,
+     "n": 589198,
+     "pct": 0.003874758570124135,
+     "passes_gates": false,
+     "below_median": [
+      "topography"
+     ],
+     "per_module": {
+      "topography": 0.541,
+      "geology": 1.0,
+      "thermal": 0.4,
+      "volatiles": null,
+      "astro": 1.0
+     },
+     "in_top10": false,
+     "rank_slope": 419272,
+     "n_slope": 603853,
+     "pct_slope": 0.6943279241802227,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "lanzarote",
+     "name": "Lanzarote (Timanfaya)",
+     "source": "PANGAEA training (ESA)",
+     "expected": true,
+     "minerals": false,
+     "cells": 5,
+     "rank": 27564,
+     "n": 589198,
+     "pct": 0.046782236192247764,
+     "passes_gates": false,
+     "below_median": [
+      "topography",
+      "astro"
+     ],
+     "per_module": {
+      "topography": 0.467,
+      "geology": 1.0,
+      "thermal": 0.383,
+      "volatiles": null,
+      "astro": 0.667
+     },
+     "in_top10": false,
+     "rank_slope": 428236,
+     "n_slope": 603853,
+     "pct_slope": 0.7091725966418979,
+     "pct_random": 0.16666666666666666,
+     "p_top5_random": 0.22621906250000023
+    }
+   ],
+   "example": [
+    {
+     "key": "topography",
+     "name": "Terrain",
+     "similarity": 0.633,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "slopes",
+       "label": "Slope distribution (deciles)",
+       "mode": "deciles",
+       "unit": "°",
+       "reference": [
+        0.47,
+        0.57,
+        0.66,
+        0.73,
+        0.81,
+        0.91,
+        1.05,
+        1.34,
+        1.79
+       ],
+       "earth": [
+        0.2,
+        0.29,
+        0.38,
+        0.49,
+        0.6,
+        0.74,
+        0.92,
+        1.21,
+        1.77
+       ],
+       "similarity": 0.983,
+       "compared": true,
+       "range": [
+        0.0,
+        25.443
+       ]
+      },
+      {
+       "key": "part_pente_inf_5",
+       "label": "Flat ground share (< 5°)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.9847,
+       "earth": 0.995,
+       "similarity": 0.987,
+       "compared": true,
+       "range": [
+        0.068,
+        1.0
+       ]
+      },
+      {
+       "key": "rugosite_rms",
+       "label": "Roughness (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.1206,
+       "earth": 0.4258,
+       "similarity": 0.648,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 3.63,
+       "earth_value": 3.552
+      },
+      {
+       "key": "elevation_range",
+       "label": "Local elevation range (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.1442,
+       "earth": 0.5355,
+       "similarity": 0.548,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 59.8,
+       "earth_value": 107.4
+      },
+      {
+       "key": "densite_crateres",
+       "label": "Crater density (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.137,
+       "earth": 0.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 9.922,
+       "earth_value": 0.0
+      }
+     ]
+    },
+    {
+     "key": "geology",
+     "name": "Rocks",
+     "similarity": 1.0,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lithology",
+       "label": "Rock types",
+       "mode": "hellinger",
+       "unit": "",
+       "reference": {
+        "basalte": 1.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.0,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.0
+       },
+       "earth": {
+        "basalte": 1.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.0,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.0
+       },
+       "similarity": 1.0,
+       "compared": true,
+       "range": null
+      }
+     ]
+    },
+    {
+     "key": "thermal",
+     "name": "Temperature and light",
+     "similarity": 0.547,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lst_day_mean",
+       "label": "Ground temperature, day",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 390.6109,
+       "earth": 319.5574,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        224.561,
+        317.656
+       ]
+      },
+      {
+       "key": "lst_night_mean",
+       "label": "Ground temperature, night",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 102.034,
+       "earth": 299.1644,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        222.344,
+        297.125
+       ]
+      },
+      {
+       "key": "amplitude",
+       "label": "Day-night range",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 288.5769,
+       "earth": 20.393,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.861,
+        25.818
+       ]
+      },
+      {
+       "key": "cold_fraction",
+       "label": "Share of very cold time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "hot_fraction",
+       "label": "Share of very hot time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.7901,
+       "earth": 0.8138,
+       "similarity": 0.957,
+       "compared": true,
+       "range": [
+        0.0,
+        0.643
+       ]
+      },
+      {
+       "key": "daylight_fraction_min",
+       "label": "Daylight share, darkest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4999,
+       "earth": 0.4688,
+       "similarity": 0.935,
+       "compared": true,
+       "range": [
+        0.0,
+        0.496
+       ]
+      },
+      {
+       "key": "daylight_fraction_max",
+       "label": "Daylight share, brightest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5001,
+       "earth": 0.5312,
+       "similarity": 0.935,
+       "compared": true,
+       "range": [
+        0.504,
+        1.0
+       ]
+      }
+     ]
+    },
+    {
+     "key": "volatiles",
+     "name": "Water and ice",
+     "similarity": 0.966,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "eau_sol_rang",
+       "label": "Soil water (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.1581,
+       "earth": 0.1873,
+       "similarity": 0.966,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      }
+     ]
+    },
+    {
+     "key": "astro",
+     "name": "Caves and habitability",
+     "similarity": 1.0,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "part_karst",
+       "label": "Karst share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "caves",
+       "label": "Caves and pits (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 0.0,
+       "earth_value": 0.0
+      },
+      {
+       "key": "lava_tubes",
+       "label": "Lava tubes (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 0.0,
+       "earth_value": 0.0
+      }
+     ]
+    }
+   ],
+   "duration_s": 1.66
+  },
+  {
+   "id": "highland",
+   "body": "moon",
+   "name": "Descartes highlands (Apollo 16)",
+   "lat": -8.97,
+   "lon": 15.5,
+   "radius_km": 25,
+   "rings": 15,
+   "cells": 721,
+   "area_km2": 1937,
+   "footprint": {
+    "rings": 1,
+    "cells": 7,
+    "area_km2": 1770,
+    "zone_area_km2": 1937,
+    "max_water": 0.15
+   },
+   "active": [
+    "topography",
+    "geology",
+    "thermal",
+    "volatiles",
+    "astro"
+   ],
+   "inactive": [
+    {
+     "key": "wind",
+     "reason": "no data for moon"
+    }
+   ],
+   "weights": {
+    "topography": 0.2,
+    "geology": 0.2,
+    "thermal": 0.2,
+    "volatiles": 0.2,
+    "astro": 0.2
+   },
+   "medians": {
+    "topography": 0.5794,
+    "geology": 0.5,
+    "thermal": 0.4641,
+    "volatiles": 0.7113,
+    "astro": 1.0
+   },
+   "funnel": [
+    {
+     "stage": "start",
+     "module": null,
+     "cells_remaining": 613252,
+     "message": "Land cells"
+    },
+    {
+     "stage": "filters",
+     "module": null,
+     "cells_remaining": 158402,
+     "message": "Filters: vegetation ≤ 30%"
+    },
+    {
+     "stage": "module",
+     "module": "topography",
+     "cells_remaining": 158402,
+     "message": "Terrain: 1/5"
+    },
+    {
+     "stage": "module",
+     "module": "geology",
+     "cells_remaining": 158402,
+     "message": "Rocks: 2/5"
+    },
+    {
+     "stage": "module",
+     "module": "thermal",
+     "cells_remaining": 71571,
+     "message": "Temperature and light: 3/5"
+    },
+    {
+     "stage": "module",
+     "module": "volatiles",
+     "cells_remaining": 42298,
+     "message": "Water and ice: 4/5"
+    },
+    {
+     "stage": "module",
+     "module": "astro",
+     "cells_remaining": 36914,
+     "message": "Caves and habitability: 5/5"
+    }
+   ],
+   "n_eligible": 588620,
+   "n_gated": 90284,
+   "n_land": 613252,
+   "top10": [
+    {
+     "h3": "859c0337fffffff",
+     "lat": -14.369846189204836,
+     "lon": 144.11740977797118,
+     "score": 0.7422,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.679
+    },
+    {
+     "h3": "85453153fffffff",
+     "lat": 16.002542781110304,
+     "lon": -85.97801304785823,
+     "score": 0.7338,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.556
+    },
+    {
+     "h3": "8596a4b3fffffff",
+     "lat": -10.82359025814774,
+     "lon": 34.28919414074028,
+     "score": 0.7328,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.486
+    },
+    {
+     "h3": "8520c11bfffffff",
+     "lat": 41.54445344312056,
+     "lon": 81.94796435911405,
+     "score": 0.7324,
+     "vegetation": 0.002,
+     "urban": 0.0,
+     "cloud": 0.423
+    },
+    {
+     "h3": "858f5383fffffff",
+     "lat": -7.5955439541163825,
+     "lon": -79.29033622987741,
+     "score": 0.7318,
+     "vegetation": 0.228,
+     "urban": 0.0,
+     "cloud": 0.634
+    },
+    {
+     "h3": "85249cc3fffffff",
+     "lat": 36.061942850436694,
+     "lon": 97.37789325184652,
+     "score": 0.7316,
+     "vegetation": 0.108,
+     "urban": 0.0,
+     "cloud": 0.434
+    },
+    {
+     "h3": "858116a3fffffff",
+     "lat": -12.871349471912037,
+     "lon": -38.481228988876445,
+     "score": 0.7309,
+     "vegetation": 0.199,
+     "urban": 0.801,
+     "cloud": 0.474
+    },
+    {
+     "h3": "8594c413fffffff",
+     "lat": -16.418151744165872,
+     "lon": 128.6956335592675,
+     "score": 0.7294,
+     "vegetation": null,
+     "urban": null,
+     "cloud": 0.551
+    },
+    {
+     "h3": "85b350a3fffffff",
+     "lat": -23.525011051140037,
+     "lon": -66.09277112655138,
+     "score": 0.7286,
+     "vegetation": 0.0,
+     "urban": 0.0,
+     "cloud": 0.356
+    },
+    {
+     "h3": "85303053fffffff",
+     "lat": 39.91717302738669,
+     "lon": 119.55183420196391,
+     "score": 0.7225,
+     "vegetation": 0.193,
+     "urban": 0.799,
+     "cloud": 0.352
+    }
+   ],
+   "analogs": [
+    {
+     "id": "meteor_crater",
+     "name": "Meteor Crater",
+     "source": "Apollo astronaut training",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 392240,
+     "n": 588620,
+     "pct": 0.6663721925860487,
+     "passes_gates": false,
+     "below_median": [
+      "volatiles",
+      "astro"
+     ],
+     "per_module": {
+      "topography": 0.588,
+      "geology": null,
+      "thermal": 0.51,
+      "volatiles": 0.709,
+      "astro": 0.718
+     },
+     "in_top10": false,
+     "rank_slope": 136178,
+     "n_slope": 603853,
+     "pct_slope": 0.2255151502103989,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    },
+    {
+     "id": "adirondacks",
+     "name": "Adirondack anorthosites",
+     "source": "analog of the highland crust",
+     "expected": true,
+     "minerals": false,
+     "cells": 7,
+     "rank": 179063,
+     "n": 588620,
+     "pct": 0.3042081478712922,
+     "passes_gates": false,
+     "below_median": [
+      "thermal",
+      "volatiles"
+     ],
+     "per_module": {
+      "topography": 0.634,
+      "geology": null,
+      "thermal": 0.463,
+      "volatiles": 0.694,
+      "astro": 1.0
+     },
+     "in_top10": false,
+     "rank_slope": 13064,
+     "n_slope": 603853,
+     "pct_slope": 0.021634404399746295,
+     "pct_random": 0.125,
+     "p_top5_random": 0.3016627039062503
+    }
+   ],
+   "example": [
+    {
+     "key": "topography",
+     "name": "Terrain",
+     "similarity": 0.713,
+     "reliability": 0.6,
+     "variables": [
+      {
+       "key": "slopes",
+       "label": "Slope distribution (deciles)",
+       "mode": "deciles",
+       "unit": "°",
+       "reference": [
+        1.41,
+        1.99,
+        2.54,
+        3.04,
+        3.53,
+        4.09,
+        4.78,
+        5.7,
+        7.11
+       ],
+       "earth": [
+        0.45,
+        0.7,
+        0.88,
+        1.15,
+        1.44,
+        1.79,
+        2.33,
+        3.24,
+        4.15
+       ],
+       "similarity": 0.821,
+       "compared": true,
+       "range": [
+        0.0,
+        25.443
+       ]
+      },
+      {
+       "key": "part_pente_inf_5",
+       "label": "Flat ground share (< 5°)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.6982,
+       "earth": 0.8652,
+       "similarity": 0.796,
+       "compared": true,
+       "range": [
+        0.068,
+        1.0
+       ]
+      },
+      {
+       "key": "rugosite_rms",
+       "label": "Roughness (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.5592,
+       "earth": 0.5492,
+       "similarity": 0.988,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 13.4,
+       "earth_value": 10.5
+      },
+      {
+       "key": "elevation_range",
+       "label": "Local elevation range (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.349,
+       "earth": 0.3855,
+       "similarity": 0.958,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "m",
+       "reference_value": 201.5,
+       "earth_value": 92.6
+      },
+      {
+       "key": "densite_crateres",
+       "label": "Crater density (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.5186,
+       "earth": 0.0,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 33.1,
+       "earth_value": 0.0
+      }
+     ]
+    },
+    {
+     "key": "geology",
+     "name": "Rocks",
+     "similarity": null,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "lithology",
+       "label": "Rock types",
+       "mode": "hellinger",
+       "unit": "",
+       "reference": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.0,
+        "non_consolide": 0.0,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 1.0
+       },
+       "earth": {
+        "basalte": 0.0,
+        "volcanique_felsique": 0.0,
+        "pyroclastique": 0.0,
+        "plutonique_basique": 0.0,
+        "plutonique_felsique": 0.0,
+        "sedimentaire_clastique": 0.486,
+        "non_consolide": 0.514,
+        "carbonate": 0.0,
+        "evaporite": 0.0,
+        "metamorphique": 0.0,
+        "glace": 0.0,
+        "impact": 0.0
+       },
+       "similarity": null,
+       "compared": false,
+       "range": null
+      }
+     ]
+    },
+    {
+     "key": "thermal",
+     "name": "Temperature and light",
+     "similarity": 0.523,
+     "reliability": 0.98,
+     "variables": [
+      {
+       "key": "lst_day_mean",
+       "label": "Ground temperature, day",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 384.9876,
+       "earth": 303.8882,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        224.561,
+        317.656
+       ]
+      },
+      {
+       "key": "lst_night_mean",
+       "label": "Ground temperature, night",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 100.8082,
+       "earth": 294.8688,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        222.344,
+        297.125
+       ]
+      },
+      {
+       "key": "amplitude",
+       "label": "Day-night range",
+       "mode": "abs",
+       "unit": "K",
+       "reference": 284.1795,
+       "earth": 9.0194,
+       "similarity": 0.0,
+       "compared": true,
+       "range": [
+        0.861,
+        25.818
+       ]
+      },
+      {
+       "key": "cold_fraction",
+       "label": "Share of very cold time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "hot_fraction",
+       "label": "Share of very hot time (for the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.1063,
+       "earth": 0.0,
+       "similarity": 0.805,
+       "compared": true,
+       "range": [
+        0.0,
+        0.643
+       ]
+      },
+      {
+       "key": "daylight_fraction_min",
+       "label": "Daylight share, darkest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4987,
+       "earth": 0.4645,
+       "similarity": 0.929,
+       "compared": true,
+       "range": [
+        0.0,
+        0.496
+       ]
+      },
+      {
+       "key": "daylight_fraction_max",
+       "label": "Daylight share, brightest season",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.5013,
+       "earth": 0.5355,
+       "similarity": 0.929,
+       "compared": true,
+       "range": [
+        0.504,
+        1.0
+       ]
+      }
+     ]
+    },
+    {
+     "key": "volatiles",
+     "name": "Water and ice",
+     "similarity": 0.992,
+     "reliability": 0.8,
+     "variables": [
+      {
+       "key": "eau_sol_rang",
+       "label": "Soil water (rank within the body)",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.4881,
+       "earth": 0.4948,
+       "similarity": 0.992,
+       "compared": true,
+       "range": [
+        0.02,
+        0.98
+       ]
+      }
+     ]
+    },
+    {
+     "key": "astro",
+     "name": "Caves and habitability",
+     "similarity": 1.0,
+     "reliability": 1.0,
+     "variables": [
+      {
+       "key": "part_karst",
+       "label": "Karst share",
+       "mode": "abs",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ]
+      },
+      {
+       "key": "caves",
+       "label": "Caves and pits (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 0.0,
+       "earth_value": 0.0
+      },
+      {
+       "key": "lava_tubes",
+       "label": "Lava tubes (rank within the body)",
+       "mode": "rank",
+       "unit": "",
+       "reference": 0.0,
+       "earth": 0.0,
+       "similarity": 1.0,
+       "compared": true,
+       "range": [
+        0.0,
+        1.0
+       ],
+       "value_unit": "per 1,000 km²",
+       "reference_value": 0.0,
+       "earth_value": 0.0
+      }
+     ]
+    }
+   ],
+   "duration_s": 1.24
+  }
+ ],
+ "variants": [
+  {
+   "id": "jezero",
+   "variant": "smaller brush",
+   "cells": 37,
+   "n_pool": 19464,
+   "gate_fails": {
+    "topography": 7600,
+    "geology": 0,
+    "thermal": 16395,
+    "wind": 1668,
+    "volatiles": 7638
+   },
+   "medians": {
+    "topography": 0.579,
+    "geology": 0.0,
+    "thermal": 0.5803,
+    "wind": 0.5678,
+    "volatiles": 0.8563
+   },
+   "area_km2": 378,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.4
+  },
+  {
+   "id": "jezero",
+   "variant": "larger brush",
+   "cells": 331,
+   "n_pool": 19481,
+   "gate_fails": {
+    "topography": 6870,
+    "geology": 0,
+    "thermal": 16568,
+    "wind": 1678,
+    "volatiles": 7298
+   },
+   "medians": {
+    "topography": 0.5758,
+    "geology": 0.0,
+    "thermal": 0.5804,
+    "wind": 0.5675,
+    "volatiles": 0.87
+   },
+   "area_km2": 3385,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.6
+  },
+  {
+   "id": "jezero",
+   "variant": "elongated",
+   "cells": 106,
+   "n_pool": 19545,
+   "gate_fails": {
+    "topography": 7292,
+    "geology": 0,
+    "thermal": 16731,
+    "wind": 1835,
+    "volatiles": 7821
+   },
+   "medians": {
+    "topography": 0.6033,
+    "geology": 0.0,
+    "thermal": 0.5804,
+    "wind": 0.5678,
+    "volatiles": 0.8674
+   },
+   "area_km2": 1084,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.8
+  },
+  {
+   "id": "jezero",
+   "variant": "shifted",
+   "cells": 127,
+   "n_pool": 19476,
+   "gate_fails": {
+    "topography": 7384,
+    "geology": 0,
+    "thermal": 16685,
+    "wind": 1998,
+    "volatiles": 7911
+   },
+   "medians": {
+    "topography": 0.6086,
+    "geology": 0.0,
+    "thermal": 0.5804,
+    "wind": 0.5678,
+    "volatiles": 0.8723
+   },
+   "area_km2": 1299,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.8
+  },
+  {
+   "id": "gale",
+   "variant": "smaller brush",
+   "cells": 91,
+   "n_pool": 19624,
+   "gate_fails": {
+    "topography": 6297,
+    "geology": 0,
+    "thermal": 15177,
+    "wind": 1760,
+    "volatiles": 16637
+   },
+   "medians": {
+    "topography": 0.4912,
+    "geology": 0.0,
+    "thermal": 0.5688,
+    "wind": 0.5596,
+    "volatiles": 0.8054
+   },
+   "area_km2": 931,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.5
+  },
+  {
+   "id": "gale",
+   "variant": "larger brush",
+   "cells": 721,
+   "n_pool": 19284,
+   "gate_fails": {
+    "topography": 5242,
+    "geology": 0,
+    "thermal": 14253,
+    "wind": 1887,
+    "volatiles": 16964
+   },
+   "medians": {
+    "topography": 0.4208,
+    "geology": 0.0,
+    "thermal": 0.5696,
+    "wind": 0.564,
+    "volatiles": 0.7996
+   },
+   "area_km2": 7373,
+   "n_sites": 10,
+   "top1_kept": false,
+   "top10_overlap": 0.4
+  },
+  {
+   "id": "gale",
+   "variant": "elongated",
+   "cells": 246,
+   "n_pool": 19453,
+   "gate_fails": {
+    "topography": 5858,
+    "geology": 0,
+    "thermal": 14437,
+    "wind": 1803,
+    "volatiles": 16272
+   },
+   "medians": {
+    "topography": 0.4469,
+    "geology": 0.0,
+    "thermal": 0.5696,
+    "wind": 0.5683,
+    "volatiles": 0.8032
+   },
+   "area_km2": 2516,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.6
+  },
+  {
+   "id": "gale",
+   "variant": "shifted",
+   "cells": 271,
+   "n_pool": 19485,
+   "gate_fails": {
+    "topography": 6251,
+    "geology": 0,
+    "thermal": 14128,
+    "wind": 1800,
+    "volatiles": 16275
+   },
+   "medians": {
+    "topography": 0.3994,
+    "geology": 0.0,
+    "thermal": 0.5698,
+    "wind": 0.5706,
+    "volatiles": 0.7989
+   },
+   "area_km2": 2771,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.5
+  },
+  {
+   "id": "meridiani",
+   "variant": "smaller brush",
+   "cells": 169,
+   "n_pool": 18378,
+   "gate_fails": {
+    "topography": 4555,
+    "geology": 0,
+    "thermal": 8391,
+    "wind": 696,
+    "volatiles": 15755
+   },
+   "medians": {
+    "topography": 0.6751,
+    "geology": 0.5,
+    "thermal": 0.5584,
+    "wind": 0.4998,
+    "volatiles": 0.8076
+   },
+   "area_km2": 1728,
+   "n_sites": 10,
+   "top1_kept": false,
+   "top10_overlap": 0.1
+  },
+  {
+   "id": "meridiani",
+   "variant": "larger brush",
+   "cells": 1261,
+   "n_pool": 18447,
+   "gate_fails": {
+    "topography": 5496,
+    "geology": 0,
+    "thermal": 8995,
+    "wind": 987,
+    "volatiles": 16792
+   },
+   "medians": {
+    "topography": 0.6733,
+    "geology": 0.5,
+    "thermal": 0.5598,
+    "wind": 0.5004,
+    "volatiles": 0.7957
+   },
+   "area_km2": 12895,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.4
+  },
+  {
+   "id": "meridiani",
+   "variant": "elongated",
+   "cells": 487,
+   "n_pool": 18250,
+   "gate_fails": {
+    "topography": 4573,
+    "geology": 0,
+    "thermal": 8464,
+    "wind": 794,
+    "volatiles": 16561
+   },
+   "medians": {
+    "topography": 0.6607,
+    "geology": 0.5,
+    "thermal": 0.558,
+    "wind": 0.4997,
+    "volatiles": 0.7956
+   },
+   "area_km2": 4980,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.9
+  },
+  {
+   "id": "meridiani",
+   "variant": "shifted",
+   "cells": 469,
+   "n_pool": 18261,
+   "gate_fails": {
+    "topography": 4553,
+    "geology": 0,
+    "thermal": 7952,
+    "wind": 785,
+    "volatiles": 16446
+   },
+   "medians": {
+    "topography": 0.6767,
+    "geology": 0.5,
+    "thermal": 0.5589,
+    "wind": 0.5001,
+    "volatiles": 0.7959
+   },
+   "area_km2": 4796,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.7
+  },
+  {
+   "id": "shackleton",
+   "variant": "smaller brush",
+   "cells": 37,
+   "n_pool": 17122,
+   "gate_fails": {
+    "topography": 2722,
+    "geology": 0,
+    "thermal": 904,
+    "volatiles": 3296,
+    "astro": 2950
+   },
+   "medians": {
+    "topography": 0.2238,
+    "geology": 0.5,
+    "thermal": 0.1866,
+    "volatiles": 0.4938,
+    "astro": 1.0
+   },
+   "area_km2": 99,
+   "n_sites": 10,
+   "top1_kept": false,
+   "top10_overlap": 0.1
+  },
+  {
+   "id": "shackleton",
+   "variant": "larger brush",
+   "cells": 271,
+   "n_pool": 17319,
+   "gate_fails": {
+    "topography": 3796,
+    "geology": 0,
+    "thermal": 9001,
+    "volatiles": 9441,
+    "astro": 4930
+   },
+   "medians": {
+    "topography": 0.2587,
+    "geology": 0.5,
+    "thermal": 0.2503,
+    "volatiles": 0.6111,
+    "astro": 1.0
+   },
+   "area_km2": 728,
+   "n_sites": 10,
+   "top1_kept": false,
+   "top10_overlap": 0.1
+  },
+  {
+   "id": "shackleton",
+   "variant": "elongated",
+   "cells": 102,
+   "n_pool": 17190,
+   "gate_fails": {
+    "topography": 3432,
+    "geology": 0,
+    "thermal": 2343,
+    "volatiles": 10597,
+    "astro": 2643
+   },
+   "medians": {
+    "topography": 0.238,
+    "geology": 0.5,
+    "thermal": 0.204,
+    "volatiles": 0.5774,
+    "astro": 1.0
+   },
+   "area_km2": 274,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.3
+  },
+  {
+   "id": "shackleton",
+   "variant": "shifted",
+   "cells": 127,
+   "n_pool": 17182,
+   "gate_fails": {
+    "topography": 3256,
+    "geology": 0,
+    "thermal": 2091,
+    "volatiles": 7548,
+    "astro": 2697
+   },
+   "medians": {
+    "topography": 0.233,
+    "geology": 0.5,
+    "thermal": 0.2005,
+    "volatiles": 0.5598,
+    "astro": 1.0
+   },
+   "area_km2": 341,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.2
+  },
+  {
+   "id": "mare",
+   "variant": "smaller brush",
+   "cells": 271,
+   "n_pool": 19378,
+   "gate_fails": {
+    "topography": 4001,
+    "geology": 0,
+    "thermal": 2931,
+    "volatiles": 118,
+    "astro": 3085
+   },
+   "medians": {
+    "topography": 0.6213,
+    "geology": 0.0,
+    "thermal": 0.3753,
+    "volatiles": 0.6004,
+    "astro": 1.0
+   },
+   "area_km2": 728,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.9
+  },
+  {
+   "id": "mare",
+   "variant": "larger brush",
+   "cells": 1801,
+   "n_pool": 19256,
+   "gate_fails": {
+    "topography": 4275,
+    "geology": 0,
+    "thermal": 3007,
+    "volatiles": 156,
+    "astro": 4832
+   },
+   "medians": {
+    "topography": 0.6258,
+    "geology": 0.0,
+    "thermal": 0.3745,
+    "volatiles": 0.6088,
+    "astro": 1.0
+   },
+   "area_km2": 4839,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.7
+  },
+  {
+   "id": "mare",
+   "variant": "elongated",
+   "cells": 603,
+   "n_pool": 19237,
+   "gate_fails": {
+    "topography": 4030,
+    "geology": 0,
+    "thermal": 2856,
+    "volatiles": 118,
+    "astro": 2904
+   },
+   "medians": {
+    "topography": 0.6248,
+    "geology": 0.0,
+    "thermal": 0.3745,
+    "volatiles": 0.5816,
+    "astro": 1.0
+   },
+   "area_km2": 1620,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.8
+  },
+  {
+   "id": "mare",
+   "variant": "shifted",
+   "cells": 721,
+   "n_pool": 19308,
+   "gate_fails": {
+    "topography": 4031,
+    "geology": 0,
+    "thermal": 2962,
+    "volatiles": 116,
+    "astro": 2906
+   },
+   "medians": {
+    "topography": 0.6389,
+    "geology": 0.0,
+    "thermal": 0.3745,
+    "volatiles": 0.5871,
+    "astro": 1.0
+   },
+   "area_km2": 1937,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.9
+  },
+  {
+   "id": "highland",
+   "variant": "smaller brush",
+   "cells": 271,
+   "n_pool": 18067,
+   "gate_fails": {
+    "topography": 6786,
+    "geology": 0,
+    "thermal": 10828,
+    "volatiles": 6603,
+    "astro": 4776
+   },
+   "medians": {
+    "topography": 0.5829,
+    "geology": 0.5,
+    "thermal": 0.4665,
+    "volatiles": 0.7113,
+    "astro": 1.0
+   },
+   "area_km2": 728,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.9
+  },
+  {
+   "id": "highland",
+   "variant": "larger brush",
+   "cells": 1801,
+   "n_pool": 18111,
+   "gate_fails": {
+    "topography": 5597,
+    "geology": 0,
+    "thermal": 7842,
+    "volatiles": 7871,
+    "astro": 18111
+   },
+   "medians": {
+    "topography": 0.5668,
+    "geology": 0.5,
+    "thermal": 0.4619,
+    "volatiles": 0.7113,
+    "astro": 0.9971
+   },
+   "area_km2": 4839,
+   "n_sites": 0,
+   "top1_kept": false,
+   "top10_overlap": 0.0
+  },
+  {
+   "id": "highland",
+   "variant": "elongated",
+   "cells": 608,
+   "n_pool": 18192,
+   "gate_fails": {
+    "topography": 6432,
+    "geology": 0,
+    "thermal": 9695,
+    "volatiles": 6718,
+    "astro": 4844
+   },
+   "medians": {
+    "topography": 0.5921,
+    "geology": 0.5,
+    "thermal": 0.4634,
+    "volatiles": 0.7113,
+    "astro": 1.0
+   },
+   "area_km2": 1634,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 1.0
+  },
+  {
+   "id": "highland",
+   "variant": "shifted",
+   "cells": 721,
+   "n_pool": 17857,
+   "gate_fails": {
+    "topography": 6405,
+    "geology": 0,
+    "thermal": 9606,
+    "volatiles": 6520,
+    "astro": 4931
+   },
+   "medians": {
+    "topography": 0.5546,
+    "geology": 0.5,
+    "thermal": 0.4645,
+    "volatiles": 0.7113,
+    "astro": 1.0
+   },
+   "area_km2": 1937,
+   "n_sites": 10,
+   "top1_kept": true,
+   "top10_overlap": 0.9
+  }
+ ],
+ "stability": [
+  {
+   "id": "jezero",
+   "top3_kept": 0.98,
+   "all3_kept_runs": 0.94,
+   "top10_overlap": 0.896,
+   "runs": 100
+  },
+  {
+   "id": "gale",
+   "top3_kept": 0.94,
+   "all3_kept_runs": 0.82,
+   "top10_overlap": 0.819,
+   "runs": 100
+  },
+  {
+   "id": "meridiani",
+   "top3_kept": 0.71,
+   "all3_kept_runs": 0.37,
+   "top10_overlap": 0.834,
+   "runs": 100
+  },
+  {
+   "id": "shackleton",
+   "top3_kept": 0.98,
+   "all3_kept_runs": 0.94,
+   "top10_overlap": 0.767,
+   "runs": 100
+  },
+  {
+   "id": "mare",
+   "top3_kept": 0.9,
+   "all3_kept_runs": 0.7,
+   "top10_overlap": 0.873,
+   "runs": 100
+  },
+  {
+   "id": "highland",
+   "top3_kept": 1.0,
+   "all3_kept_runs": 1.0,
+   "top10_overlap": 0.902,
+   "runs": 100
+  }
+ ],
+ "coverage": [],
+ "large": {
+  "label": "very large area (Mare, 150 km radius)",
+  "cells": 26227,
+  "area_km2": 70466,
+  "rings": 8,
+  "n_sites": 0,
+  "n_pool": 19164,
+  "gate_fails": {
+   "topography": 2570,
+   "geology": 0,
+   "thermal": 2972,
+   "volatiles": 295,
+   "astro": 19164
+  },
+  "medians": {
+   "topography": 0.6109,
+   "geology": 0.0,
+   "thermal": 0.3761,
+   "volatiles": 0.6762,
+   "astro": 0.9973
+  },
+  "n_best": 2000,
+  "funnel": [
+   613252,
+   158402,
+   158402,
+   158402,
+   124808,
+   124251,
+   117706
+  ]
+ },
+ "generated": "2026-11-16 03:46 UTC",
+ "commit": "bc0526a",
+ "dirty": true,
+ "data_versions": {
+  "astrobiology_habitability_caves": {
+   "date": "2026-11-07",
+   "release": null
+  },
+  "environmental_impact": {
+   "date": "2026-11-14",
+   "release": null
+  },
+  "geology_mineralogy": {
+   "date": "2026-11-14",
+   "release": null
+  },
+  "mineralogie_terre": {
+   "date": "2026-11-13",
+   "release": null
+  },
+  "thermal_light_extrems": {
+   "date": "2026-11-06",
+   "release": null
+  },
+  "topography_morphometry": {
+   "date": "2026-11-06",
+   "release": null
+  },
+  "volatiles_hydrology_ice": {
+   "date": "2026-11-08",
+   "release": null
+  },
+  "wind_erosion_atmosphere": {
+   "date": "2026-11-06",
+   "release": null
+  }
+ },
+ "modules": [
+  {
+   "key": "topography",
+   "name": "Terrain",
+   "available": {
+    "earth": true,
+    "mars": true,
+    "moon": true
+   }
+  },
+  {
+   "key": "geology",
+   "name": "Rocks",
+   "available": {
+    "earth": true,
+    "mars": true,
+    "moon": true
+   }
+  },
+  {
+   "key": "thermal",
+   "name": "Temperature and light",
+   "available": {
+    "earth": true,
+    "mars": true,
+    "moon": true
+   }
+  },
+  {
+   "key": "wind",
+   "name": "Wind and dust",
+   "available": {
+    "earth": true,
+    "mars": true
+   }
+  },
+  {
+   "key": "volatiles",
+   "name": "Water and ice",
+   "available": {
+    "earth": true,
+    "mars": true,
+    "moon": true
+   }
+  },
+  {
+   "key": "astro",
+   "name": "Caves and habitability",
+   "available": {
+    "earth": true,
+    "mars": true,
+    "moon": true
+   }
+  }
+ ],
+ "timing": {
+  "local_server_s": [
+   3.18,
+   1.65,
+   2.44,
+   1.84,
+   1.88,
+   1.75,
+   1.72,
+   2.15,
+   1.98,
+   2.9,
+   1.79,
+   1.48,
+   2.28,
+   1.62,
+   1.64,
+   2.54,
+   1.1,
+   1.38,
+   1.11,
+   1.06,
+   1.66,
+   1.68,
+   2.21,
+   1.83,
+   1.62,
+   1.24,
+   1.52,
+   1.43,
+   1.33,
+   1.27,
+   3.57
+  ],
+  "local_median_s": 1.68,
+  "prod": [
+   {
+    "id": "jezero",
+    "server_s": 1.37,
+    "wall_s": 4.8
+   },
+   {
+    "id": "gale",
+    "server_s": 1.3,
+    "wall_s": 5.1
+   },
+   {
+    "id": "meridiani",
+    "server_s": 1.25,
+    "wall_s": 4.38
+   },
+   {
+    "id": "shackleton",
+    "server_s": 0.51,
+    "wall_s": 2.2
+   },
+   {
+    "id": "mare",
+    "server_s": 1.25,
+    "wall_s": 4.23
+   },
+   {
+    "id": "highland",
+    "server_s": 1.04,
+    "wall_s": 2.49
+   }
+  ],
+  "prod_median_wall_s": 4.305,
+  "prod_median_server_s": 1.25
+ },
+ "settings": {
+  "spacing_km": 800,
+  "vegetation_max": 0.3,
+  "runs": 100,
+  "weights": "all equal",
+  "seed": 42
+ }
+}
