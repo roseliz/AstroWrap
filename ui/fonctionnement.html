@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How it works · AstroWrap</title>
+  <meta name="description" content="How AstroWrap works, in two animated steps: the satellite data prepared once on a hexagonal grid, then the live comparison of your area with the whole Earth.">
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/fonctionnement.css">
+  <link rel="stylesheet" href="css/navigation.css">
+</head>
+<body>
+  <script src="js/navigation.js"></script>
+  <main class="hw-page">
+    <header class="hw-tete">
+      <p class="v-sur">How it works</p>
+      <h1>From satellite pixels to your Earth&nbsp;twin</h1>
+      <p class="v-chapo">Two stages: the heavy work is done once, in advance. Your search only reads the result.</p>
+    </header>
+
+    <div class="hw-onglets" role="tablist" aria-label="Stages">
+      <button type="button" role="tab" id="hw-o1" aria-controls="pretraitement" aria-selected="true">
+        <span class="hw-num">1</span><span><small>Once, offline</small>Pre-processing</span></button>
+      <button type="button" role="tab" id="hw-o2" aria-controls="direct" aria-selected="false">
+        <span class="hw-num">2</span><span><small>Live, in the app</small>The search</span></button>
+    </div>
+
+    <!-- 1. Préparé une fois, hors ligne -->
+    <section class="hw-panneau" id="pretraitement" data-panneau="pre" role="tabpanel" aria-labelledby="hw-o1">
+      <div class="hw-entete">
+        <span class="hw-num">1</span>
+        <div><p class="hw-quand">Once, offline</p><h2 id="hw-t1">Pre-processing</h2></div>
+        <div class="hw-outils">
+          <button type="button" class="hw-lecture" aria-label="Pause">❚❚</button>
+          <button type="button" class="hw-rejouer" aria-label="Replay from the start">↺</button>
+        </div>
+      </div>
+      <div class="hw-corps">
+        <div class="hw-scene">
+          <canvas aria-hidden="true"></canvas>
+          <p class="hw-astuce">Drag the globe to turn it</p>
+        </div>
+        <p class="hw-recit" aria-live="polite"></p>
+        <ol class="hw-etapes">
+          <li data-recit="First, we gather NASA satellite maps. Each one is a grid of pixels measuring a single thing: height, temperature, minerals, ice… | They all have different resolutions and projections, so they can’t be compared as they are."><button type="button"><b>Satellite maps</b><span>NASA maps of the Moon, Mars and Earth: relief, temperature, rocks, ice, wind.</span><i></i></button></li>
+          <li data-recit="Then we divide each globe into hexagons, with the H3 grid: the same kind of cells on the Moon, Mars and Earth. | On Earth, that makes 613,252 land cells of about 250 km² each (drawn here much bigger)."><button type="button"><b>Cut into hexagons</b><span>One H3 grid for all three bodies. Earth: 613,252 land cells of ~250 km².</span><i></i></button></li>
+          <li data-recit="For each hexagon, we read every pixel that falls inside it… | …and turn them into a few numbers: mean slope, share of flat ground, day and night temperature, rocks, ice."><button type="button"><b>Scan every pixel</b><span>Each hexagon reads the pixels inside it and keeps a few numbers.</span><i></i></button></li>
+          <li data-recit="Each hexagon becomes one row of a table: its H3 id and its numbers. | Six modules (terrain, temperature, rocks, wind, ice, caves) each write a small Parquet file, light enough for DuckDB to read in a blink."><button type="button"><b>One row per cell</b><span>6 modules write small Parquet tables, read by DuckDB.</span><i></i></button></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 2. En direct, sur le serveur -->
+    <section class="hw-panneau" id="direct" data-panneau="live" role="tabpanel" aria-labelledby="hw-o2" hidden>
+      <div class="hw-entete">
+        <span class="hw-num">2</span>
+        <div><p class="hw-quand">Live, when you press “Compare”</p><h2 id="hw-t2">The search</h2></div>
+        <div class="hw-outils">
+          <button type="button" class="hw-lecture" aria-label="Pause">❚❚</button>
+          <button type="button" class="hw-rejouer" aria-label="Replay from the start">↺</button>
+        </div>
+      </div>
+      <div class="hw-corps">
+        <div class="hw-scene">
+          <canvas aria-hidden="true"></canvas>
+        </div>
+        <p class="hw-recit" aria-live="polite"></p>
+        <ol class="hw-etapes">
+          <li data-recit="It starts in the app: you paint an area on Mars or the Moon. | Only the ids of your hexagons travel to our server."><button type="button"><b>You paint an area</b><span>Your hexagons on Mars or the Moon go to the server.</span><i></i></button></li>
+          <li data-recit="The server looks up your hexagons in the Parquet tables and averages each criterion. | That gives the fingerprint of your area: what it looks like, criterion by criterion."><button type="button"><b>Its fingerprint</b><span>The server averages each criterion over your area.</span><i></i></button></li>
+          <li data-recit="Now every Earth cell is compared with that fingerprint, one module after the other. | At each gate, the cells that keep looking less alike than most are dropped. | What’s left: a few thousand candidates, scored by how close they are overall."><button type="button"><b>Through every module</b><span>Earth cells that keep looking less alike than most are dropped.</span><i></i></button></li>
+          <li data-recit="The best ones are picked, at least 300 km apart, so the list isn’t ten times the same desert. | They come back to your browser in about two seconds, ready to explore and unwrap."><button type="button"><b>The best sites come back</b><span>Top 10, at least 300 km apart, in about two seconds.</span><i></i></button></li>
+        </ol>
+      </div>
+    </section>
+
+    <p class="hw-pied">These animations are simplified drawings, not your real data: the numbers shown are examples.
+      To see which satellites we use and what the app can’t do, read <a href="apropos.html">About</a>.</p>
+  </main>
+
+  <script src="node_modules/h3-js/dist/h3-js.umd.js"></script>
+  <script>window.h3 || document.write('<script src="https://unpkg.com/h3-js@4.4.0/dist/h3-js.umd.js"><\/script>')</script>
+  <script src="textures/accueil.js"></script>
+  <script src="js/fonctionnement.js"></script>
+</body>
+</html>
