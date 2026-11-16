@@ -1,7 +1,7 @@
 """Wind Dynamics, Erosion, and Atmosphere module: Earth and Mars preprocessing.
 
-    ./pipeline run wind_erosion_atmosphere                       # Both celestial bodies
-    ./pipeline run wind_erosion_atmosphere --corps mars          # All options: --help
+    python modules_pretraitement/wind_erosion_atmosphere/scripts/pretraitement.py                       # Both celestial bodies
+    python modules_pretraitement/wind_erosion_atmosphere/scripts/pretraitement.py --corps mars          # All options: --help
 
 One row per H3 cell (resolution 5 by default; on Earth, only land cells),
 written to pretreatment_data/wind_erosion_atmosphere/.
@@ -229,7 +229,7 @@ def sauver(corps: str, res: int, t: pd.DataFrame) -> None:
 def connexion_earthdata():
     import earthaccess
     if not earthaccess.login().authenticated:
-        sys.exit("Connexion NASA Earthdata impossible : identifiant dans ~/.netrc (./setup.sh)")
+        sys.exit("Connexion NASA Earthdata impossible : identifiant dans ~/.netrc, ou EARTHDATA_USERNAME et EARTHDATA_PASSWORD dans .env")
     return earthaccess
 
 

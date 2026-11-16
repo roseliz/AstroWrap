@@ -1,289 +1,142 @@
-# Wind Dynamics, Erosion, and Atmosphere
+# Wind, erosion and atmosphere
 
-Wind capable of mobilizing sand, dunes, bare ground, dust loading, and dust storms, aggregated by **H3 resolution 5 cells**, for **Earth and Mars**. The Moon has no atmosphere, so this module is disabled for the Moon.
+Wind able to move sand, dunes, bare ground, dust and dust storms for every H3 cell (resolution 5) of the Earth and
+Mars. The Moon has no atmosphere, so it is left out. In the app it is the **Wind and dust** criterion.
 
-Mars' atmosphere is approximately 60 times less dense than Earth's, meaning that raw wind speeds cannot be directly compared.
+The Martian air is ~60 times thinner, so raw wind speeds can't be compared. The module compares **ratios to each
+body's sand-moving threshold** and **ranks within each body**, computed the same way on both.
 
-The feature vector therefore includes **ratios relative to each body's saltation threshold** and **within-body rankings**, calculated using the same definitions for both celestial bodies.
+| Comparable | Not comparable |
+|---|---|
+| `vent_fort_rel` (1 = sand starts moving, on either body) | raw `u_etoile_p95` |
+| `poussiere_rang`, `tempetes_rang` (0 to 1, within the body) | raw `poussiere_opacite` (different wavelengths) |
+| `part_dunes`, `part_sol_nu` (shares of the cell) | |
 
-## Files
+## Quick start
 
-```text
-run.sh                       Entry point (./pipeline run wind_erosion_atmosphere)
-requirements.txt             Module dependencies
-inputs.txt                   Manual inputs: MCD, MGD3, Earth dunes (optional)
-scripts/pretraitement.py     Preprocessing for both celestial bodies
-```
-
-## Data Sources and Setup Requirements
-
-| Body | Source | Purpose | How to Obtain |
-|---|---|---|---|
-| Earth | NASA **MERRA-2 M2TUNXFLX** (`USTAR`, `RHOA`), monthly × hourly averages | Strong winds, air density | Automatic (Earthdata account); 12 × 876 MB |
-| Earth | NASA **MERRA-2 M2TMNXAER** (`DUEXTTAU`) | Dust loading | Automatic; 12 × 80 MB |
-| Earth | NASA **VIIRS Deep Blue AERDB_D3_VIIRS_SNPP** (daily, 1°) | Dust storms | Automatic; 365 × 3.6 MB |
-| Earth | NASA **MODIS MCD12C1** v061 (land cover, 0.05°) | Land areas, bare ground | Automatic; 1 × 1.2 GB |
-| Earth | **Global dune map at 0.1° resolution** (Gunn 2026, *Nature Communications*; [dune-world](https://github.com/geomorphlab/dune-world), MIT license) | Dunes | Automatic (26 MB); an alternative map can be placed in `inputs/wind_erosion_atmosphere/dunes_terre/` |
-| Mars | **Mars Climate Database v6.2** (LMD), `clim_aveEUV` | Wind, air density, frost, and ice | **Manual setup**, already completed: `inputs/mcd/`. Do not redistribute. |
-| Mars | **Montabone Dust Climatology** (Martian Years 24–36) | Dust loading, dust storms | Automatic on first run (CC BY-SA 3.0 license) |
-| Mars | **Mars Global Digital Dune Database (MGD3)**, USGS | Dunes | **Manual setup:** On the [65° N – 65° S page](https://pubs.usgs.gov/of/2007/1158/), download the **Shapefiles** folder into `inputs/wind_erosion_atmosphere/mgd3/`. Optional polar datasets: [North](https://pubs.usgs.gov/of/2010/1170), [South](https://pubs.usgs.gov/of/2012/1259). |
-
-Earth datasets are downloaded, read, and deleted sequentially: approximately **14 GB of total data transfers**, but never more than approximately **1.2 GB stored on disk at once**.
-
-A NASA Earthdata account must be configured in `~/.netrc` (handled by `./setup.sh`).
-
-For MERRA-2, authorize the **NASA GESDISC DATA ARCHIVE** application in your Earthdata profile. If another download returns an HTTP 401 or 403 error, similarly authorize the data center application specified in the error message.
-
-### Montabone Dust Climatology
-
-If the automatic Montabone download fails, download `krigedcdod_v2.tar.gz` from the [dust climatology page](https://www-mars.lmd.jussieu.fr/mars/dust_climatology/).
-
-Extract the `dustscenario_MY*.nc` files into:
-
-```text
-inputs/wind_erosion_atmosphere/montabone/
-```
-
-### Dune Data
-
-Supported vector formats include `.shp`, `.gpkg`, `.geojson`, and `.gml`.
-
-The script:
-
-- Prioritizes files whose names contain `"dune"` (and `"field"`).
-- Retains polygon geometries.
-- Reprojects geometries to longitude/latitude when necessary.
-- Avoids reading the same layer twice when it is provided in two different projections.
-- Displays information about the datasets successfully loaded.
-
-Outside the spatial extent of the available files, `part_dunes` is **missing, not zero**.
-
-For Earth, if no file is present in `dunes_terre/`, the script automatically downloads the Gunn (2026) dune map, a binary 0/1 grid indicating dune presence at 0.1° resolution.
-
-Any alternative 0/1 GeoTIFF in geographic longitude/latitude coordinates placed in this directory is also supported.
-
-### Updating Dune Data Without Reprocessing Everything
-
-Use the `--dunes-seulement` option to update dune coverage without rerunning the entire pipeline.
-
-The script reads the existing results, recalculates only `part_dunes` (along with `couverture` and `fiabilite`), and overwrites the corresponding outputs.
-
-No datasets are downloaded again except the dune map.
-
-This operation takes only a few seconds, compared with approximately **35 minutes for a complete Earth processing run**.
-
-## Running the Pipeline
+From the repository root:
 
 ```bash
-# Check module requirements
-./pipeline check wind_erosion_atmosphere
-
-# Process Mars (~1 minute after Montabone has been downloaded)
-./pipeline run wind_erosion_atmosphere --corps mars
-
-# Process Earth (mostly limited by download time)
-./pipeline run wind_erosion_atmosphere --corps earth
-
-# Process both celestial bodies
-./pipeline run wind_erosion_atmosphere
-
-# Update only dune coverage using existing results
-./pipeline run wind_erosion_atmosphere --dunes-seulement
-
-# Publish the results
-./pipeline publish wind_erosion_atmosphere
+pip install -r modules_pretraitement/wind_erosion_atmosphere/requirements.txt
+python modules_pretraitement/wind_erosion_atmosphere/scripts/pretraitement.py --corps mars
 ```
 
-### Available Options
-
-| Option | Description |
+| Command | Time |
 |---|---|
-| `--corps earth mars` | Celestial bodies to process (default: both). |
-| `--dunes-seulement` | Recalculate only `part_dunes` in previously generated results. |
-| `--resolution 5` | H3 spatial resolution. |
-| `--seuil-tempete 1.0` | Visible dust optical depth threshold used to define a storm day. |
-| `--annee 2023` | Year of Earth observation data. |
-| `--zone W S E N` | Restrict Earth processing to a geographic bounding box (downloads remain global). |
-| `--dunes-terre /path` | Earth: directory containing an alternative dune map (vector boundaries or binary 0/1 GeoTIFF). |
-| `--mcd /path`, `--mgd3 /path` | Mars: directories containing the MCD and MGD3 datasets. |
-| `--annees-mars 30 31 32` | Martian years to use from Montabone (default: 24–36). |
+| `--corps mars` | ~1 min, once Montabone is downloaded |
+| `--corps earth` | ~35 min, mostly downloads (~14 GB transferred, never more than ~1.2 GB on disk) |
+| no `--corps` | both |
+| `--dunes-seulement` | seconds: recomputes `part_dunes`, `couverture`, `fiabilite` in the existing outputs |
 
-### Output Files
+Earth needs a [NASA Earthdata](https://urs.earthdata.nasa.gov) account in `~/.netrc`, with the **NASA GESDISC DATA
+ARCHIVE** application authorized in the profile. On another HTTP 401 or 403, authorize the data center the error names.
 
-Results are stored in:
+## Sources
 
-```text
-pretreatment_data/wind_erosion_atmosphere/
-```
+| Body | Source | For | How |
+|---|---|---|---|
+| Earth | MERRA-2 M2TUNXFLX (`USTAR`, `RHOA`), monthly × hourly | Strong winds, air density | Automatic, 12 × 876 MB |
+| Earth | MERRA-2 M2TMNXAER (`DUEXTTAU`) | Dust | Automatic, 12 × 80 MB |
+| Earth | VIIRS Deep Blue AERDB_D3_VIIRS_SNPP, daily, 1° | Dust storms | Automatic, 365 × 3.6 MB |
+| Earth | MODIS MCD12C1 v061, 0.05° | Land, bare ground | Automatic, 1.2 GB |
+| Earth | Global dune map 0.1° (Gunn 2026, *Nature Communications*, [dune-world](https://github.com/geomorphlab/dune-world), MIT) | Dunes | Automatic, 26 MB |
+| Mars | Mars Climate Database v6.2 (LMD), `clim_aveEUV` | Wind, air density, frost, ice | **Manual**, `inputs/mcd/`; never redistribute |
+| Mars | Montabone dust climatology, Martian years 24–36 (CC BY-SA 3.0) | Dust, storms | Automatic on first run |
+| Mars | Mars Global Digital Dune Database (MGD3), USGS | Dunes | **Manual** |
 
-Generated files:
+### Manual files
 
-```text
-wind_erosion_atmosphere_earth_h3_5.parquet
-wind_erosion_atmosphere_mars_h3_5.parquet
-earth.duckdb
-mars.duckdb
-```
+Into `inputs/wind_erosion_atmosphere/` (repository root):
 
-## Output Columns
+| Data | Where to get it | Put it in |
+|---|---|---|
+| MGD3 | [65° N – 65° S page](https://pubs.usgs.gov/of/2007/1158/), the **Shapefiles** folder; optional poles: [North](https://pubs.usgs.gov/of/2010/1170), [South](https://pubs.usgs.gov/of/2012/1259) | `mgd3/` |
+| Montabone, if the download fails | `krigedcdod_v2.tar.gz` from the [dust climatology page](https://www-mars.lmd.jussieu.fr/mars/dust_climatology/), the `dustscenario_MY*.nc` files | `montabone/` |
+| Another Earth dune map (optional) | Vector boundaries, or a 0/1 GeoTIFF in lon/lat | `dunes_terre/` |
+| MCD | See [thermal_light_extrems](../thermal_light_extrems/README.md#mars-climate-database) | `inputs/mcd/` |
 
-Each output table begins with the following identifiers:
+Dune files: `.shp`, `.gpkg`, `.geojson`, `.gml`. Files named `dune` (and `field`) first, polygons only, reprojected
+to lon/lat, the same layer never read twice. Outside the files' extent, `part_dunes` is **missing, not 0**.
 
-`body`, `resolution`, `h3`
+## Options
 
-| Column | Definition |
+| Option | Effect |
 |---|---|
-| `vent_fort_rel` | `u_etoile_p95 / u_etoile_seuil`: strong wind relative to the body's saltation threshold (1 = sand begins to move). |
-| `part_dunes` | Fraction of the H3 cell covered by dune fields (0–1). |
-| `part_sol_nu` | Fraction of bare ground (0–1); see Methodology. |
-| `poussiere_rang` | Rank of `poussiere_opacite` among cells belonging to the same celestial body: fraction of cells with lower values (0–1; tied values receive the same rank). |
-| `tempetes_rang` | Rank of `tempetes_freq`, using the same definition (cells without storms have a value of 0). |
-| `u_etoile_p95` | Friction velocity over bare ground, 95th percentile of monthly × hourly averages (m/s). |
-| `u_etoile_seuil` | Threshold friction velocity required to initiate saltation (m/s). |
-| `densite_air` | Mean annual near-surface air density (kg/m³). |
-| `poussiere_opacite` | Earth: dust optical depth at 550 nm. Mars: dust column opacity above the surface (absorption at 9.3 µm). Units differ, so only the rankings are comparable. |
-| `tempetes_freq` | Fraction of days (Martian sols for Mars) classified as dust storm days. |
-| `couverture`, `fiabilite` | Fraction of the five indicators available; `fiabilite = couverture` (temporary definition, consistent with the thermal module). |
+| `--corps earth mars` | Bodies (default: both) |
+| `--dunes-seulement` | Only recompute `part_dunes` |
+| `--resolution 5` | H3 resolution |
+| `--seuil-tempete 1.0` | Visible dust optical depth of a storm day |
+| `--annee 2023` | Year of the Earth data |
+| `--zone W S E N` | Earth: only this box (downloads stay global) |
+| `--dunes-terre /path` | Earth: other dune map |
+| `--mcd /path`, `--mgd3 /path` | Mars: MCD and MGD3 folders |
+| `--annees-mars 30 31 32` | Martian years from Montabone (default: 24–36) |
 
-## Methodology (Identical for Both Celestial Bodies)
+## Output
 
-### 1. Strong Winds
+`pretreatment_data/wind_erosion_atmosphere/wind_erosion_atmosphere_<earth|mars>_h3_5.parquet`, plus `<body>.duckdb`.
 
-Strong wind conditions are characterized using the **95th percentile of friction velocity (`u*`)**, calculated from monthly × hourly averages over the year:
+| Column | Meaning | Unit |
+|---|---|---|
+| `body`, `resolution`, `h3` | Cell | |
+| `vent_fort_rel` | `u_etoile_p95 / u_etoile_seuil`: 1 = sand starts moving | |
+| `part_dunes` | Share of the cell in dune fields | 0–1 |
+| `part_sol_nu` | Share of bare ground | 0–1 |
+| `poussiere_rang` | Share of the body's cells with less dust (ties: same rank) | 0–1 |
+| `tempetes_rang` | Same, for `tempetes_freq` (no storm: 0) | 0–1 |
+| `u_etoile_p95` | Friction velocity over bare ground, 95th percentile | m/s |
+| `u_etoile_seuil` | Friction velocity that starts saltation | m/s |
+| `densite_air` | Mean near-surface air density | kg/m³ |
+| `poussiere_opacite` | Earth: dust optical depth at 550 nm. Mars: column dust opacity at 9.3 µm | |
+| `tempetes_freq` | Share of days (sols) with a dust storm | 0–1 |
+| `couverture`, `fiabilite` | Share of the 5 indicators available; `fiabilite` = `couverture` for now | 0–1 |
 
-- **Earth:** 12 × 24 observations from MERRA-2.
-- **Mars:** 12 × 12 observations from the MCD.
+## Method (same on both bodies)
 
-The same calculation is applied to both celestial bodies, **assuming bare-ground conditions**.
+| Indicator | Earth | Mars |
+|---|---|---|
+| Strong wind | 95th percentile of `u*` over 12 months × 24 h (MERRA-2) | 12 months × 12 times (MCD) |
+| Wind level | `ULML`, `VLML` at `HLML` (~60 m) | ~4.5 m |
+| Sand grains | quartz, 2,650 kg/m³, g = 9.81 | basalt, 3,000 kg/m³, g = 3.71 |
+| Threshold `u*t` | ~0.25 m/s | ~1.3 to 3.5 m/s, with altitude |
+| Bare ground | IGBP "Barren" share of land (MCD12C1) | Share of the year free of CO₂ frost and of water ice > 1 kg/m² |
+| Dust | Annual mean dust optical depth (MERRA-2) | Mean column opacity `cdodtot` (Montabone) |
+| Storm day | VIIRS, aerosol type "dust" and 550 nm depth ≥ 1.0, valid days only | `cdod610 × 2.6 ≥ 1.0` (infrared to visible) |
+| Dunes | Area of 0.1° dune pixels centered in the cell / cell area | Share of the 343 sub-cells (res + 3) centered in a dune polygon |
+| Cells | Cells holding the center of an MCD12C1 land pixel (water < 50%) | All cells |
 
-A logarithmic wind profile under neutral atmospheric stability is used:
-
-```text
-u* = 0.4 × wind_speed / ln(z / z0)
-```
-
-Where:
-
-- `u*`: Friction velocity (m/s).
-- `z`: Height of the wind measurement.
-- `z0`: Surface roughness length, fixed at 1 cm.
-
-Wind speed is taken from the lowest atmospheric level available in each model:
-
-- **Earth:** `ULML`, `VLML` at height `HLML` (~60 m).
-- **Mars:** Approximately 4.5 m above the surface.
-
-The MERRA-2 `USTAR` variable is **not used**, because it incorporates the surface roughness of forests and urban areas.
-
-Using it produced unrealistic results, suggesting that the Amazon rainforest had stronger sand-moving winds than the Bodélé Depression.
-
-### 2. Saltation Threshold
-
-The saltation threshold is calculated using the **Shao and Lu (2000)** formulation:
+Formulas, with grains of `d` = 100 µm and `z0` = 1 cm:
 
 ```text
-u*t = √[0.0123 × ((ρ_grain / ρ_air) × g × d
-                  + 3 × 10⁻⁴ / (ρ_air × d))]
+u*  = 0.4 × wind_speed / ln(z / z0)                                   neutral log profile, bare ground
+u*t = √[0.0123 × ((ρ_grain / ρ_air) × g × d + 3×10⁻⁴ / (ρ_air × d))]   Shao and Lu (2000)
 ```
 
-Where:
+MERRA-2 `USTAR` is **not** used: it includes the roughness of forests and cities, and made the Amazon windier for
+sand than the Bodélé Depression.
 
-- `u*t`: Threshold friction velocity (m/s).
-- `ρ_grain`: Grain density (kg/m³).
-- `ρ_air`: Local air density (kg/m³).
-- `g`: Gravitational acceleration (m/s²).
-- `d`: Grain diameter, fixed at 100 µm.
+Coarse sources take the grid point nearest to the cell center (as in the thermal module):
 
-**Earth:**
-
-- Grain material: Quartz.
-- Grain density: 2650 kg/m³.
-- Gravity: 9.81 m/s².
-- Approximate threshold: 0.25 m/s.
-
-**Mars:**
-
-- Grain material: Basalt.
-- Grain density: 3000 kg/m³.
-- Gravity: 3.71 m/s².
-- Approximate threshold: 1.3–3.5 m/s, depending on altitude.
-
-### 3. Bare Ground
-
-**Earth:** Bare-ground fraction is calculated from the IGBP `"Barren"` land-cover class in MODIS MCD12C1, relative to the total land area within each cell.
-
-**Mars:** Bare-ground fraction represents the portion of the year during which the surface is free from CO₂ frost and water ice exceeding 1 kg/m².
-
-No vegetation is present on Mars.
-
-### 4. Dust Loading
-
-**Earth:** Annual mean dust optical depth derived from MERRA-2.
-
-**Mars:** Mean total-column dust opacity across the selected Martian years, obtained from the Montabone climatology (`cdodtot`), representing the dust actually present above the surface.
-
-### 5. Dust Storms
-
-A dust storm day is defined as a day when **visible dust optical depth reaches or exceeds 1.0**.
-
-**Earth:**
-
-- Uses VIIRS observations.
-- The dominant aerosol type must be classified as `"dust"`.
-- Dust optical depth at 550 nm must be ≥ 1.0.
-- Only days with valid VIIRS measurements are considered.
-
-**Mars:**
-
-- Uses Montabone dust opacity normalized to 610 Pa (`cdod610`), independent of altitude.
-- Converts infrared absorption opacity to visible opacity using a factor of 2.6.
-- A storm is detected when:
-
-```text
-cdod610 × 2.6 ≥ 1.0
-```
-
-### 6. H3 Cell Assignment
-
-**Earth:** Only H3 cells containing the center of at least one MCD12C1 land pixel are retained, with water coverage below 50%.
-
-**Mars:** All H3 cells are included.
-
-Datasets with spatial resolutions coarser than the H3 cells assign the value of the grid point nearest to each cell center, following the same approach as the thermal module.
-
-| Dataset | Spatial Resolution |
+| Source | Grid |
 |---|---|
 | MERRA-2 | 0.5° × 0.625° |
 | VIIRS | 1° |
 | MCD | 3.75° × 5.625° |
 | Montabone | 3° |
 
-### 7. Dune Coverage
+## Limits
 
-`part_dunes` represents the fraction of each H3 cell's surface covered by dune fields.
+| Limit | Effect |
+|---|---|
+| Martian models | Tens of km per pixel: relative comparison only |
+| Monthly × hourly means | Gusts are smoothed: `vent_fort_rel` underestimates peaks, the same way on both bodies |
+| Earth storms | VIIRS sees clear skies only, one year of data |
+| Dunes | MGD3 keeps fields > ~1 km²; the Earth map is 0.1° (~10 km), 1 to 3 pixels per cell |
 
-**Mars — MGD3 Vector Boundaries**
+## Files
 
-Dune coverage is estimated using H3 subcells at resolution `H3 resolution + 3`.
-
-Each parent cell is subdivided into **343 subcells**, and the proportion of subcell centers falling within dune-field polygons is calculated.
-
-**Earth — Gunn (2026) Raster Map**
-
-Dune coverage is calculated as:
-
-```text
-part_dunes = Area of 0.1° dune pixels whose centers
-             fall within the H3 cell
-             / Total H3 cell area
-```
-
-## Limitations
-
-- **Relative comparison only:** Martian climate models have spatial resolutions of several tens of kilometers, limiting the precision of local estimates.
-
-- **Temporal averaging:** Monthly × hourly averages smooth out short-lived wind gusts. Consequently, `vent_fort_rel` represents climatologically strong winds and underestimates peak wind conditions in the same way for both celestial bodies.
-
-- **Earth dust storm detection:** VIIRS observations are limited to clear-sky conditions, and only one year of data is used.
-
-- **Dune dataset resolution:** MGD3 includes dune fields larger than approximately 1 km². The Earth dune map has a spatial resolution of 0.1° (~10 km), corresponding to only 1–3 pixels per H3 cell. As a result, `part_dunes` provides a relatively coarse estimate of dune coverage on Earth.
+| Path | Content |
+|---|---|
+| `scripts/pretraitement.py` | Entry point, both bodies |
+| `requirements.txt` | Dependencies |
+| `inputs/wind_erosion_atmosphere/` | Manual files: MGD3, Montabone, Earth dunes |

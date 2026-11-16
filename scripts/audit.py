@@ -1,6 +1,6 @@
 """Audit module results: missing, impossible or suspicious data, benchmark sites.
 
-    ./pipeline audit thermal_light_extrems              # report in logs/audit_<module>.html
+    python scripts/audit.py thermal_light_extrems       # report in logs/audit_<module>.html
     python scripts/audit.py <module> [--dossier D] [--sans-cartes]
 
 Reads all pretreatment_data/<module>/*_{earth,mars,moon}_h3_<res>[_suffixe].parquet files and performs,

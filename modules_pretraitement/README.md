@@ -67,6 +67,13 @@ writes one table per computation base (`_b500` on the three bodies, `_b100` on E
 | [volatiles_hydrology_ice](volatiles_hydrology_ice/README.md) | Ice and water | Earth, Mars, Moon | ESA CCI, RGI, JRC, SWIM, Diviner, LOLA | up to ~18 GB | 85 MB |
 | [astrobiology_habitability_caves](astrobiology_habitability_caves/README.md) | Volcanoes and caves | Earth, Mars, Moon | OpenStreetMap, Wikidata, Smithsonian GVP, USGS, LROC | ~30 MB | 36 MB |
 
+> [!NOTE]
+> **Mineralogy was set aside.** We first planned to compare minerals too, and processed the Earth with NASA EMIT
+> (`mineralogie_terre`, six Spot machines running in the United States). A fair comparison with Mars would also have
+> needed thermal infrared spectra, which was far too large and too long for the challenge. We stopped there rather
+> than show a weak comparison: the **Rocks** criterion compares rock classes only. The mineral tables stay in the
+> outputs but are not used in the search.
+
 The server also reads `environmental_impact` (WDPA protected areas, OurAirports). It is not a similarity criterion:
 it shows what a test campaign would cost the Earth.
 
@@ -91,6 +98,7 @@ Files worth keeping stay in `cache/`.
 | Install everything | `pip install -r modules_pretraitement/requirements.txt` |
 | Check the machine | `python scripts/verifier.py <module>` (Python, packages, credentials, inputs, disk) |
 | Run a module | See its README |
+| Audit the results | `python scripts/audit.py <module>` (HTML report in `logs/audit_<module>.html`) |
 | Share the results | `python scripts/releases.py publier <module> --note "what changed"` |
 | Get the results | `python scripts/releases.py recuperer <module>` |
 | List releases | `python scripts/releases.py liste` |

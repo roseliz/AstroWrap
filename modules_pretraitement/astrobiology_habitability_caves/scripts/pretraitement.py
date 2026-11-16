@@ -1,7 +1,7 @@
 """\"Astrobiology, habitability, caves and subsurface\" module: preprocessing for Earth, Mars, and the Moon.
 
-    ./pipeline run astrobiology_habitability_caves                       # all three bodies
-    ./pipeline run astrobiology_habitability_caves --corps moon          # all options: --help
+    python modules_pretraitement/astrobiology_habitability_caves/scripts/pretraitement.py                       # all three bodies
+    python modules_pretraitement/astrobiology_habitability_caves/scripts/pretraitement.py --corps moon          # all options: --help
 
 One row per H3 cell (resolution 5 by default; for Earth, land cells only), written to
 pretreatment_data/astrobiology_habitability_caves/. All three bodies share the same columns: cataloged

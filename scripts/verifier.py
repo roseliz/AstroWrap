@@ -3,7 +3,7 @@
     python scripts/verifier.py                      # all modules
     python scripts/verifier.py thermal_light_extrems
 
-Exit code 1 if a mandatory item is missing. Called by ./setup.sh and ./pipeline check.
+Exit code 1 if a mandatory item is missing.
 """
 
 from __future__ import annotations
@@ -19,6 +19,8 @@ from pathlib import Path
 
 RACINE = Path(__file__).resolve().parents[1]
 IMPORTS = {"pyhdf": "pyhdf", "netcdf4": "netCDF4"}   # nom pip -> nom à importer, quand ils diffèrent
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # console Windows (cp1252) : ✓ ✗
 COULEURS = sys.stdout.isatty()
 ok_global = True
 
@@ -46,18 +48,26 @@ def paquets(fichier: Path) -> list[str]:
     return noms
 
 
+# Entrées à copier à la main (voir le README de chaque module) : nom, dossier, usage, description
+MCD = ("MCD", "inputs/mcd", "Mars", "clim_01_me.nc … clim_12_me.nc de la Mars Climate Database (sur demande au LMD)")
+MANUELLES = {
+    "thermal_light_extrems": [MCD],
+    "wind_erosion_atmosphere": [MCD, ("MGD3", "inputs/wind_erosion_atmosphere/mgd3", "les dunes de Mars",
+                                      "dossier Shapefiles de la Mars Global Digital Dune Database (USGS)")],
+    "volatiles_hydrology_ice": [MCD],
+    "geology_mineralogy": [("GLiM", "inputs/geology_mineralogy/glim", "les roches de la Terre",
+                            "dossier LiMW_GIS 2015.gdb"),
+                           ("Carte géologique de la Lune", "inputs/geology_mineralogy/carte_lune", "les roches de la Lune",
+                            "GeoUnits.shp (+ .dbf, .shx, .prj) de la Unified Geologic Map of the Moon")],
+}
+
+
 def entrees(module: str) -> list[dict]:
-    """Lignes de modules_pretraitement/<module>/inputs.txt : nom, dossier, usage, description."""
-    fichier = RACINE / "modules_pretraitement" / module / "inputs.txt"
-    if not fichier.is_file():
-        return []
-    sortie = []
-    for l in fichier.read_text(encoding="utf-8").splitlines():
-        l = l.strip()
-        if l and not l.startswith("#"):
-            c = l.split(None, 3) + ["", "", ""]
-            sortie.append({"nom": c[0], "dossier": RACINE / c[1], "usage": c[2], "description": c[3]})
-    return sortie
+    return [{"nom": n, "dossier": RACINE / d, "usage": u, "description": t} for n, d, u, t in MANUELLES.get(module, [])]
+
+
+def est_module(p: Path) -> bool:
+    return p.is_dir() and (p / "scripts").is_dir() and (p / "requirements.txt").is_file()
 
 
 def identifiant_earthdata() -> bool:
@@ -79,7 +89,7 @@ def identifiant_earthdata() -> bool:
 
 
 def main() -> int:
-    modules = sys.argv[1:] or sorted(p.name for p in (RACINE / "modules_pretraitement").iterdir() if (p / "run.sh").is_file())
+    modules = sys.argv[1:] or sorted(p.name for p in (RACINE / "modules_pretraitement").iterdir() if est_module(p))
 
     print("Système")
     v = sys.version_info
@@ -88,7 +98,7 @@ def main() -> int:
     else:
         echec(f"Python {v.major}.{v.minor}", "il faut 3.9 ou plus")
     if sys.prefix == sys.base_prefix:
-        ligne("info", "environnement .venv non activé", "./pipeline l'active tout seul")
+        ligne("info", "environnement .venv non activé", "activez-le avant de lancer un module")
     # cache/ peut être un lien vers un autre disque (SSD) : c'est là que vont les téléchargements
     cache = RACINE / "cache"
     libre = shutil.disk_usage(cache if cache.exists() else RACINE).free / 1e9
@@ -103,12 +113,13 @@ def main() -> int:
         pass
 
     print("Paquets Python")
-    manquants = [n for n in paquets(RACINE / "requirements.txt")
-                 if importlib.util.find_spec(IMPORTS.get(n, n.replace("-", "_"))) is None]
+    exigences = [RACINE / "modules_pretraitement" / m / "requirements.txt" for m in modules]
+    noms = sorted({n for f in exigences if f.is_file() for n in paquets(f)})
+    manquants = [n for n in noms if importlib.util.find_spec(IMPORTS.get(n, n.replace("-", "_"))) is None]
     if manquants:
-        echec(", ".join(manquants), "absents : pip install -r requirements.txt")
+        echec(", ".join(manquants), "absents : pip install -r modules_pretraitement/<module>/requirements.txt")
     else:
-        ligne("ok", "tous les paquets de requirements.txt")
+        ligne("ok", f"{len(noms)} paquets des modules installés")
 
     print("Accès")
     # Earthdata est obligatoire pour les modules qui utilisent earthaccess (pas la topographie) ; facultatif quand
@@ -123,22 +134,22 @@ def main() -> int:
     if identifiant_earthdata():
         ligne("ok", "NASA Earthdata", "~/.netrc ou EARTHDATA_USERNAME")
     elif besoin:
-        echec("NASA Earthdata", f"nécessaire pour {', '.join(besoin)} : relancer ./setup.sh, ou ajouter urs.earthdata.nasa.gov à ~/.netrc")
+        echec("NASA Earthdata", f"nécessaire pour {', '.join(besoin)} : EARTHDATA_USERNAME et EARTHDATA_PASSWORD dans .env, ou urs.earthdata.nasa.gov dans ~/.netrc")
     elif facultatif:
         ligne("info", "NASA Earthdata non configuré", f"facultatif pour {', '.join(facultatif)} (RGI 7.0 ; sinon Natural Earth seul)")
     else:
         ligne("info", "NASA Earthdata non configuré", "inutile pour " + ", ".join(modules))
     if shutil.which("gh") is None:
-        ligne("info", "GitHub CLI absent", "nécessaire seulement pour ./pipeline publish / fetch")
+        ligne("info", "GitHub CLI absent", "nécessaire seulement pour scripts/releases.py")
     elif subprocess.run(["gh", "auth", "status"], capture_output=True).returncode:
-        ligne("info", "GitHub CLI non connecté", "gh auth login, pour ./pipeline publish / fetch")
+        ligne("info", "GitHub CLI non connecté", "gh auth login, pour scripts/releases.py")
     else:
         ligne("ok", "GitHub CLI connecté")
 
     for m in modules:
         print(f"Module {m}")
-        if not (RACINE / "modules_pretraitement" / m / "run.sh").is_file():
-            echec("run.sh", "absent")
+        if not est_module(RACINE / "modules_pretraitement" / m):
+            echec(m, "module inconnu (pas de scripts/ ni de requirements.txt)")
             continue
         liste = entrees(m)
         if not liste:
