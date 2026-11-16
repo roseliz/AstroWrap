@@ -144,6 +144,17 @@ After each write, the script prints the values of a few known reference sites an
 
 ## Method
 
+```mermaid
+flowchart LR
+    A[DEM<br/>GLO-90 90 m, MOLA 463 m,<br/>LOLA 118 m] --> B[Block average<br/>to the computation base<br/>500 m or 100 m]
+    B --> C[Per pixel<br/>slope, curvature,<br/>roughness]
+    C --> D[Each pixel to the<br/>H3 cell of its center]
+    D --> E[Per cell<br/>slope deciles, flat share,<br/>elevation range]
+    F[Crater catalogs] --> G[Craters ≥ 1 km<br/>over the cell and k rings]
+    E --> H[(Parquet<br/>one table per base)]
+    G --> H
+```
+
 * **Computation base**: the script block-averages the DEM pixels to reach the target base. For example, it uses 5 × 5 pixels of 3″ for Earth at 500 m and 4 × 4 pixels for the Moon at 500 m. Near the poles, meridians converge, so the script groups more columns to keep the pixels roughly square up to high latitudes.
 * **Slope and curvature**: central differences on the sphere; the slope is atan(|∇z|). The curvature is the discrete Laplacian, and the roughness is the deviation from the 3 × 3 mean.
 * **Cell assignment**: each pixel goes to the H3 cell of its center. The script looks up cells by blocks of about 1/8 of a cell side. It reads each DEM from north to south and computes a cell as soon as all of its pixels have been read, so the deciles are exact. At the 100 m base, Earth keeps one pixel in 3 along each axis, so ~3,000 pixels per cell. This sampling has a negligible effect on the deciles.

@@ -2,6 +2,32 @@
 
 FastAPI application, read-only over the preprocessing results in `pretreatment_data/`. The interface (`../ui`) calls it on http://127.0.0.1:8000.
 
+## How the search works
+
+`POST /api/search` (`services/combine.py`) compares a painted area with every land cell of the Earth, in about two
+seconds, from tables already in memory (DuckDB over the Parquet files of `pretreatment_data/`).
+
+```mermaid
+flowchart TD
+    A[Painted area<br/>H3 resolution 6 tiles] --> B[Fingerprint<br/>each variable averaged over the area,<br/>at resolution 5]
+    B --> C[Similarity of every Earth cell<br/>one score per module, 0 to 1]
+    C --> D[Filters<br/>vegetation, urban, protected areas]
+    D --> E[Funnel<br/>modules from heaviest to lightest:<br/>a miss when less alike than the median;<br/>too many misses and the cell is dropped]
+    E --> F[Ranking<br/>weighted mean of the modules,<br/>minimum confidence]
+    F --> G[Footprint<br/>each candidate re-scored over a disk<br/>of the same area as the painted one;<br/>more than 15% sea: excluded]
+    G --> H[Top 10 sites at least 300 km apart,<br/>known analogs and their rank,<br/>impact of a test campaign]
+```
+
+| Step | Where | What it does |
+|---|---|---|
+| Fingerprint | `services/zones.py`, `combine.references` | Resolution 6 tiles are counted in their resolution 5 parents; each variable is averaged with these weights |
+| Similarity | `services/scoring/` | One scorer per module, comparing values that mean the same thing on the three bodies |
+| Funnel | `combine.search` | One weak point is forgiven when enough criteria are active, so a site very close on rocks but hilly can stay |
+| Footprint | `services/footprint.py` | Area against area: the site is judged on the same surface as the painted area, not on a single cell |
+| Impact | `services/impact.py` | Protected share, mines and airport distance, averaged over the footprint |
+
+The interface re-ranks the pool in the browser when weights change, without a new request.
+
 ## Running
 
 The simplest way is `npm install` then `npm start` in `../ui` (see `../ui/README.md`): it sets up `server/.venv` and starts the server. By hand, from `server/` (PowerShell; Linux, macOS: `source .venv/bin/activate`):
