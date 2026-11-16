@@ -1,0 +1,93 @@
+/* How it works (fonctionnement.html, js/fonctionnement.js): two panels, each an animated scene (canvas) and its
+   steps. Loaded after pages.css: same colors and font. */
+.hw-page { max-width: 1180px; margin: 0 auto; padding: calc(var(--nav-h, 48px) + 24px) 16px 60px; display: grid; gap: 26px; }
+.hw-page > * { min-width: 0; }
+.hw-tete h1 { margin-bottom: 6px; }
+
+.hw-panneau { border: 1px solid var(--trait); border-radius: 18px; background: var(--panneau); overflow: hidden; }
+.hw-entete { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-bottom: 1px solid var(--trait); }
+.hw-num { flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%;
+  background: rgba(169, 200, 238, 0.14); color: var(--atmosphere); font-weight: 800; }
+.hw-quand { margin: 0; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--atmosphere); }
+.hw-entete h2 { margin: 0; font-size: clamp(20px, 2.4vw, 26px); font-weight: 800; }
+.hw-outils { margin-left: auto; display: flex; gap: 6px; }
+.hw-outils button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--trait); background: rgba(255, 255, 255, 0.06);
+  color: var(--texte); cursor: pointer; font: inherit; font-size: 13px; }
+.hw-outils button:hover { background: rgba(255, 255, 255, 0.14); }
+
+/* les deux boutons : choisir le panneau */
+.hw-onglets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hw-onglets button { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 16px; text-align: left;
+  border: 1px solid var(--trait); background: rgba(255, 255, 255, 0.03); color: var(--doux); font: inherit; font-size: clamp(17px, 2vw, 21px);
+  font-weight: 800; cursor: pointer; transition: background 0.25s, border-color 0.25s, color 0.25s, transform 0.25s; }
+.hw-onglets button > span:last-child { display: grid; gap: 2px; }
+.hw-onglets small { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--doux); }
+.hw-onglets button:hover { background: rgba(255, 255, 255, 0.07); color: var(--texte); }
+.hw-onglets [aria-selected="true"] { background: rgba(169, 200, 238, 0.12); border-color: var(--atmosphere); color: var(--texte); }
+.hw-onglets [aria-selected="true"] small { color: var(--atmosphere); }
+.hw-onglets [aria-selected="true"] .hw-num { background: var(--atmosphere); color: #081120; }
+.hw-onglets button:focus-visible { outline: 2px solid var(--atmosphere); outline-offset: 2px; }
+/* le titre du panneau est déjà sur le bouton : on ne garde que ❚❚ et ↺, posés sur l'animation */
+.hw-panneau { position: relative; }
+.hw-panneau .hw-entete { position: absolute; top: 0; right: 290px; z-index: 2; padding: 12px; border: 0; }
+.hw-panneau .hw-entete > :not(.hw-outils) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.hw-corps { display: grid; grid-template-columns: minmax(0, 1fr) 290px; grid-template-rows: auto auto; }
+.hw-scene { grid-column: 1; grid-row: 1; }
+.hw-etapes { grid-column: 2; grid-row: 1 / span 2; }
+
+/* le récit : une phrase à la fois, sous l'animation */
+.hw-recit { grid-column: 1; grid-row: 2; margin: 0; min-height: 4.6em; padding: 14px 20px 16px; border-top: 1px solid var(--trait);
+  font-size: clamp(15px, 1.6vw, 17px); line-height: 1.5; color: var(--texte); opacity: 0; transform: translateY(6px); }
+.hw-recit.montre { opacity: 1; transform: none; transition: opacity 0.5s, transform 0.5s; }
+.hw-recit b { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px; font-size: 12px; vertical-align: 2px;
+  background: rgba(169, 200, 238, 0.14); color: var(--atmosphere); }
+.hw-scene { position: relative; height: clamp(320px, 50vh, 520px); background: radial-gradient(ellipse at 30% 40%, #0F2342, #070F1D 70%); }
+.hw-scene canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; }
+#pretraitement canvas { cursor: grab; }
+#pretraitement canvas:active { cursor: grabbing; }
+.hw-astuce { position: absolute; left: 14px; bottom: 10px; margin: 0; font-size: 12px; color: var(--doux); pointer-events: none; opacity: 0.8; transition: opacity 0.4s; }
+.hw-panneau:not([data-etape="0"]) .hw-astuce { opacity: 0; }
+
+/* les étapes : la courante est éclairée et sa barre se remplit (--p, de 0 à 1) */
+.hw-etapes { list-style: none; margin: 0; padding: 10px; display: grid; gap: 6px; align-content: center; border-left: 1px solid var(--trait); counter-reset: e; }
+.hw-etapes li { counter-increment: e; }
+.hw-etapes button { position: relative; width: 100%; display: grid; grid-template-columns: 26px 1fr; column-gap: 10px; row-gap: 2px; text-align: left;
+  padding: 10px 12px 12px; border-radius: 12px; border: 1px solid transparent; background: none; color: var(--doux); font: inherit; cursor: pointer; overflow: hidden;
+  transition: background 0.3s, border-color 0.3s, color 0.3s; }
+.hw-etapes button::before { content: counter(e); grid-row: span 2; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06); font-weight: 800; font-size: 13px; transition: background 0.3s, color 0.3s; }
+.hw-etapes b { color: var(--texte); font-size: 15px; opacity: 0.7; transition: opacity 0.3s; }
+.hw-etapes span { font-size: 13px; line-height: 1.4; max-height: 0; opacity: 0; transition: max-height 0.4s, opacity 0.4s; }
+.hw-etapes i { position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px; border-radius: 1px; background: rgba(255, 255, 255, 0.08); }
+.hw-etapes i::after { content: ""; position: absolute; inset: 0; transform-origin: left; transform: scaleX(var(--p, 0)); background: var(--atmosphere); border-radius: 1px; }
+.hw-etapes button:hover { background: rgba(255, 255, 255, 0.04); }
+.hw-etapes .actif button { background: rgba(169, 200, 238, 0.08); border-color: var(--trait); }
+.hw-etapes .actif button::before { background: var(--atmosphere); color: #081120; }
+.hw-etapes .actif b { opacity: 1; }
+.hw-etapes .actif span { max-height: 4.5em; opacity: 1; }
+.hw-etapes .fait button::before { background: rgba(169, 200, 238, 0.25); color: var(--texte); }
+
+.hw-pied { margin: 0; color: var(--doux); font-size: 13px; }
+
+@media (max-width: 860px) {
+  .hw-corps { grid-template-columns: 1fr; }
+  .hw-etapes { grid-column: 1; grid-row: 3; }
+  .hw-panneau .hw-entete { right: 0; }
+  .hw-scene { height: clamp(300px, 62vw, 440px); }
+  .hw-etapes { border-left: 0; border-top: 1px solid var(--trait); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hw-etapes .actif span { max-height: 6em; }
+}
+@media (max-width: 520px) {
+  .hw-entete { padding: 12px 14px; gap: 10px; }
+  .hw-etapes { grid-template-columns: 1fr; }
+  .hw-onglets button { padding: 10px 12px; gap: 8px; font-size: 16px; }
+  .hw-onglets .hw-num { display: none; }
+  .hw-onglets small { font-size: 10px; letter-spacing: 0.06em; }
+  .hw-recit { padding: 12px 14px 14px; min-height: 6.2em; }
+  #direct .hw-scene { height: 440px; }
+  .hw-etapes button { padding: 8px 10px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hw-etapes button, .hw-etapes span, .hw-etapes b, .hw-recit.montre { transition: none; }
+}

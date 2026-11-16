@@ -1,6 +1,6 @@
 // Navigation bar, at the top of all pages except the animated summary (fullscreen, it has its own close button).
 //
-//   [logo AstroWrap]          Moon   Mars   Earth •                               About
+//   [logo AstroWrap]          Moon   Mars   Earth •                 How it works   About
 //
 // - the name links back to home (index.html, the body selection window);
 // - Moon and Mars open the page where the area is painted;
@@ -44,7 +44,7 @@
     majTerre();
   }
 
-  const actif = { lune: "lune", mars: "mars", index: "terre", apropos: "apropos" }[page];
+  const actif = { lune: "lune", mars: "mars", index: "terre", apropos: "apropos", fonctionnement: "fonctionnement" }[page];
   const lien = (cle, href, texte, extra = "") =>
     `<a class="nav-lien" data-cle="${cle}" href="${href}${suite}${extra}" ${cle === actif ? 'aria-current="page"' : ""}>${texte}</a>`;
 
@@ -65,6 +65,7 @@
         ${lien("terre", "index.html", "Earth", "#terre")}
       </div>
       <div class="nav-outils">
+        ${lien("fonctionnement", "fonctionnement.html", "How it works")}
         ${lien("apropos", "apropos.html", "About")}
       </div>
     </div>`;
