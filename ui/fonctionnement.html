@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&display=swap">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="stylesheet" href="css/fonctionnement.css">
+  <link rel="stylesheet" href="css/validation.css">
   <link rel="stylesheet" href="css/navigation.css">
 </head>
 <body>
@@ -27,6 +28,8 @@
         <span class="hw-num">1</span><span><small>Once, offline</small>Pre-processing</span></button>
       <button type="button" role="tab" id="hw-o2" aria-controls="direct" aria-selected="false">
         <span class="hw-num">2</span><span><small>Live, in the app</small>The search</span></button>
+      <button type="button" role="tab" id="hw-o3" aria-controls="validation" aria-selected="false">
+        <span class="hw-num">3</span><span><small>Measured, not claimed</small>Can you trust it?</span></button>
     </div>
 
     <!-- 1. Préparé une fois, hors ligne -->
@@ -73,12 +76,69 @@
           <li data-recit="It starts in the app: you paint an area on Mars or the Moon. | Only the ids of your hexagons travel to our server."><button type="button"><b>You paint an area</b><span>Your hexagons on Mars or the Moon go to the server.</span><i></i></button></li>
           <li data-recit="The server looks up your hexagons in the Parquet tables and averages each criterion. | That gives the fingerprint of your area: what it looks like, criterion by criterion."><button type="button"><b>Its fingerprint</b><span>The server averages each criterion over your area.</span><i></i></button></li>
           <li data-recit="Now every Earth cell is compared with that fingerprint, one module after the other. | At each gate, the cells that keep looking less alike than most are dropped. | What’s left: a few thousand candidates, scored by how close they are overall."><button type="button"><b>Through every module</b><span>Earth cells that keep looking less alike than most are dropped.</span><i></i></button></li>
-          <li data-recit="The best ones are picked, at least 300 km apart, so the list isn’t ten times the same desert. | They come back to your browser in about two seconds, ready to explore and unwrap."><button type="button"><b>The best sites come back</b><span>Top 10, at least 300 km apart, in about two seconds.</span><i></i></button></li>
+          <li data-recit="The best ones are picked, at least 800 km apart by default, so the list isn’t ten times the same desert. | They come back to your browser in a few seconds, ready to explore and unwrap."><button type="button"><b>The best sites come back</b><span>Top 10, at least 800 km apart by default, in a few seconds.</span><i></i></button></li>
         </ol>
       </div>
     </section>
 
-    <p class="hw-pied">These animations are simplified drawings, not your real data: the numbers shown are examples.
+    <!-- 3. Validation : chiffres calculés par scripts/validation.py (data/validation.json) -->
+    <section class="hw-panneau hw-valid" id="validation" role="tabpanel" aria-labelledby="hw-o3" hidden>
+      <h2 class="v-titre">Does it find the places scientists already use?</h2>
+      <p class="v-intro">Six areas with Earth analogs known from the literature, run through the real search.</p>
+      <div class="v-kpis" id="v-kpis"><p class="v-charge">Loading the results…</p></div>
+
+      <div class="v-grille">
+        <article class="v-carte v-backtest" aria-labelledby="v-bt-t">
+          <h3 id="v-bt-t">1. Known analogs: where they rank</h3>
+          <p class="v-retenir" id="v-bt-retenir"></p>
+          <div class="v-legende" aria-hidden="true">
+            <span><i class="v-pt v-nous"></i>AstroWrap</span><span><i class="v-pt v-pente"></i>Slope alone</span>
+            <span><i class="v-pt v-hasard"></i>Random (expected)</span><span><i class="v-zone5"></i>Top 5% of Earth</span>
+          </div>
+          <div class="v-bt" id="v-bt" role="table" aria-label="Rank of each known analog"></div>
+          <p class="v-def"><b>Top 0.1%</b> = fewer than 0.1% of Earth’s land cells score higher. Lower is better.
+            On the results page, <em>Top X%</em> is relative to the ~20,000 best cells only.</p>
+        </article>
+
+        <article class="v-carte" aria-labelledby="v-st-t">
+          <h3 id="v-st-t">2. Stability</h3>
+          <p class="v-retenir" id="v-st-retenir"></p>
+          <div id="v-st"></div>
+        </article>
+
+        <article class="v-carte" aria-labelledby="v-cv-t">
+          <h3 id="v-cv-t">3. Data coverage</h3>
+          <p class="v-retenir" id="v-cv-retenir"></p>
+          <div id="v-cv"></div>
+        </article>
+      </div>
+
+      <article class="v-carte v-regle" aria-labelledby="v-rg-t">
+        <h3 id="v-rg-t">The scoring rule, on one screen</h3>
+        <div class="v-regle-cols" id="v-regle"></div>
+      </article>
+
+      <div class="v-echecs" aria-labelledby="v-ec-t">
+        <h3 id="v-ec-t">Where it goes wrong</h3>
+        <div class="v-echecs-liste" id="v-echecs"></div>
+      </div>
+
+      <article class="v-carte v-rejeu" aria-labelledby="v-rj-t">
+        <h3 id="v-rj-t">Replay a search yourself</h3>
+        <p class="v-note">Runs the same search live and compares it with the recorded top 10.</p>
+        <div class="v-rejeu-outils">
+          <label>Area <select id="v-rj-zone"></select></label>
+          <button type="button" id="v-rj-go">Replay this search</button>
+        </div>
+        <div id="v-rj-res" aria-live="polite"></div>
+      </article>
+
+      <p class="v-honnete" id="v-honnete"></p>
+      <div class="v-bulle" id="v-bulle" role="tooltip" hidden></div>
+    </section>
+
+    <p class="hw-pied">The animations of tabs 1 and 2 are simplified drawings, not your real data: their numbers are
+      examples. Tab 3 shows measured results.
       To see which satellites we use and what the app can’t do, read <a href="apropos.html">About</a>.</p>
   </main>
 
@@ -86,5 +146,6 @@
   <script>window.h3 || document.write('<script src="https://unpkg.com/h3-js@4.4.0/dist/h3-js.umd.js"><\/script>')</script>
   <script src="textures/accueil.js"></script>
   <script src="js/fonctionnement.js"></script>
+  <script src="js/validation.js"></script>
 </body>
 </html>
