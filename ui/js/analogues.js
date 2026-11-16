@@ -1201,7 +1201,15 @@
             : `<span class="analogues-doux">–</span>`}</td></tr>`).join("")}</tbody>`).join("");
     el.innerHTML = `<div class="comparaison" style="--zone:${COULEUR_CORPS[corps]}">
         <table><thead><tr><th scope="col">Variable</th><th scope="col" class="cz">${NOMS[corps].replace(/^the /, "The ")}</th>
-          <th scope="col" class="ct">Earth</th><th scope="col" class="cm">Match</th></tr></thead>${groupes}</table></div>`;
+          <th scope="col" class="ct">Earth</th><th scope="col" class="cm">Match</th></tr></thead>${groupes}</table>
+        <p class="analogues-doux">${surfaceTerre(d.footprint)}</p></div>`;
+  }
+
+  /** Which surface the Earth values describe: the footprint (same area as the painted zone) or a single cell. */
+  function surfaceTerre(f) {
+    const n = f && f.cells ? f.cells.length : 1;
+    return n > 1 ? `Earth: mean over the ${nb.format(f.area_km2)} km² around the site (${n} cells, about the area of your zone).`
+      : "Earth: the site's cell (about 250 km²).";
   }
 
   // Onglets de la fiche : Overview (pourquoi, critères), Data (tableau) ; le dernier choisi est gardé.
@@ -1320,7 +1328,9 @@
       fiche.querySelector("#site-sous-titre").innerHTML = sousTitreLieu(d.place);
       const li = $(`#an-liste button[data-i="${i}"] .analogues-lieu`);
       if (li) li.textContent = nom;
-      fiche.querySelector("#site-fiche").innerHTML = d.sections.map((s) => `
+      const nEmpreinte = R.footprint && R.footprint.cells ? R.footprint.cells : 1;
+      fiche.querySelector("#site-fiche").innerHTML = `<p class="analogues-doux">Values for the central cell only (${nb.format(d.area_km2)} km²)${
+        nEmpreinte > 1 ? `, not the ${nb.format(R.footprint.area_km2)} km² around the site used in Data and in the ranking` : ""}.</p>` + d.sections.map((s) => `
         <section class="site-section"><h3>${s.name}</h3><dl>
           ${s.items.map((x) => `<dt>${x.label}</dt><dd>${typeof x.value === "number" ? nb1.format(x.value) : echapper(x.value)}${x.unit === "%" ? "%" : x.unit ? " " + x.unit : ""}</dd>`).join("")}
         </dl></section>`).join("");

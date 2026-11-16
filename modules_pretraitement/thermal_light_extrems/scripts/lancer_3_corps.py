@@ -1,8 +1,8 @@
 """Lance le prétraitement thermique (Lune, Terre, Mars) avec python, sans Jupyter.
 
-    ./pipeline run thermal_light_extrems                          # les trois corps
-    ./pipeline run thermal_light_extrems --corps moon mars
-    ./pipeline run thermal_light_extrems --corps earth --zone -115 31 -109 37
+    python modules_pretraitement/thermal_light_extrems/scripts/lancer_3_corps.py                          # les trois corps
+    python modules_pretraitement/thermal_light_extrems/scripts/lancer_3_corps.py --corps moon mars
+    python modules_pretraitement/thermal_light_extrems/scripts/lancer_3_corps.py --corps earth --zone -115 31 -109 37
 
 Le code vit dans notebooks/pretraitement_thermique_3_corps.ipynb : ce fichier en exécute
 les cellules dans l'ordre et remplace les paramètres par les options ci-dessous. Une seule

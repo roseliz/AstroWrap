@@ -1,7 +1,7 @@
 """"Volatiles, hydrology, ice and permafrost" module: preprocessing for Earth, Mars, and the Moon.
 
-    ./pipeline run volatiles_hydrology_ice                       # all three bodies
-    ./pipeline run volatiles_hydrology_ice --corps moon          # all options: --help
+    python modules_pretraitement/volatiles_hydrology_ice/scripts/pretraitement.py                       # all three bodies
+    python modules_pretraitement/volatiles_hydrology_ice/scripts/pretraitement.py --corps moon          # all options: --help
 
 One row per H3 cell (resolution 5 by default; for Earth, land cells only), written to
 pretreatment_data/volatiles_hydrology_ice/. All three bodies share the same columns; a column that is
@@ -505,7 +505,7 @@ def charger_env() -> None:
 
 
 def charger_netrc() -> None:
-    """Sous Windows, earthaccess ne cherche que ~/_netrc alors que setup.sh et la doc NASA écrivent ~/.netrc :
+    """Sous Windows, earthaccess ne cherche que ~/_netrc alors que la doc NASA écrit ~/.netrc :
     on lit l'un ou l'autre avec la bibliothèque standard et on passe par les variables d'environnement."""
     import netrc
     if os.environ.get("EARTHDATA_USERNAME") and os.environ.get("EARTHDATA_PASSWORD"):

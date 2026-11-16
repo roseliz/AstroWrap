@@ -381,6 +381,11 @@
   }
 
   // 9 bis. Tester sur ce site : l'impact d'une campagne d'essais (mêmes règles que js/analogues.js, impactSite)
+  // Deux surfaces différentes : l'empreinte (moyenne autour du site, de la taille de la zone peinte : impact,
+  // classement) et la cellule centrale (fiche du site : limites ci-dessous). On dit toujours laquelle.
+  const emp = recherche && recherche.footprint && recherche.footprint.cells > 1 ? recherche.footprint : null;
+  const autour = emp ? `of the ${nb.format(emp.area_km2)} km² around the site` : "of the site's cell";
+  const cellCentrale = `the central cell (${nb.format(fiche && fiche.area_km2 ? fiche.area_km2 : 250)} km²)`;
   const I = recherche && recherche.pool && recherche.pool.impact;
   const iP = I ? recherche.pool.h3.indexOf(cellule) : -1;
   if (iP >= 0) {
@@ -393,9 +398,9 @@
         p: fort ? "Mostly in a protected area: tests would need permits and disturb a preserved environment."
           : faible ? "Outside protected areas, on land already transformed by mining."
           : p >= 0.1 ? "Partly in protected areas." : "Outside protected areas, but on land that nothing has transformed yet." });
-      cartesI.push({ t: "donnee", etq: "Protected areas", g: pct.format(p), p: `of the site${st >= 0.01 ? `, ${pct.format(st)} strictly protected (national parks, strict reserves)` : ""}.` });
+      cartesI.push({ t: "donnee", etq: "Protected areas", g: pct.format(p), p: `${autour}${st >= 0.01 ? `, ${pct.format(st)} strictly protected (national parks, strict reserves)` : ""}.` });
     }
-    if (mi != null && mi >= 0.005) cartesI.push({ t: "corps", etq: "Already transformed", g: `${mi < 0.01 ? nb1.format(100 * mi) : nb.format(100 * mi)}%`, p: "of the land is mined: a test adds little to it." });
+    if (mi != null && mi >= 0.005) cartesI.push({ t: "corps", etq: "Already transformed", g: `${mi < 0.01 ? nb1.format(100 * mi) : nb.format(100 * mi)}%`, p: `${autour} is mined: a test adds little to it.` });
     const aero = fait("Field campaign", "Nearest airport");
     if (ae != null) cartesI.push({ t: "donnee", etq: "Access", g: `${nb.format(ae)} km`, p: aero ? `to ${echapper(aero.value.replace(/, [\d,]+ km$/, ""))}, the nearest airport with scheduled flights.` : "to the nearest airport with scheduled flights." });
     let dep = null;
@@ -432,9 +437,9 @@
   // 10. Les limites de ce site
   const cartes = [];
   const veg = fait("Ground", "Dense vegetation"), urb = fait("Ground", "Urban areas"), mine = fait("Caves and volcanoes", "Mines"), nuage = fait("Climate", "Cloud cover");
-  if (veg && veg.value >= 5) cartes.push({ t: "site", etq: "On this site", g: `${nb.format(veg.value)}%`, p: "dense vegetation: it hides the ground we want to compare." });
-  if (urb && urb.value >= 1) cartes.push({ t: "site", etq: "On this site", g: `${nb1.format(urb.value)}%`, p: "urban areas in the cell." });
-  if (mine && mine.value > 0) cartes.push({ t: "site", etq: "On this site", g: `${nb1.format(mine.value)}%`, p: "of the cell covered by mines." });
+  if (veg && veg.value >= 5) cartes.push({ t: "site", etq: "On this site", g: `${nb.format(veg.value)}%`, p: `dense vegetation in ${cellCentrale}: it hides the ground we want to compare.` });
+  if (urb && urb.value >= 1) cartes.push({ t: "site", etq: "On this site", g: `${nb1.format(urb.value)}%`, p: `urban areas in ${cellCentrale}.` });
+  if (mine && mine.value > 0) cartes.push({ t: "site", etq: "On this site", g: `${nb1.format(mine.value)}%`, p: `of ${cellCentrale} covered by mines.` });
   if (nuage && nuage.value >= 50) cartes.push({ t: "site", etq: "On this site", g: `${nb.format(nuage.value)}%`, p: "average cloud cover." });
   // data reliability: a single card, the weakest in large type, the others listed
   const peuFiables = modules.filter((m) => m.reliability != null && m.reliability < 0.9).sort((a, b) => a.reliability - b.reliability);

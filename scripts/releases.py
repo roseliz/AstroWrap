@@ -5,8 +5,7 @@
     python scripts/releases.py liste     [thermal_light_extrems]
 
 One release per execution, "<module>-YYYY-MM-DD-HHMM", containing the zip of `pretreatment_data/<module>/`.
-Uses GitHub CLI (`gh`), authenticated via `gh auth login`. `./pipeline publish / fetch / releases`
-call this script.
+Uses GitHub CLI (`gh`), authenticated via `gh auth login`.
 """
 
 from __future__ import annotations
@@ -29,7 +28,7 @@ LIMITE = 2 * 1024**3   # taille maximale d'un fichier attaché à une release Gi
 
 def gh(*args: str, capturer: bool = True) -> str:
     if shutil.which("gh") is None:
-        sys.exit("GitHub CLI (gh) introuvable : lancez ./setup.sh")
+        sys.exit("GitHub CLI (gh) introuvable : installez-le (https://cli.github.com) puis gh auth login")
     r = subprocess.run(["gh", *args], cwd=RACINE, capture_output=capturer, text=True)
     if r.returncode:
         sys.exit((r.stderr or "").strip() or f"échec : gh {' '.join(args)}")
@@ -64,7 +63,7 @@ def publier(module: str, note: str) -> None:
     dossier = RACINE / "pretreatment_data" / module
     fichiers = sorted(f for f in dossier.rglob("*") if f.is_file() and f.name != "README.md") if dossier.is_dir() else []
     if not fichiers:
-        sys.exit(f"Aucun résultat dans {dossier} : lancez d'abord ./pipeline run {module}")
+        sys.exit(f"Aucun résultat dans {dossier} : lancez d'abord le module (voir modules_pretraitement/{module}/README.md)")
     date = dt.datetime.now().strftime("%Y-%m-%d-%H%M")
     tag = f"{module}-{date}"
     commit = git("rev-parse", "--short", "HEAD")
@@ -75,7 +74,7 @@ def publier(module: str, note: str) -> None:
                "| Fichier | Taille | SHA-256 |", "|---|---:|---|"]
     for f in fichiers:
         lignes.append(f"| `{f.relative_to(dossier).as_posix()}` | {f.stat().st_size / 1e6:.1f} Mo | `{sha256(f)[:16]}` |")
-    lignes += ["", f"Récupérer : `./pipeline fetch {module} --tag {tag}`"]
+    lignes += ["", f"Récupérer : `python scripts/releases.py recuperer {module} --tag {tag}`"]
     with tempfile.TemporaryDirectory() as tmp:
         archive = Path(shutil.make_archive(str(Path(tmp) / module), "zip", root_dir=dossier.parent, base_dir=module))
         print(f"Archive {archive.name} : {archive.stat().st_size / 1e6:.0f} Mo, {len(fichiers)} fichiers")
