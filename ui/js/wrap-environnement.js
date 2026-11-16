@@ -74,7 +74,7 @@ out tags 80;`;
         valeur: z.dedans ? "Inside" : `${nature.length} near`, sous: z.nom,
         detail: `${z.nom}: ${strict(z) ? "strictly protected, research permits needed, marked tracks only." : "ask the managing authority before any test."}`, source: src });
     } else if (protege && protege.part != null && protege.part >= 0.05) {
-      cartes.push({ ton: "respect", icone: "feuille", titre: "Protected", valeur: pct.format(protege.part), sous: "of the site",
+      cartes.push({ ton: "respect", icone: "feuille", titre: "Protected", valeur: pct.format(protege.part), sous: "around the site",
         detail: "Part of the site in a protected area (WDPA): permits needed, leave no trace.", source: "UNEP-WCMC & IUCN, Protected Planet" });
     } else {
       cartes.push({ ton: "calme", icone: "feuille", titre: "Protected areas", valeur: "None", sous: `within ${nb.format(rayonKm)} km`,
